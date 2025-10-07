@@ -4,7 +4,7 @@ const controller = new GameController({ mode: "local" });
 
 const ui = new GameUI(controller);
 
-// UI subscribed to controller events
+// UI subscribed controller events mit callbacks
 controller.onMove = (row, col, symbol) => {
   ui.renderButtonContent(row, col, symbol);
   ui.renderTopText(controller.game);
