@@ -15,5 +15,5 @@ Das Projekt ist aktuell in Entwicklung.
 
 
 
-<img src="./screenshotsForReadMe/workinprogress.png" width="400" alt="Spielübersicht (work in progress)" />
+<img src="./screenshotsForReadMe/workinprogress.png" width="900" alt="Spielübersicht (work in progress)" />
 
