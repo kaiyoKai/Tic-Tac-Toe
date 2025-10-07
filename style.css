@@ -1,0 +1,76 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--boardsize), minmax(80px, 2fr));
+  gap: 0px;
+
+  width: min(80vmin, 600px);
+  margin: auto;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+.grid button {
+  aspect-ratio: 1/1;
+  width: 100%;
+  font-size: 440%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}
+.grid button:hover {
+  background-color: white;
+}
+.grid button:active {
+  animation: textPopIn 0.8s ease-out forwards;
+}
+.grid button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 4px;
+  background: transparent;
+  transform: translate(-50%, -50%) rotate(var(--angle, 0deg));
+  transform-origin: center;
+}
+
+.grid button.win::after {
+  background: black;
+}
+
+.grid button.win {
+  background-color: aliceblue;
+}
+
+.top {
+  margin: 0 auto;
+  width: 300px;
+  font-size: 20px;
+  padding: 0 0 0 0;
+  box-sizing: content-box;
+}
+
+#reset {
+  display: block;
+  font-size: 200%;
+  height: 50px;
+  width: 200px;
+  margin: 50px auto 0 auto;
+  box-sizing: content-box;
+}
+
+@keyframes textPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
