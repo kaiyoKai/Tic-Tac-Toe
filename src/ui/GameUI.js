@@ -1,6 +1,12 @@
-import { GameSettings } from "./GameSettings.js";
+import { GameSettings } from "../core/GameSettings.js";
 
+/**
+ * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
+ */
 export class GameUI {
+  /**
+   * @param {import("../controller/GameController.js").GameController} controller
+   */
   constructor(controller) {
     this.controller = controller;
     this.root = document.getElementById("grid");
@@ -33,6 +39,9 @@ export class GameUI {
     });
   }
 
+  /**
+   * Collects all grid buttons and attaches click handlers for moves.
+   */
   attachButtonListeners() {
     this.buttons = Array.from(document.querySelectorAll(".grid button"));
 
@@ -46,6 +55,9 @@ export class GameUI {
     });
   }
 
+  /**
+   * Reads the settings form and forwards values to the controller.
+   */
   sendSettingsFromFormToController() {
     const gamemode = this.gameModeField.value;
     const boardSize = parseInt(this.boardSizeTextField.value);
@@ -55,6 +67,9 @@ export class GameUI {
     this.controller.applySettings(newSettings);
   }
 
+  /**
+   * Synchronises inputs and board layout after settings change.
+   */
   updateSettings() {
     this.gameModeField.value = this.controller.getMode();
     this.boardSizeTextField.value = this.controller.getBoardSize();
@@ -70,6 +85,9 @@ export class GameUI {
     this.renderTopText(this.controller.getBoard());
   }
 
+  /**
+   * Creates the grid buttons for the current board size.
+   */
   createBoard() {
     const size = this.controller.getBoardSize();
     this.root.style.setProperty("--boardsize", size);
@@ -82,6 +100,12 @@ export class GameUI {
       }
     }
   }
+  /**
+   * Updates the displayed symbol on a specific grid cell.
+   * @param {number} row
+   * @param {number} col
+   * @param {string} sym
+   */
   renderButtonContent(row, col, sym) {
     let btn = this.buttons.find(
       (b) => Number(b.dataset.row) === row && Number(b.dataset.col) === col,
@@ -89,6 +113,10 @@ export class GameUI {
     btn.textContent = sym;
   }
 
+  /**
+   * Highlights winning positions with visual cues.
+   * @param {{type: string, winner: string, positions: Array<{row:number,col:number}>}} result
+   */
   renderWinLines(result) {
     console.log(result);
     if (result.type === "draw") return;
@@ -103,6 +131,11 @@ export class GameUI {
       }
     });
   }
+  /**
+   * Determines the highlight angle for a winning line.
+   * @param {{type: string}} result
+   * @returns {string}
+   */
   determineAngle(result) {
     let angle = result.type;
     switch (angle) {
@@ -119,6 +152,10 @@ export class GameUI {
     }
   }
 
+  /**
+   * Displays the winner or draw message and highlights the board.
+   * @param {{type: string, winner: string, positions: Array<{row:number,col:number}>}} result
+   */
   showWinner(result) {
     if (result.type === "draw") {
       winnerLabel.textContent = "it's a draw";
@@ -127,6 +164,9 @@ export class GameUI {
     this.renderWinLines(result);
   }
 
+  /**
+   * Renders the player turn indicators.
+   */
   renderTopText() {
     this.turnNumberLabel.textContent =
       this.baseTurnText + (this.controller.getTurn() + 1);
@@ -134,19 +174,30 @@ export class GameUI {
       this.basePlayerText + this.controller.getNextPlayerSymbol();
   }
 
+  /**
+   * Applies provided board state to the rendered buttons.
+   * @param {HTMLButtonElement[]} buttons
+   * @param {(string|null)[][]} gameBoard
+   */
   renderBoard(buttons, gameBoard) {
     buttons.forEach((b) => renderButtonContent(b, gameBoard));
   }
 
+  /**
+   * Resets the UI to the initial state.
+   */
   resetUI() {
     this.resetBoard();
     this.renderTopText();
     winnerLabel.textContent = "";
   }
 
+  /**
+   * Clears all symbols and highlights from the grid.
+   */
   resetBoard() {
     this.buttons.forEach((btn) => {
-      btn.textContent = ""; //konnte auch renderBoard aber uberflussig weil sowieso alles null ist bei reset
+      btn.textContent = "";
       btn.classList.remove("win");
     });
   }

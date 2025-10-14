@@ -1,12 +1,14 @@
-import TicTacToe from "./TicTacToe.js";
-import { Bot } from "./Bot.js";
-import { Player } from "./Player.js";
-import { GameSettings } from "./GameSettings.js";
+import TicTacToe from "../core/TicTacToe.js";
+import { Bot } from "../players/Bot.js";
+import { Player } from "../players/Player.js";
+import { GameSettings } from "../core/GameSettings.js";
+
+/**
+ * Coordinates game state, settings, and players for a Tic-Tac-Toe match.
+ */
 export class GameController {
   /**
-   * @param {string} mode
-   * @param {number} boardSize
-   * @param {number} winCon
+   * @param {{mode?: string, boardSize?: number, winCon?: number}} [options]
    */
   constructor({ mode = "local", boardSize = 3, winCon = 3 } = {}) {
     this.gameSettings = new GameSettings(mode, boardSize, winCon);
@@ -33,7 +35,6 @@ export class GameController {
   // --- SETTINGS ---
 
   /**
-   * Wendet neue Einstellungen an (z. B. aus UI).
    * @param {GameSettings} newSettings
    */
   applySettings(newSettings) {
@@ -51,37 +52,68 @@ export class GameController {
     }
   }
 
+  /**
+   * Returns currently active game settings.
+   * @returns {GameSettings}
+   */
   getSettings() {
     return this.gameSettings;
   }
 
   // --- SPIELSTEUERUNG ---
 
+  /**
+   * Returns the board matrix for direct inspection.
+   * @returns {(string|null)[][]}
+   */
   getBoard() {
     return this.game.board;
   }
 
+  /**
+   * Returns the current board dimension.
+   * @returns {number}
+   */
   getBoardSize() {
     return this.game.getBoardLength();
   }
 
+  /**
+   * Returns required symbol count in a row to win.
+   * @returns {number}
+   */
   getWinCon() {
     return this.gameSettings.winCon;
   }
 
+  /**
+   * Returns the current gameplay mode.
+   * @returns {string}
+   */
   getMode() {
     return this.gameSettings.mode;
   }
 
+  /**
+   * Returns the current turn index.
+   * @returns {number}
+   */
   getTurn() {
     return this.game.turn;
   }
 
+  /**
+   * Returns the symbol of the next player in rotation.
+   * @returns {string}
+   */
   getNextPlayerSymbol() {
     let nextPlayerIndex = 1 - this.currentIndex;
     return this.players[nextPlayerIndex].symbol;
   }
 
+  /**
+   * Initializes players according to the selected mode.
+   */
   setupPlayersByMode() {
     this.players = [];
     const mode = this.gameSettings.mode;
@@ -98,10 +130,19 @@ export class GameController {
     }
   }
 
+  /**
+   * Indicates whether the game has finished.
+   * @returns {boolean}
+   */
   isGameOver() {
     return this.game.gameOver;
   }
 
+  /**
+   * Adds a new player instance for the current match.
+   * @param {"human"|"bot"|"remote"} [type]
+   * @param {string} [symbol]
+   */
   addPlayer(type = "human", symbol = "X") {
     if (type === "bot") {
       this.players.push(new Bot(symbol));
@@ -110,14 +151,26 @@ export class GameController {
     }
   }
 
+  /**
+   * Returns the player whose turn it currently is.
+   * @returns {Player|Bot}
+   */
   getCurrentPlayer() {
     return this.players[this.currentIndex];
   }
 
+  /**
+   * Advances the internal player index.
+   */
   togglePlayer() {
     this.currentIndex = 1 - this.currentIndex;
   }
 
+  /**
+   * Executes a move for the current player and triggers follow-up events.
+   * @param {number} row
+   * @param {number} col
+   */
   makeMove(row, col) {
     const player = this.getCurrentPlayer();
 
@@ -143,6 +196,9 @@ export class GameController {
     }
   }
 
+  /**
+   * Resets the match to its starting state.
+   */
   resetGame() {
     this.game.resetGame();
     this.currentIndex = 0;
