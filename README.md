@@ -1,11 +1,11 @@
 # TicTacToe 👣 (weil Toe checkt ihr?)
 
 Ein simples TicTacToe-Spiel mit anpassbarer Spielfeldgröße, Gewinnbedingung und geplantem Online-Multiplayer-Modus über WebSockets.
-Das Projekt ist aktuell in Entwicklung.
+Das Projekt ist bereits viel zu lange in Entwicklung für die geringe Komplexität.
 
 ---
 
-## 🚀 Features
+## Features
 
 - **Lokaler Spielmodus** (2 Spieler auf einem Gerät,oder ein Spieler gegen einen Super schweren Bot der den MiniMax alogritmus nutzt. 😎 (bisher noch garkein Bot xD) )
 - **Anpassbare Einstellungen** (Boardgröße & Gewinnbedingung)
