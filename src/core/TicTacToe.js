@@ -19,7 +19,7 @@ export default class TicTacToe {
     SUCCESS: "SUCCESS",
     OCCUPIED: "OCCUPIED",
     GAME_OVER: "GAME_OVER",
-    NOT_YOUR_TURN: "NOT_YOUR_TURN", // Falls du das später brauchst
+    NOT_YOUR_TURN: "NOT_YOUR_TURN",
   };
 
   /**
@@ -51,7 +51,6 @@ export default class TicTacToe {
 
     const matchResult = this.isFinished(row, col);
 
-    // Fall A: Spiel ist vorbei (Sieg oder Draw)
     if (matchResult !== null) {
       this.gameOver = true;
       return {
@@ -60,13 +59,11 @@ export default class TicTacToe {
       };
     }
 
-    // Fall B: Spiel geht weiter
     return {
       status: TicTacToe.MOVE_STATUS.SUCCESS,
       gameResult: null,
     };
   }
-  // TicTacToe.js
 
   static DIRECTIONS = {
     [GameResult.TYPES.HORIZONTAL]: { dRow: 0, dCol: 1 },
@@ -76,9 +73,7 @@ export default class TicTacToe {
   };
 
   isFinished(row, col) {
-    // Wir gehen alle definierten Typen durch
     for (const type in TicTacToe.DIRECTIONS) {
-      // Und rufen die Prüfung nur mit dem Namen auf
       const result = this.checkDirection(row, col, type);
 
       if (result) return result;
