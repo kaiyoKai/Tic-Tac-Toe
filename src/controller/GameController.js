@@ -32,8 +32,6 @@ export class GameController {
     this.onSettingsChanged = null;
   }
 
-  // --- SETTINGS ---
-
   /**
    * @param {GameSettings} newSettings
    */
@@ -59,8 +57,6 @@ export class GameController {
   getSettings() {
     return this.gameSettings;
   }
-
-  // --- SPIELSTEUERUNG ---
 
   /**
    * Returns the board matrix for direct inspection.
@@ -165,26 +161,21 @@ export class GameController {
   togglePlayer() {
     this.currentIndex = 1 - this.currentIndex;
   }
-
-  /**
-   * Executes a move for the current player and triggers follow-up events.
-   * @param {number} row
-   * @param {number} col
-   */
   makeMove(row, col) {
     const player = this.getCurrentPlayer();
 
     if (!this.game.isValidMove(row, col)) return;
 
-    const result = this.game.move(row, col, player.symbol);
+    const moveResult = this.game.move(row, col, player.symbol);
 
     if (this.onMove) this.onMove(row, col, player.symbol);
 
-    if (result) {
-      if (this.onFinish) this.onFinish(result);
+    if (moveResult.gameResult !== null) {
+      if (this.onFinish) this.onFinish(moveResult.gameResult);
       return;
     }
 
+    // 3. Wenn kein gameResult da ist, geht das Spiel weiter
     this.togglePlayer();
 
     const next = this.getCurrentPlayer();
@@ -194,9 +185,7 @@ export class GameController {
         this.makeMove(r, c);
       }, 400);
     }
-  }
-
-  /**
+  } /**
    * Resets the match to its starting state.
    */
   resetGame() {

@@ -1,3 +1,4 @@
+import { GameResult } from "../core/GameResult.js";
 /**
  * Core Tic-Tac-Toe board logic including move validation and win detection.
  */
@@ -13,6 +14,13 @@ export default class TicTacToe {
     this.gameOver = false;
     this.winCon = winCon;
   }
+
+  static MOVE_STATUS = {
+    SUCCESS: "SUCCESS",
+    OCCUPIED: "OCCUPIED",
+    GAME_OVER: "GAME_OVER",
+    NOT_YOUR_TURN: "NOT_YOUR_TURN", // Falls du das später brauchst
+  };
 
   /**
    * Builds the board matrix with null entries.
@@ -31,58 +39,62 @@ export default class TicTacToe {
    * @returns {GameResult|null|undefined}
    */
   move(row, col, symbol) {
-    if (this.gameOver) return;
-    if (this.board[row][col] !== null) return; // do nothing since field is already occupied :)
+    if (this.gameOver) {
+      return { status: TicTacToe.MOVE_STATUS.GAME_OVER, gameResult: null };
+    }
+    if (this.board[row][col] !== null) {
+      return { status: TicTacToe.MOVE_STATUS.OCCUPIED, gameResult: null };
+    }
+
     this.board[row][col] = symbol;
     this.turn++;
 
-    const result = this.isFinished(row, col);
-    if (result !== null) {
+    const matchResult = this.isFinished(row, col);
+
+    // Fall A: Spiel ist vorbei (Sieg oder Draw)
+    if (matchResult !== null) {
       this.gameOver = true;
-      return result;
+      return {
+        status: TicTacToe.MOVE_STATUS.SUCCESS,
+        gameResult: matchResult,
+      };
     }
 
-    return null;
+    // Fall B: Spiel geht weiter
+    return {
+      status: TicTacToe.MOVE_STATUS.SUCCESS,
+      gameResult: null,
+    };
   }
+  // TicTacToe.js
 
-  /** @type {Record<string, {dRow: number, dCol: number}>} */
-  static directions = {
-    row: { dRow: 0, dCol: 1 },
-    col: { dRow: 1, dCol: 0 },
-    diagRight: { dRow: 1, dCol: 1 },
-    diagLeft: { dRow: 1, dCol: -1 },
+  static DIRECTIONS = {
+    [GameResult.TYPES.HORIZONTAL]: { dRow: 0, dCol: 1 },
+    [GameResult.TYPES.VERTICAL]: { dRow: 1, dCol: 0 },
+    [GameResult.TYPES.DIAGONAL_MAIN]: { dRow: 1, dCol: 1 },
+    [GameResult.TYPES.DIAGONAL_ANTI]: { dRow: 1, dCol: -1 },
   };
 
-  /**
-   * Evaluates whether the last move ended the game.
-   * @param {number} row
-   * @param {number} col
-   * @returns {GameResult|null}
-   */
   isFinished(row, col) {
-    for (const key in TicTacToe.directions) {
-      const result = this.checkDirection(row, col, key);
+    // Wir gehen alle definierten Typen durch
+    for (const type in TicTacToe.DIRECTIONS) {
+      // Und rufen die Prüfung nur mit dem Namen auf
+      const result = this.checkDirection(row, col, type);
+
       if (result) return result;
     }
+
     if (this.turn >= this.getTotalCells()) {
-      return new GameResult(null, "draw", []);
+      return GameResult.createDraw();
     }
 
     return null;
   }
+  checkDirection(row, col, type) {
+    const { dRow, dCol } = TicTacToe.DIRECTIONS[type];
 
-  /**
-   * Checks contiguous tiles in a direction to find a win.
-   * @param {number} row
-   * @param {number} col
-   * @param {keyof typeof TicTacToe.directions} directionKey
-   * @returns {GameResult|false|undefined}
-   */
-  checkDirection(row, col, directionKey) {
     const symbol = this.board[row][col];
-    if (!symbol) return false;
-
-    const { dRow, dCol } = TicTacToe.directions[directionKey];
+    if (!symbol) return null;
 
     const line = [{ row, col }];
     const boardLength = this.getBoardLength();
@@ -118,8 +130,10 @@ export default class TicTacToe {
     }
 
     if (line.length >= this.winCon) {
-      return new GameResult(symbol, directionKey, line);
+      return GameResult.createWin(symbol, type, line);
     }
+
+    return null;
   }
 
   /**
@@ -207,21 +221,5 @@ export default class TicTacToe {
    */
   isValidMove(row, col) {
     return this.board[row][col] === null;
-  }
-}
-
-/**
- * Represents the outcome of a completed game sequence.
- */
-class GameResult {
-  /**
-   * @param {string|null} winner
-   * @param {string} type
-   * @param {Array<{row:number,col:number}>} positions
-   */
-  constructor(winner, type, positions) {
-    this.winner = winner;
-    this.type = type;
-    this.positions = positions;
   }
 }

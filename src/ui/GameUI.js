@@ -1,4 +1,5 @@
 import { GameSettings } from "../core/GameSettings.js";
+import { GameResult } from "../core/GameResult.js";
 
 /**
  * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
@@ -10,7 +11,6 @@ export class GameUI {
   constructor(controller) {
     this.controller = controller;
     this.root = document.getElementById("grid");
-    console.log(this.controller.getBoardSize);
     this.createBoard();
 
     this.turnPlayerLabel = document.getElementById("turnplayerlabel");
@@ -119,7 +119,7 @@ export class GameUI {
    */
   renderWinLines(result) {
     console.log(result);
-    if (result.type === "draw") return;
+    if (result.type === GameResult.TYPES.DRAW) return;
     const angle = this.determineAngle(result);
     result.positions.forEach(({ row, col }) => {
       const btn = this.buttons.find(
@@ -131,42 +131,32 @@ export class GameUI {
       }
     });
   }
-  /**
-   * Determines the highlight angle for a winning line.
-   * @param {{type: string}} result
-   * @returns {string}
-   */
+
   determineAngle(result) {
     let angle = result.type;
     switch (angle) {
-      case "diagLeft":
-        return "-45deg";
-      case "diagRight":
+      case GameResult.TYPES.DIAGONAL_MAIN:
         return "45deg";
-      case "row":
+      case GameResult.TYPES.DIAGONAL_ANTI:
+        return "-45deg";
+      case GameResult.TYPES.HORIZONTAL:
         return "0deg";
-      case "col":
+      case GameResult.TYPES.VERTICAL:
         return "90deg";
       default:
         return "0deg";
     }
   }
-
-  /**
-   * Displays the winner or draw message and highlights the board.
-   * @param {{type: string, winner: string, positions: Array<{row:number,col:number}>}} result
-   */
   showWinner(result) {
-    if (result.type === "draw") {
-      winnerLabel.textContent = "it's a draw";
+    if (result.type === GameResult.TYPES.DRAW) {
+      this.winnerLabel.textContent = "It's a draw!";
+      return;
     }
-    winnerLabel.textContent = result.winner + " Won!";
+
+    this.winnerLabel.textContent = `${result.winner} Won!`;
     this.renderWinLines(result);
   }
 
-  /**
-   * Renders the player turn indicators.
-   */
   renderTopText() {
     this.turnNumberLabel.textContent =
       this.baseTurnText + (this.controller.getTurn() + 1);
@@ -174,27 +164,12 @@ export class GameUI {
       this.basePlayerText + this.controller.getNextPlayerSymbol();
   }
 
-  /**
-   * Applies provided board state to the rendered buttons.
-   * @param {HTMLButtonElement[]} buttons
-   * @param {(string|null)[][]} gameBoard
-   */
-  renderBoard(buttons, gameBoard) {
-    buttons.forEach((b) => renderButtonContent(b, gameBoard));
-  }
-
-  /**
-   * Resets the UI to the initial state.
-   */
   resetUI() {
     this.resetBoard();
     this.renderTopText();
     winnerLabel.textContent = "";
   }
 
-  /**
-   * Clears all symbols and highlights from the grid.
-   */
   resetBoard() {
     this.buttons.forEach((btn) => {
       btn.textContent = "";
