@@ -1,6 +1,5 @@
 import { GameSettings } from "../core/GameSettings.js";
-import { GameResult } from "../core/GameResult.js";
-
+import { GameResult, WinType } from "../core/GameResult.ts";
 /**
  * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
  */
@@ -119,7 +118,7 @@ export class GameUI {
    */
   renderWinLines(result) {
     console.log(result);
-    if (result.type === GameResult.TYPES.DRAW) return;
+    if (result.type === WinType.Draw) return;
     const angle = this.determineAngle(result);
     result.positions.forEach(({ row, col }) => {
       const btn = this.buttons.find(
@@ -135,20 +134,20 @@ export class GameUI {
   determineAngle(result) {
     let angle = result.type;
     switch (angle) {
-      case GameResult.TYPES.DIAGONAL_MAIN:
+      case WinType.DiagonalMain:
         return "45deg";
-      case GameResult.TYPES.DIAGONAL_ANTI:
+      case WinType.DiagonalAnti:
         return "-45deg";
-      case GameResult.TYPES.HORIZONTAL:
+      case WinType.Horizontal:
         return "0deg";
-      case GameResult.TYPES.VERTICAL:
+      case WinType.Vertical:
         return "90deg";
       default:
         return "0deg";
     }
   }
   showWinner(result) {
-    if (result.type === GameResult.TYPES.DRAW) {
+    if (result.type === WinType.Draw) {
       this.winnerLabel.textContent = "It's a draw!";
       return;
     }

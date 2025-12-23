@@ -1,7 +1,7 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import TicTacToe from "../../src/core/TicTacToe.js";
-import { GameResult } from "../../src/core/GameResult.js";
+import { GameResult, WinType } from "./core/GameResult.ts";
 
 describe("TicTacToe Core Logic", () => {
   let game;
@@ -29,7 +29,7 @@ describe("TicTacToe Core Logic", () => {
 
     assert.ok(result.gameResult, "Sollte ein GameResult haben");
     assert.equal(result.gameResult.winner, "X");
-    assert.equal(result.gameResult.type, GameResult.TYPES.HORIZONTAL);
+    assert.equal(result.gameResult.type, WinType.Horizontal);
     assert.equal(result.gameResult.positions.length, 3);
   });
 

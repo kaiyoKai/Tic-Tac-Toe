@@ -1,7 +1,4 @@
-import { GameResult } from "../core/GameResult.js";
-/**
- * Core Tic-Tac-Toe board logic including move validation and win detection.
- */
+import { GameResult, WinType } from "./GameResult";
 export default class TicTacToe {
   /**
    * @param {number} [size]
@@ -19,7 +16,6 @@ export default class TicTacToe {
     SUCCESS: "SUCCESS",
     OCCUPIED: "OCCUPIED",
     GAME_OVER: "GAME_OVER",
-    NOT_YOUR_TURN: "NOT_YOUR_TURN",
   };
 
   /**
@@ -64,14 +60,12 @@ export default class TicTacToe {
       gameResult: null,
     };
   }
-
   static DIRECTIONS = {
-    [GameResult.TYPES.HORIZONTAL]: { dRow: 0, dCol: 1 },
-    [GameResult.TYPES.VERTICAL]: { dRow: 1, dCol: 0 },
-    [GameResult.TYPES.DIAGONAL_MAIN]: { dRow: 1, dCol: 1 },
-    [GameResult.TYPES.DIAGONAL_ANTI]: { dRow: 1, dCol: -1 },
+    [WinType.Horizontal]: { dRow: 0, dCol: 1 },
+    [WinType.Vertical]: { dRow: 1, dCol: 0 },
+    [WinType.DiagonalMain]: { dRow: 1, dCol: 1 },
+    [WinType.DiagonalAnti]: { dRow: 1, dCol: -1 },
   };
-
   isFinished(row, col) {
     for (const type in TicTacToe.DIRECTIONS) {
       const result = this.checkDirection(row, col, type);
