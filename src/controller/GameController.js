@@ -120,6 +120,7 @@ export class GameController {
     } else if (mode === "bot") {
       this.addPlayer("human", "X");
       this.addPlayer("bot", "O");
+      console.log("Bot Mode!!!");
     } else if (mode === "online") {
       this.addPlayer("human", "X");
       this.addPlayer("remote", "O");
@@ -133,7 +134,6 @@ export class GameController {
   isGameOver() {
     return this.game.gameOver;
   }
-
   /**
    * Adds a new player instance for the current match.
    * @param {"human"|"bot"|"remote"} [type]
@@ -141,18 +141,21 @@ export class GameController {
    */
   addPlayer(type = "human", symbol = "X") {
     if (type === "bot") {
-      this.players.push(new Bot(symbol));
+      this.players.push(new Bot("easy", symbol, this.game));
     } else {
       this.players.push(new Player(type, symbol));
     }
-  }
-
-  /**
+  } /**
    * Returns the player whose turn it currently is.
    * @returns {Player|Bot}
    */
   getCurrentPlayer() {
-    return this.players[this.currentIndex];
+    for (let i = 0; i < this.players.length; i++) {
+      console.log(`Player number ${i}: ${this.players[i].type}`);
+    }
+    const currentPlayer = this.players[this.currentIndex];
+    console.log(`The current player is ${currentPlayer.type}`);
+    return currentPlayer;
   }
 
   /**
@@ -170,22 +173,32 @@ export class GameController {
 
     if (this.onMove) this.onMove(row, col, player.symbol);
 
+    if (
+      moveResult.MoveStatus !== "SUCCESS" &&
+      moveResult.MoveStatus !== "GAME_OVER"
+    ) {
+      console.warn("Ungültiger Zug:", moveResult.MoveStatus);
+      return;
+    }
     if (moveResult.gameResult !== null) {
       if (this.onFinish) this.onFinish(moveResult.gameResult);
       return;
     }
 
-    // 3. Wenn kein gameResult da ist, geht das Spiel weiter
     this.togglePlayer();
 
     const next = this.getCurrentPlayer();
     if (next.type === "bot") {
       setTimeout(() => {
-        const [r, c] = next.getMove(this.game);
-        this.makeMove(r, c);
+        const move = next.getMove();
+        if (move) {
+          this.makeMove(move.row, move.col);
+        }
       }, 400);
     }
-  } /**
+  }
+
+  /**
    * Resets the match to its starting state.
    */
   resetGame() {

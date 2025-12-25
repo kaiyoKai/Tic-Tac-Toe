@@ -28,6 +28,7 @@ export default class TicTacToe {
     this.turn = 0;
     this.gameOver = false;
     this.board = [];
+    this.createBoard();
   }
 
   createBoard() {

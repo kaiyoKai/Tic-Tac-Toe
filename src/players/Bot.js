@@ -1,8 +1,5 @@
 import TicTacToe from "../core/TicTacToe.js";
 
-/**
- * Bot player that selects moves based on the configured difficulty.
- */
 export class Bot {
   /**
    * @param {"easy"|"normal"|"hard"} difficulty
@@ -13,11 +10,9 @@ export class Bot {
     this.difficulty = difficulty;
     this.symbol = symbol;
     this.gameboard = gameboard;
-    this.gameboard = new TicTacToe(testBoard);
   }
 
   /**
-   * Returns the bot's next move based on its difficulty.
    * @returns {{row:number,col:number}|undefined}
    */
   getMove() {
@@ -25,21 +20,21 @@ export class Bot {
       case "easy":
         return this.getRandomMove();
       case "normal":
-        break;
+        return this.getRandomMove();
       case "hard":
-        break;
+        return this.getRandomMove();
       default:
         return this.getRandomMove();
     }
   }
 
-  /**
-   * Picks a random valid move from the current game board.
-   * @returns {{row:number,col:number}}
-   */
   getRandomMove() {
-    validmoves = this.gameboard.getValidMoves();
-    randomNum = Math.floor(Math.random() * (validmoves.length - 1));
+    const validmoves = this.gameboard.getValidMoves();
+
+    if (validmoves.length === 0) return undefined;
+
+    const randomNum = Math.floor(Math.random() * validmoves.length);
+
     return validmoves[randomNum];
   }
 }
