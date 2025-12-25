@@ -4,12 +4,23 @@ import { GameResult, WinType } from "../core/GameResult.js";
  * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
  */
 export class GameUI {
-  /**
-   * @param {import("../controller/GameController.js").GameController} controller
-   */
   constructor(controller) {
     this.controller = controller;
     this.root = document.getElementById("grid");
+
+    this.root.addEventListener("click", (event) => {
+      const target = event.target.closest("button");
+
+      if (!target || this.controller.isGameOver()) return;
+
+      const row = parseInt(target.dataset.row);
+      const col = parseInt(target.dataset.col);
+
+      if (!isNaN(row) && !isNaN(col)) {
+        this.controller.makeMove(row, col);
+      }
+    });
+
     this.createBoard();
 
     this.turnPlayerLabel = document.getElementById("turnplayerlabel");
@@ -26,7 +37,6 @@ export class GameUI {
     this.basePlayerText = this.turnPlayerLabel.textContent;
 
     this.buttons = [];
-    this.attachButtonListeners();
     this.renderTopText();
 
     this.resetButton.addEventListener("click", () => {
@@ -35,22 +45,6 @@ export class GameUI {
 
     this.applyButton.addEventListener("click", () => {
       this.sendSettingsFromFormToController();
-    });
-  }
-
-  /**
-   * Collects all grid buttons and attaches click handlers for moves.
-   */
-  attachButtonListeners() {
-    this.buttons = Array.from(document.querySelectorAll(".grid button"));
-
-    this.buttons.forEach((button) => {
-      button.addEventListener("click", () => {
-        if (this.controller.isGameOver()) return;
-        const row = parseInt(button.dataset.row);
-        const col = parseInt(button.dataset.col);
-        this.controller.makeMove(row, col);
-      });
     });
   }
 
@@ -79,8 +73,6 @@ export class GameUI {
 
     this.root.replaceChildren();
     this.createBoard();
-    this.attachButtonListeners();
-
     this.renderTopText(this.controller.getBoard());
   }
 
