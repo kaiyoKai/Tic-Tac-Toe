@@ -1,10 +1,12 @@
-export enum WinType {
-  Horizontal = "horizontal",
-  Vertical = "vertical",
-  DiagonalMain = "diag-main",
-  DiagonalAnti = "diag-anti",
-  Draw = "draw",
-}
+export const WinType = {
+  Horizontal: "horizontal",
+  Vertical: "vertical",
+  DiagonalMain: "diag-main",
+  DiagonalAnti: "diag-anti",
+  Draw: "draw",
+} as const;
+
+export type WinType = (typeof WinType)[keyof typeof WinType];
 
 export interface Position {
   row: number;
@@ -12,14 +14,10 @@ export interface Position {
 }
 
 export class GameResult {
-  public readonly winner: string | null;
-  public readonly type: WinType;
-  public readonly positions: Position[];
-
   private constructor(
-    winner: string | null,
-    type: WinType,
-    positions: Position[] = [],
+    public readonly winner: string | null,
+    public readonly type: WinType,
+    public readonly positions: Position[],
   ) {
     this.winner = winner;
     this.type = type;

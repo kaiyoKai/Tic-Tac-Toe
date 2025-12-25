@@ -1,45 +1,47 @@
-import { GameResult, WinType } from "./GameResult";
+import { GameResult, WinType } from "./GameResult.js";
+
+export const MoveStatus = {
+  SUCCESS: "SUCCESS",
+  OCCUPIED: "OCCUPIED",
+  GAME_OVER: "GAME_OVER",
+} as const;
+export type MoveStatus = (typeof MoveStatus)[keyof typeof MoveStatus];
+
+const DIRECTIONS = {
+  [WinType.Horizontal]: { dRow: 0, dCol: 1 },
+  [WinType.Vertical]: { dRow: 1, dCol: 0 },
+  [WinType.DiagonalMain]: { dRow: 1, dCol: 1 },
+  [WinType.DiagonalAnti]: { dRow: 1, dCol: -1 },
+};
+
+type DirectionType = Exclude<WinType, typeof WinType.Draw>;
 export default class TicTacToe {
-  /**
-   * @param {number} [size]
-   * @param {number} [winCon]
-   */
-  constructor(size = 3, winCon = 3) {
+  public size: number;
+  public turn: number;
+  public gameOver: boolean;
+  public winCon: number;
+  public board: (string | null)[][];
+
+  constructor(size: number = 3, winCon: number = 3) {
     this.size = size;
-    this.createBoard();
+    this.winCon = winCon;
     this.turn = 0;
     this.gameOver = false;
-    this.winCon = winCon;
+    this.board = [];
   }
 
-  static MOVE_STATUS = {
-    SUCCESS: "SUCCESS",
-    OCCUPIED: "OCCUPIED",
-    GAME_OVER: "GAME_OVER",
-  };
-
-  /**
-   * Builds the board matrix with null entries.
-   */
   createBoard() {
     this.board = Array.from({ length: this.size }, () =>
       Array(this.size).fill(null),
     );
   }
 
-  /**
-   * Applies a move on the board and checks for a winning state.
-   * @param {number} row
-   * @param {number} col
-   * @param {string} symbol
-   * @returns {GameResult|null|undefined}
-   */
-  move(row, col, symbol) {
+  move(row: number, col: number, symbol: string) {
     if (this.gameOver) {
-      return { status: TicTacToe.MOVE_STATUS.GAME_OVER, gameResult: null };
+      return { MoveStatus: MoveStatus.GAME_OVER, gameResult: null };
     }
     if (this.board[row][col] !== null) {
-      return { status: TicTacToe.MOVE_STATUS.OCCUPIED, gameResult: null };
+      return { MoveStatus: MoveStatus.OCCUPIED, gameResult: null };
     }
 
     this.board[row][col] = symbol;
@@ -50,25 +52,19 @@ export default class TicTacToe {
     if (matchResult !== null) {
       this.gameOver = true;
       return {
-        status: TicTacToe.MOVE_STATUS.SUCCESS,
+        MoveStatus: MoveStatus.SUCCESS,
         gameResult: matchResult,
       };
     }
 
     return {
-      status: TicTacToe.MOVE_STATUS.SUCCESS,
+      MoveStatus: MoveStatus.SUCCESS,
       gameResult: null,
     };
   }
-  static DIRECTIONS = {
-    [WinType.Horizontal]: { dRow: 0, dCol: 1 },
-    [WinType.Vertical]: { dRow: 1, dCol: 0 },
-    [WinType.DiagonalMain]: { dRow: 1, dCol: 1 },
-    [WinType.DiagonalAnti]: { dRow: 1, dCol: -1 },
-  };
-  isFinished(row, col) {
-    for (const type in TicTacToe.DIRECTIONS) {
-      const result = this.checkDirection(row, col, type);
+  isFinished(row: number, col: number) {
+    for (const type in DIRECTIONS) {
+      const result = this.checkDirection(row, col, type as DirectionType);
 
       if (result) return result;
     }
@@ -79,8 +75,8 @@ export default class TicTacToe {
 
     return null;
   }
-  checkDirection(row, col, type) {
-    const { dRow, dCol } = TicTacToe.DIRECTIONS[type];
+  checkDirection(row: number, col: number, type: DirectionType) {
+    const { dRow, dCol } = DIRECTIONS[type];
 
     const symbol = this.board[row][col];
     if (!symbol) return null;
@@ -119,24 +115,18 @@ export default class TicTacToe {
     }
 
     if (line.length >= this.winCon) {
-      return GameResult.createWin(symbol, type, line);
+      return GameResult.createWin(symbol, type as WinType, line);
     }
 
     return null;
   }
 
-  /**
-   * Restores the board to start a new game without changing settings.
-   */
   resetGame() {
     this.createBoard();
     this.turn = 0;
     this.gameOver = false;
   }
 
-  /**
-   * Clears every cell to null while keeping the current board object.
-   */
   clearBoard() {
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
@@ -144,10 +134,6 @@ export default class TicTacToe {
       }
     }
   }
-
-  /**
-   * Logs the board state as a formatted string.
-   */
   displayBoardString() {
     let boardString = "";
     for (let row = 0; row < this.board.length; row++) {
@@ -161,35 +147,20 @@ export default class TicTacToe {
     console.log(boardString);
   }
 
-  /**
-   * Logs the board with console.table for easier debugging.
-   */
   displayBoardStringBetter() {
     console.log("Bord Test:");
     console.log("Current turn:" + this.turn);
     console.table(this.board);
   }
 
-  /**
-   * Computes the total number of cells on the board.
-   * @returns {number}
-   */
   getTotalCells() {
     return this.board.length * this.board.length;
   }
 
-  /**
-   * Returns the board length (size) dimension.
-   * @returns {number}
-   */
   getBoardLength() {
     return this.board.length;
   }
 
-  /**
-   * Lists coordinates that are still available for play.
-   * @returns {Array<{row: number, col: number}>}
-   */
   getValidMoves() {
     const moves = [];
     for (let row = 0; row < this.board.length; row++) {
@@ -201,14 +172,7 @@ export default class TicTacToe {
     }
     return moves;
   }
-
-  /**
-   * Checks whether a move can be placed at the given coordinates.
-   * @param {number} row
-   * @param {number} col
-   * @returns {boolean}
-   */
-  isValidMove(row, col) {
-    return this.board[row][col] === null;
+  isValidMove(row: number, col: number) {
+    return this.board[row]?.[col] === null;
   }
 }

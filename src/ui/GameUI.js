@@ -1,5 +1,5 @@
 import { GameSettings } from "../core/GameSettings.js";
-import { GameResult, WinType } from "../core/GameResult.ts";
+import { GameResult, WinType } from "../core/GameResult.js";
 /**
  * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
  */
