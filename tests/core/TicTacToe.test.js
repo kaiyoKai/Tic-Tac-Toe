@@ -1,11 +1,10 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import TicTacToe from "../../src/core/TicTacToe.js";
-import { GameResult, WinType } from "./core/GameResult.ts";
+import { GameResult, WinType } from "../../src/core/GameResult.ts";
 
 describe("TicTacToe Core Logic", () => {
   let game;
-
   beforeEach(() => {
     game = new TicTacToe(3, 3);
   });
@@ -43,9 +42,8 @@ describe("TicTacToe Core Logic", () => {
 
     assert.ok(result.gameResult);
     assert.equal(result.gameResult.winner, "X");
-    assert.equal(result.gameResult.type, GameResult.TYPES.VERTICAL);
+    assert.equal(result.gameResult.type, WinType.Vertical);
   });
-
   it("should detect a anti diagonal win", () => {
     game.move(2, 0, "X");
     game.move(0, 0, "O");
@@ -55,7 +53,7 @@ describe("TicTacToe Core Logic", () => {
     const result = game.move(0, 2, "X");
 
     assert.ok(result.gameResult);
-    assert.equal(result.gameResult.type, GameResult.TYPES.DIAGONAL_ANTI);
+    assert.equal(result.gameResult.type, WinType.DiagonalAnti);
   });
 
   it("should detect a draw", () => {
@@ -80,7 +78,7 @@ describe("TicTacToe Core Logic", () => {
     }
 
     assert.ok(result.gameResult, "Muss GameResult haben");
-    assert.equal(result.gameResult.type, GameResult.TYPES.DRAW);
+    assert.equal(result.gameResult.type, GameResult.createDraw().type);
   });
   it("should properly reset the game", () => {
     game.move(0, 0, "X");

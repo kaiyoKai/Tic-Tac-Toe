@@ -1,5 +1,3 @@
-// src/core/GameResult.ts
-
 export enum WinType {
   Horizontal = "horizontal",
   Vertical = "vertical",

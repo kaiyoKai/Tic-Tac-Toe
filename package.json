@@ -6,11 +6,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "node --test",
-    "test:watch": "node --test --watch"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.0"
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
   }
 }
