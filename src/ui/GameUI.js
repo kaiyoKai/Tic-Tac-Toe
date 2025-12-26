@@ -21,6 +21,7 @@ export class GameUI {
       }
     });
 
+    this.buttons = [];
     this.createBoard();
 
     this.turnPlayerLabel = document.getElementById("turnplayerlabel");
@@ -36,7 +37,6 @@ export class GameUI {
     this.baseTurnText = this.turnNumberLabel.textContent;
     this.basePlayerText = this.turnPlayerLabel.textContent;
 
-    this.buttons = [];
     this.renderTopText();
 
     this.resetButton.addEventListener("click", () => {
@@ -76,32 +76,28 @@ export class GameUI {
     this.renderTopText(this.controller.getBoard());
   }
 
-  /**
-   * Creates the grid buttons for the current board size.
-   */
   createBoard() {
     const size = this.controller.getBoardSize();
     this.root.style.setProperty("--boardsize", size);
+
+    this.buttons = [];
+
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {
         const button = document.createElement("button");
         button.setAttribute("data-row", i);
         button.setAttribute("data-col", j);
+
         this.root.appendChild(button);
+        this.buttons.push(button);
       }
     }
   }
-  /**
-   * Updates the displayed symbol on a specific grid cell.
-   * @param {number} row
-   * @param {number} col
-   * @param {string} sym
-   */
   renderButtonContent(row, col, sym) {
-    let btn = this.buttons.find(
+    const btn = this.buttons.find(
       (b) => Number(b.dataset.row) === row && Number(b.dataset.col) === col,
     );
-    btn.textContent = sym;
+    if (btn) btn.textContent = sym;
   }
 
   /**
@@ -158,13 +154,14 @@ export class GameUI {
   resetUI() {
     this.resetBoard();
     this.renderTopText();
-    winnerLabel.textContent = "";
+    this.winnerLabel.textContent = "";
   }
 
   resetBoard() {
     this.buttons.forEach((btn) => {
       btn.textContent = "";
       btn.classList.remove("win");
+      btn.style.removeProperty("--angle");
     });
   }
 }

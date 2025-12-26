@@ -15,7 +15,7 @@ export class Bot {
     if (difficulty === "easy") {
       this.strategy = new RandomStrategy();
     } else {
-      this.strategy = new RandomStrategy();
+      this.strategy = new RandomStrategy(); // --> hier bitte spaeter hard mode hinzuefugen Kai (:
     }
   }
 
