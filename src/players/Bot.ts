@@ -1,6 +1,7 @@
 import TicTacToe from "../core/TicTacToe.js";
 import type { MoveStrategy } from "./strategies/MovesStrategy.ts";
 import { RandomStrategy } from "./strategies/RandomStrategy.js";
+import { ShortSightedStrategy } from "./strategies/ShortSightedStrategy.ts";
 
 export const Difficulty = {
   Easy: "easy",
@@ -10,10 +11,10 @@ export const Difficulty = {
 
 export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
 
-const StrategyMap: Record<Difficulty, new () => MoveStrategy> = {
+const StrategyMap: Record<Difficulty, MoveStrategy> = {
   [Difficulty.Easy]: RandomStrategy,
-  [Difficulty.Medium]: RandomStrategy, // Hier später anpassen
-  [Difficulty.Hard]: RandomStrategy, // Hier später z.B. MinimaxStrategy kai (:
+  [Difficulty.Medium]: ShortSightedStrategy,
+  [Difficulty.Hard]: ShortSightedStrategy, // Hier später z.B. MinimaxStrategy kai (:
 };
 
 export class Bot {
@@ -25,11 +26,18 @@ export class Bot {
     public symbol: string,
     private game: TicTacToe,
   ) {
-    const StrategyClass = StrategyMap[difficulty];
-    this.strategy = new StrategyClass();
+    this.strategy = StrategyMap[difficulty];
+  }
+
+  public changeDifficulty(difficulty: Difficulty): void {
+    if (this.difficulty === difficulty) return;
+    this.difficulty = difficulty;
+    this.strategy = StrategyMap[difficulty];
+    console.log(`Bot Strategy changed to: ${difficulty} (${this.strategy})`);
   }
 
   public getMove() {
-    return this.strategy.determineMove(this.game, this.symbol);
+    const allSymbols = ["X", "O"]; // später muss ich hier aber dringend das hardcoding rausnehmen,machste bestimmt oder kai? (:
+    return this.strategy.determineMove(this.game, this.symbol, allSymbols);
   }
 }

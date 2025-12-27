@@ -7,14 +7,20 @@ export const MoveStatus = {
 } as const;
 export type MoveStatus = (typeof MoveStatus)[keyof typeof MoveStatus];
 
-const DIRECTIONS = {
+export const DIRECTIONS = {
   [WinType.Horizontal]: { dRow: 0, dCol: 1 },
   [WinType.Vertical]: { dRow: 1, dCol: 0 },
   [WinType.DiagonalMain]: { dRow: 1, dCol: 1 },
   [WinType.DiagonalAnti]: { dRow: 1, dCol: -1 },
 };
 
-type DirectionType = Exclude<WinType, typeof WinType.Draw>;
+export type DirectionType = Exclude<WinType, typeof WinType.Draw>;
+
+export interface MoveResponse {
+  MoveStatus: MoveStatus;
+  gameResult: GameResult | null;
+}
+
 export default class TicTacToe {
   public size: number;
   public turn: number;
@@ -37,7 +43,7 @@ export default class TicTacToe {
     );
   }
 
-  move(row: number, col: number, symbol: string) {
+  move(row: number, col: number, symbol: string): MoveResponse {
     if (this.gameOver) {
       return { MoveStatus: MoveStatus.GAME_OVER, gameResult: null };
     }
@@ -63,7 +69,7 @@ export default class TicTacToe {
       gameResult: null,
     };
   }
-  isFinished(row: number, col: number) {
+  isFinished(row: number, col: number): GameResult | null {
     for (const type in DIRECTIONS) {
       const result = this.checkDirection(row, col, type as DirectionType);
 
@@ -76,7 +82,12 @@ export default class TicTacToe {
 
     return null;
   }
-  checkDirection(row: number, col: number, type: DirectionType) {
+
+  checkDirection(
+    row: number,
+    col: number,
+    type: DirectionType,
+  ): GameResult | null {
     const { dRow, dCol } = DIRECTIONS[type];
 
     const symbol = this.board[row][col];
@@ -122,20 +133,20 @@ export default class TicTacToe {
     return null;
   }
 
-  resetGame() {
+  public resetGame() {
     this.createBoard();
     this.turn = 0;
     this.gameOver = false;
   }
 
-  clearBoard() {
+  public clearBoard() {
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
         this.board[i][j] = null;
       }
     }
   }
-  displayBoardString() {
+  public displayBoardString() {
     let boardString = "";
     for (let row = 0; row < this.board.length; row++) {
       boardString += "\n";
@@ -148,21 +159,20 @@ export default class TicTacToe {
     console.log(boardString);
   }
 
-  displayBoardStringBetter() {
+  public displayBoardStringBetter() {
     console.log("Bord Test:");
     console.log("Current turn:" + this.turn);
     console.table(this.board);
   }
 
-  getTotalCells() {
+  public getTotalCells(): number {
     return this.board.length * this.board.length;
   }
 
-  getBoardLength() {
+  public getBoardLength(): number {
     return this.board.length;
   }
-
-  getValidMoves() {
+  public getValidMoves(): { row: number; col: number }[] {
     const moves = [];
     for (let row = 0; row < this.board.length; row++) {
       for (let col = 0; col < this.board[row].length; col++) {
@@ -173,7 +183,7 @@ export default class TicTacToe {
     }
     return moves;
   }
-  isValidMove(row: number, col: number) {
+  public isValidMove(row: number, col: number): boolean {
     return this.board[row]?.[col] === null;
   }
 }

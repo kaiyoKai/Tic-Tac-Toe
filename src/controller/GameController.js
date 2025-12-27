@@ -45,6 +45,16 @@ export class GameController {
 
     this.setupPlayersByMode();
 
+    if (newSettings.mode === "bot") {
+      for (const player of this.players) {
+        if (player.type === "bot") {
+          //Assumes there is only one bot or all bots have the same difficulty
+          player.changeDifficulty(newSettings.difficulty);
+          return;
+        }
+      }
+    }
+
     if (this.onSettingsChanged) {
       this.onSettingsChanged(this.gameSettings);
     }
@@ -195,6 +205,15 @@ export class GameController {
           this.makeMove(move.row, move.col);
         }
       }, 400);
+    }
+  }
+  //Assumes there is only one bot or all bots have the same difficulty
+  getDifficulty() {
+    for (const player of this.players) {
+      if (player.type === "bot") {
+        console.log(player.difficulty);
+        return player.difficulty;
+      }
     }
   }
 

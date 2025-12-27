@@ -1,7 +1,7 @@
 import type TicTacToe from "../../core/TicTacToe.ts";
 import type { MoveStrategy } from "./MovesStrategy.ts";
 
-export class RandomStrategy implements MoveStrategy {
+export const RandomStrategy: MoveStrategy = {
   determineMove(
     game: TicTacToe,
     _symbol: string,
@@ -11,5 +11,5 @@ export class RandomStrategy implements MoveStrategy {
 
     const randomIndex = Math.floor(Math.random() * validMoves.length);
     return validMoves[randomIndex];
-  }
-}
+  },
+};

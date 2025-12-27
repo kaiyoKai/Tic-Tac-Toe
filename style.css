@@ -51,6 +51,10 @@
   box-sizing: content-box;
 }
 
+.hideable {
+  display: none;
+}
+
 #reset {
   display: block;
   font-size: 200%;

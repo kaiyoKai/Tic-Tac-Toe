@@ -12,13 +12,22 @@
   <div>
   <label for="mode">Spielmodus</label>
   <select id="mode">
-  <option value="local">Local</option>
+  <option value="local">Lokal</option>
   <option value="bot">Bot</option>
+  <option value="online">Online</option>
   </select>
+
+  <label for="difficulty" id="difficulty-label">Schwierigkeit</label>
+  <select id="difficulty">
+  <option value="easy">Einfach</option>
+  <option value="medium">Normal</option>
+  <option value="hard">Schwer</option>
+  </select>
+
   </div>
   <label for="boardsize">Spielfeldgröße</label>
   <input type="number" id="boardsize" min="3" max="10" value="3" />
-  <label for="boardsize">Gewinnbedingung</label>
+    <label for="boardsize">Gewinnbedingung</label>
   <input type="number" id="wincon" min="3" max="10" value="3" />
   <br>
   <button id="apply">Übernehmen</button>

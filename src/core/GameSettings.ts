@@ -1,10 +1,12 @@
-type Mode = "local" | "bot" | "online";
+import type { Difficulty } from "../players/Bot.ts";
+export type Mode = "local" | "bot" | "online";
 
 export class GameSettings {
   constructor(
     public mode: Mode = "local",
     public boardSize: number = 3,
     public winCon: number = 3,
+    public difficulty: Difficulty,
   ) {
     this.fixInvalidValues();
   }

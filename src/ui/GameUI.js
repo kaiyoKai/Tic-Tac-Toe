@@ -1,5 +1,6 @@
 import { GameSettings } from "../core/GameSettings.js";
 import { GameResult, WinType } from "../core/GameResult.js";
+import { Bot } from "../players/Bot.js";
 /**
  * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
  */
@@ -30,6 +31,9 @@ export class GameUI {
     this.resetButton = document.getElementById("reset");
 
     this.gameModeField = document.getElementById("mode");
+    this.difficultyField = document.getElementById("difficulty");
+    this.difficultyLabel = document.getElementById("difficulty-label");
+
     this.boardSizeTextField = document.getElementById("boardsize");
     this.winConTextField = document.getElementById("wincon");
     this.applyButton = document.getElementById("apply");
@@ -46,6 +50,15 @@ export class GameUI {
     this.applyButton.addEventListener("click", () => {
       this.sendSettingsFromFormToController();
     });
+    this.gameModeField.addEventListener("change", () => {
+      if (this.gameModeField.value === "bot") {
+        this.unHideElement(this.difficultyField);
+        this.unHideElement(this.difficultyLabel);
+      } else {
+        this.hideElement(this.difficultyField);
+        this.hideElement(this.difficultyLabel);
+      }
+    });
   }
 
   /**
@@ -55,8 +68,14 @@ export class GameUI {
     const gamemode = this.gameModeField.value;
     const boardSize = parseInt(this.boardSizeTextField.value);
     const winCon = parseInt(this.winConTextField.value);
+    const difficulty = this.difficultyField.value;
 
-    const newSettings = new GameSettings(gamemode, boardSize, winCon);
+    const newSettings = new GameSettings(
+      gamemode,
+      boardSize,
+      winCon,
+      difficulty,
+    );
     this.controller.applySettings(newSettings);
   }
 
@@ -64,10 +83,11 @@ export class GameUI {
    * Synchronises inputs and board layout after settings change.
    */
   updateSettings() {
-    this.gameModeField.value = this.controller.getMode();
+    const mode = this.controller.getMode();
+    this.gameModeField.value = mode;
     this.boardSizeTextField.value = this.controller.getBoardSize();
     this.winConTextField.value = this.controller.getWinCon();
-
+    this.difficultyField.value = this.controller.getDifficulty();
     const size = this.controller.getBoardSize();
     this.root.style.setProperty("--boardsize", size);
 
@@ -76,6 +96,12 @@ export class GameUI {
     this.renderTopText(this.controller.getBoard());
   }
 
+  hideElement(element) {
+    element.classList.add("hideable");
+  }
+  unHideElement(element) {
+    element.classList.remove("hideable");
+  }
   createBoard() {
     const size = this.controller.getBoardSize();
     this.root.style.setProperty("--boardsize", size);

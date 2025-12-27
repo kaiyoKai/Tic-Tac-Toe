@@ -7,7 +7,7 @@ Das Projekt ist bereits viel zu lange in Entwicklung für die geringe Komplexit�
 
 ## Features
 
-- **Lokaler Spielmodus** (2 Spieler auf einem Gerät,oder ein Spieler gegen einen Super schweren Bot der den MiniMax alogritmus nutzt. 😎 (bisher noch garkein Bot xD) )
+- **Lokaler Spielmodus** (2 Spieler auf einem Gerät,oder ein Spieler gegen einen Super schweren Bot der den MiniMax Algorithmus nutzt. 😎 (bisher noch kein MiniMax Algorithmus Bot xD) )
 - **Anpassbare Einstellungen** (Boardgröße & Gewinnbedingung)
 - **Dynamische UI** Dom wird durch Javascript Code dynamisch angepasst (Cool)
 - **(In Arbeit)** Lobby-System und Online-Multiplayer über WebSockets

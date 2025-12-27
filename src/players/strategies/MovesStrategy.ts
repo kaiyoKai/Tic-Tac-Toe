@@ -1,8 +1,9 @@
-import type TicTacToe from "../../core/TicTacToe.ts";
+import TicTacToe from "../../core/TicTacToe.js";
 
 export interface MoveStrategy {
   determineMove(
     game: TicTacToe,
-    symbol: string,
+    _symbol: string,
+    _allSymbols?: string[],
   ): { row: number; col: number } | undefined;
 }
