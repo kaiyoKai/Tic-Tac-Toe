@@ -1,3 +1,4 @@
+import type { Position } from "./IPosition.ts";
 export const WinType = {
   Horizontal: "horizontal",
   Vertical: "vertical",
@@ -7,11 +8,6 @@ export const WinType = {
 } as const;
 
 export type WinType = (typeof WinType)[keyof typeof WinType];
-
-export interface Position {
-  row: number;
-  col: number;
-}
 
 export class GameResult {
   private constructor(

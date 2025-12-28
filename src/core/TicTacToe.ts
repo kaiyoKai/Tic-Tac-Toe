@@ -154,13 +154,13 @@ export default class TicTacToe {
         boardString += "  [" + this.board[row][col] + "]  ";
       }
     }
-    console.log("Bord Test:");
+    console.log("Board Test:");
     console.log("Current turn:" + this.turn);
     console.log(boardString);
   }
 
   public displayBoardStringBetter() {
-    console.log("Bord Test:");
+    console.log("Board Test:");
     console.log("Current turn:" + this.turn);
     console.table(this.board);
   }

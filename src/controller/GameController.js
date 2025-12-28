@@ -10,8 +10,13 @@ export class GameController {
   /**
    * @param {{mode?: string, boardSize?: number, winCon?: number}} [options]
    */
-  constructor({ mode = "local", boardSize = 3, winCon = 3 } = {}) {
-    this.gameSettings = new GameSettings(mode, boardSize, winCon);
+  constructor({
+    mode = "local",
+    boardSize = 3,
+    winCon = 3,
+    difficulty = "medium",
+  } = {}) {
+    this.gameSettings = new GameSettings(mode, boardSize, winCon, difficulty);
 
     if (!this.gameSettings.isValid()) {
       this.gameSettings.fixInvalidValues();
@@ -45,12 +50,13 @@ export class GameController {
 
     this.setupPlayersByMode();
 
+    this.currentIndex = 0;
     if (newSettings.mode === "bot") {
       for (const player of this.players) {
         if (player.type === "bot") {
           //Assumes there is only one bot or all bots have the same difficulty
           player.changeDifficulty(newSettings.difficulty);
-          return;
+          break;
         }
       }
     }

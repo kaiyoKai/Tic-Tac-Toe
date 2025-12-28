@@ -1,21 +1,48 @@
+:root {
+  --bg-color: #2e3440;
+  --text-main: #eceff4;
+  --primary-accent: #88c0d0;
+
+  --cell-bg: #4c566a;
+  --cell-hover: #5e81ac;
+
+  --color-error: #bf616a;
+  --color-win: #a3be8c;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(var(--boardsize), minmax(80px, 2fr));
+  grid-template-columns: repeat(var(--boardsize), 1fr);
   gap: 0px;
 
   width: min(80vmin, 600px);
   margin: auto;
   margin-bottom: 20px;
   box-sizing: border-box;
+  container-type: inline-size;
 }
+
 .grid button {
+  background-color: var(--cell-bg);
+
   aspect-ratio: 1/1;
   width: 100%;
-  font-size: 440%;
+
+  container-type: inline-size;
+  font-size: calc(60cqw / var(--boardsize));
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
   margin: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .grid button:hover {
   background-color: white;
@@ -77,4 +104,27 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+.error-flash {
+  background-color: var(--color-error) !important;
+  transition: background-color 0.2s ease;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
 }

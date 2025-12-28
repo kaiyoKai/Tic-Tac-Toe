@@ -51,9 +51,13 @@ export class GameUI {
       this.sendSettingsFromFormToController();
     });
 
-    this.hideElement(this.difficultyField);
-    this.hideElement(this.difficultyLabel);
-
+    if (this.gameModeField.value === "bot") {
+      this.unHideElement(this.difficultyField);
+      this.unHideElement(this.difficultyLabel);
+    } else {
+      this.hideElement(this.difficultyField);
+      this.hideElement(this.difficultyLabel);
+    }
     this.gameModeField.addEventListener("change", () => {
       if (this.gameModeField.value === "bot") {
         this.unHideElement(this.difficultyField);
@@ -91,7 +95,7 @@ export class GameUI {
     this.gameModeField.value = mode;
     this.boardSizeTextField.value = this.controller.getBoardSize();
     this.winConTextField.value = this.controller.getWinCon();
-    this.difficultyField.value = this.controller.getDifficulty();
+    this.difficultyField.value = this.controller.getSettings().difficulty;
     const size = this.controller.getBoardSize();
     this.root.style.setProperty("--boardsize", size);
 

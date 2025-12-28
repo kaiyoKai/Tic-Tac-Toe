@@ -1,5 +1,6 @@
 import type { MoveStrategy } from "./MovesStrategy.ts";
 import type TicTacToe from "../../core/TicTacToe.ts";
+import type { Position } from "../../core/IPosition.ts";
 
 export const ShortSightedStrategy: MoveStrategy = {
   determineMove(
@@ -9,24 +10,28 @@ export const ShortSightedStrategy: MoveStrategy = {
   ): { row: number; col: number } | undefined {
     const validMoves = game.getValidMoves();
     if (validMoves.length === 0) return undefined;
+    const blockingMoves: Position[] = [];
 
     for (const move of validMoves) {
-      for (const currentSymbol of allSymbols) {
-        game.board[move.row][move.col] = currentSymbol;
-        const result = game.isFinished(move.row, move.col);
-
+      for (const symbol of allSymbols) {
+        game.board[move.row][move.col] = symbol;
+        const wins = game.isFinished(move.row, move.col);
         game.board[move.row][move.col] = null;
 
-        if (result) {
-          if (currentSymbol === mySymbol) {
+        if (wins) {
+          if (symbol === mySymbol) {
             return move;
+          } else {
+            blockingMoves.push(move);
           }
-          return move;
         }
       }
     }
 
-    const randomIndex = Math.floor(Math.random() * validMoves.length);
-    return validMoves[randomIndex];
+    if (blockingMoves.length > 0) {
+      return blockingMoves[Math.floor(Math.random() * blockingMoves.length)];
+    }
+
+    return validMoves[0];
   },
 };
