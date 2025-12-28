@@ -7,7 +7,7 @@ const ui = new GameUI(controller);
 
 controller.onMove = (row, col, symbol) => {
   ui.renderButtonContent(row, col, symbol);
-  ui.renderTopText(controller.game);
+  ui.renderTopText();
   controller.game.displayBoardStringBetter();
 };
 

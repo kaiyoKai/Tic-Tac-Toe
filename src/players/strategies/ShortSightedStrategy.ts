@@ -31,7 +31,6 @@ export const ShortSightedStrategy: MoveStrategy = {
     if (blockingMoves.length > 0) {
       return blockingMoves[Math.floor(Math.random() * blockingMoves.length)];
     }
-
-    return validMoves[0];
+    return validMoves[Math.floor(Math.random() * validMoves.length)];
   },
 };

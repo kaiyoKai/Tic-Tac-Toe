@@ -1,6 +1,12 @@
 import { Difficulty } from "../players/Bot.ts";
-import type { Position } from "./IPosition.ts";
-export type Mode = "local" | "bot" | "online";
+
+export const Mode = {
+  Local: "local",
+  Bot: "bot",
+  Online: "online",
+} as const;
+
+export type Mode = (typeof Mode)[keyof typeof Mode];
 
 export class GameSettings {
   constructor(
@@ -11,7 +17,6 @@ export class GameSettings {
   ) {
     this.fixInvalidValues();
   }
-
   isValid(): boolean {
     return this.winCon <= this.boardSize;
   }

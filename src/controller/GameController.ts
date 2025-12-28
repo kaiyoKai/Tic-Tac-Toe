@@ -1,27 +1,40 @@
 import TicTacToe from "../core/TicTacToe.js";
 import { Bot } from "../players/Bot.js";
 import { Player } from "../players/Player.js";
-import { GameSettings } from "../core/GameSettings.js";
 
-/**
- * Coordinates game state, settings, and players for a Tic-Tac-Toe match.
- */
+import { GameSettings, Mode } from "../core/GameSettings.js";
+import { Difficulty } from "../players/Bot.js";
+import { PlayerType } from "../players/IPlayer.ts";
+
+interface GameControllerOptions {
+  mode?: Mode;
+  boardSize?: number;
+  winCon?: number;
+  difficulty?: Difficulty;
+}
+
 export class GameController {
-  /**
-   * @param {{mode?: string, boardSize?: number, winCon?: number}} [options]
-   */
+  public gameSettings: GameSettings;
+  public game: TicTacToe;
+  public players: (Player | Bot)[] = [];
+  public currentIndex: number = 0;
+
+  public onMove: ((row: number, col: number, symbol: string) => void) | null =
+    null;
+  public onFinish: ((result: any) => void) | null = null;
+  public onReset: (() => void) | null = null;
+  public onSettingsChanged: ((settings: GameSettings) => void) | null = null;
+
   constructor({
     mode = "local",
     boardSize = 3,
     winCon = 3,
     difficulty = "medium",
-  } = {}) {
+  }: GameControllerOptions = {}) {
     this.gameSettings = new GameSettings(mode, boardSize, winCon, difficulty);
-
     if (!this.gameSettings.isValid()) {
       this.gameSettings.fixInvalidValues();
     }
-
     this.game = new TicTacToe(
       this.gameSettings.boardSize,
       this.gameSettings.winCon,
@@ -30,17 +43,9 @@ export class GameController {
     this.players = [];
     this.currentIndex = 0;
     this.setupPlayersByMode();
-
-    this.onMove = null;
-    this.onFinish = null;
-    this.onReset = null;
-    this.onSettingsChanged = null;
   }
 
-  /**
-   * @param {GameSettings} newSettings
-   */
-  applySettings(newSettings) {
+  public applySettings(newSettings: GameSettings) {
     if (!newSettings.isValid()) {
       newSettings.fixInvalidValues();
     }
@@ -51,9 +56,9 @@ export class GameController {
     this.setupPlayersByMode();
 
     this.currentIndex = 0;
-    if (newSettings.mode === "bot") {
+    if (newSettings.mode === Mode.Bot) {
       for (const player of this.players) {
-        if (player.type === "bot") {
+        if (player instanceof Bot) {
           //Assumes there is only one bot or all bots have the same difficulty
           player.changeDifficulty(newSettings.difficulty);
           break;
@@ -66,66 +71,34 @@ export class GameController {
     }
   }
 
-  /**
-   * Returns currently active game settings.
-   * @returns {GameSettings}
-   */
-  getSettings() {
+  getSettings(): GameSettings {
     return this.gameSettings;
   }
 
-  /**
-   * Returns the board matrix for direct inspection.
-   * @returns {(string|null)[][]}
-   */
-  getBoard() {
+  getBoard(): (string | null)[][] {
     return this.game.board;
   }
-
-  /**
-   * Returns the current board dimension.
-   * @returns {number}
-   */
-  getBoardSize() {
+  getBoardSize(): number {
     return this.game.getBoardLength();
   }
 
-  /**
-   * Returns required symbol count in a row to win.
-   * @returns {number}
-   */
-  getWinCon() {
+  getWinCon(): number {
     return this.gameSettings.winCon;
   }
 
-  /**
-   * Returns the current gameplay mode.
-   * @returns {string}
-   */
-  getMode() {
+  getMode(): Mode {
     return this.gameSettings.mode;
   }
 
-  /**
-   * Returns the current turn index.
-   * @returns {number}
-   */
-  getTurn() {
+  getTurn(): number {
     return this.game.turn;
   }
 
-  /**
-   * Returns the symbol of the next player in rotation.
-   * @returns {string}
-   */
-  getNextPlayerSymbol() {
+  getNextPlayerSymbol(): string {
     let nextPlayerIndex = 1 - this.currentIndex;
     return this.players[nextPlayerIndex].symbol;
   }
 
-  /**
-   * Initializes players according to the selected mode.
-   */
   setupPlayersByMode() {
     this.players = [];
     const mode = this.gameSettings.mode;
@@ -143,29 +116,19 @@ export class GameController {
     }
   }
 
-  /**
-   * Indicates whether the game has finished.
-   * @returns {boolean}
-   */
-  isGameOver() {
+  isGameOver(): boolean {
     return this.game.gameOver;
   }
-  /**
-   * Adds a new player instance for the current match.
-   * @param {"human"|"bot"|"remote"} [type]
-   * @param {string} [symbol]
-   */
-  addPlayer(type = "human", symbol = "X") {
+
+  addPlayer(type: PlayerType = "human", symbol: string = "X") {
     if (type === "bot") {
       this.players.push(new Bot("easy", symbol, this.game));
     } else {
       this.players.push(new Player(type, symbol));
     }
-  } /**
-   * Returns the player whose turn it currently is.
-   * @returns {Player|Bot}
-   */
-  getCurrentPlayer() {
+  }
+
+  getCurrentPlayer(): Player | Bot {
     for (let i = 0; i < this.players.length; i++) {
       console.log(`Player number ${i}: ${this.players[i].type}`);
     }
@@ -174,13 +137,11 @@ export class GameController {
     return currentPlayer;
   }
 
-  /**
-   * Advances the internal player index.
-   */
   togglePlayer() {
     this.currentIndex = 1 - this.currentIndex;
   }
-  makeMove(row, col) {
+
+  makeMove(row: number, col: number) {
     const player = this.getCurrentPlayer();
 
     if (!this.game.isValidMove(row, col)) return;
@@ -204,7 +165,7 @@ export class GameController {
     this.togglePlayer();
 
     const next = this.getCurrentPlayer();
-    if (next.type === "bot") {
+    if (next instanceof Bot) {
       setTimeout(() => {
         const move = next.getMove();
         if (move) {
@@ -214,18 +175,15 @@ export class GameController {
     }
   }
   //Assumes there is only one bot or all bots have the same difficulty
-  getDifficulty() {
+  getDifficulty(): Difficulty {
     for (const player of this.players) {
-      if (player.type === "bot") {
+      if (player instanceof Bot) {
         console.log(player.difficulty);
         return player.difficulty;
       }
     }
   }
 
-  /**
-   * Resets the match to its starting state.
-   */
   resetGame() {
     this.game.resetGame();
     this.currentIndex = 0;
