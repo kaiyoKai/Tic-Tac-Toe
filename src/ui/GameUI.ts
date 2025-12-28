@@ -141,7 +141,6 @@ export class GameUI {
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {
         const button = document.createElement("button");
-        // FIX 8: setAttribute erwartet Strings
         button.setAttribute("data-row", i.toString());
         button.setAttribute("data-col", j.toString());
 
