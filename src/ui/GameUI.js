@@ -1,6 +1,6 @@
 import { GameSettings } from "../core/GameSettings.js";
 import { GameResult, WinType } from "../core/GameResult.js";
-import { Bot } from "../players/Bot.js";
+
 /**
  * Handles DOM interactions and rendering for the Tic-Tac-Toe interface.
  */
@@ -50,6 +50,10 @@ export class GameUI {
     this.applyButton.addEventListener("click", () => {
       this.sendSettingsFromFormToController();
     });
+
+    this.hideElement(this.difficultyField);
+    this.hideElement(this.difficultyLabel);
+
     this.gameModeField.addEventListener("change", () => {
       if (this.gameModeField.value === "bot") {
         this.unHideElement(this.difficultyField);
