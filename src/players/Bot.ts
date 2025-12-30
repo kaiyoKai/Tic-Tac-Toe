@@ -1,4 +1,5 @@
 import TicTacToe from "../core/TicTacToe.js";
+import { PlayerType } from "./IPlayer.ts";
 import type { MoveStrategy } from "./strategies/MovesStrategy.ts";
 import { RandomStrategy } from "./strategies/RandomStrategy.js";
 import { ShortSightedStrategy } from "./strategies/ShortSightedStrategy.ts";
@@ -18,7 +19,7 @@ const StrategyMap: Record<Difficulty, MoveStrategy> = {
 };
 
 export class Bot {
-  public readonly type = "bot" as const;
+  public readonly type: PlayerType = PlayerType.Bot;
   private strategy: MoveStrategy;
 
   constructor(
