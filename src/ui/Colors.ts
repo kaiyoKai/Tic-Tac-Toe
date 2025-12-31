@@ -2,7 +2,7 @@ export const ThemeMap = {
   Dark: "dark",
   Dracula: "dracula",
   Gruvbox: "gruvbox",
-  Catppuccin: "catpuccin",
+  Catppuccin: "catppuccin",
   Light: "light",
   Sakura: "sakura",
   Matcha: "matcha",
