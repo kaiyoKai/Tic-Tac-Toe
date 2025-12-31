@@ -1,13 +1,4 @@
-import type { Position } from "./IPosition.ts";
-export const WinType = {
-  Horizontal: "horizontal",
-  Vertical: "vertical",
-  DiagonalMain: "diag-main",
-  DiagonalAnti: "diag-anti",
-  Draw: "draw",
-} as const;
-
-export type WinType = (typeof WinType)[keyof typeof WinType];
+import { WinType, type Position } from "../types/Common.js";
 
 export class GameResult {
   private constructor(

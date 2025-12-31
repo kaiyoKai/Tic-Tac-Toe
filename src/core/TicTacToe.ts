@@ -1,11 +1,5 @@
-import { GameResult, WinType } from "./GameResult.js";
-
-export const MoveStatus = {
-  SUCCESS: "SUCCESS",
-  OCCUPIED: "OCCUPIED",
-  GAME_OVER: "GAME_OVER",
-} as const;
-export type MoveStatus = (typeof MoveStatus)[keyof typeof MoveStatus];
+import { MoveStatus, WinType } from "../types/Common.js";
+import { GameResult } from "./GameResult.js";
 
 export const DIRECTIONS = {
   [WinType.Horizontal]: { dRow: 0, dCol: 1 },

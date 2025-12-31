@@ -1,4 +1,4 @@
-import type { PlayerType } from "./IPlayer.js";
+import type { PlayerType } from "../types/Common.js";
 
 export class Player {
   constructor(

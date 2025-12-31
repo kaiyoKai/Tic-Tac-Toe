@@ -1,16 +1,9 @@
 import TicTacToe from "../core/TicTacToe.js";
-import { PlayerType } from "./IPlayer.ts";
-import type { MoveStrategy } from "./strategies/MovesStrategy.ts";
+import { Difficulty } from "../types/Common.js";
+import { PlayerType } from "../types/Common.js";
+import type { MoveStrategy } from "./strategies/MovesStrategy.js";
 import { RandomStrategy } from "./strategies/RandomStrategy.js";
-import { ShortSightedStrategy } from "./strategies/ShortSightedStrategy.ts";
-
-export const Difficulty = {
-  Easy: "easy",
-  Medium: "medium",
-  Hard: "hard",
-} as const;
-
-export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
+import { ShortSightedStrategy } from "./strategies/ShortSightedStrategy.js";
 
 const StrategyMap: Record<Difficulty, MoveStrategy> = {
   [Difficulty.Easy]: RandomStrategy,

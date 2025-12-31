@@ -1,13 +1,5 @@
 import TicTacToe from "../core/TicTacToe.js";
-import type { Difficulty } from "./Bot.ts";
-
-export const PlayerType = {
-  Local: "human",
-  Bot: "bot",
-  Remote: "remote",
-} as const;
-
-export type PlayerType = (typeof PlayerType)[keyof typeof PlayerType];
+import { Difficulty, PlayerType } from "../types/Common.js";
 
 export interface IPlayer {
   symbol: string;

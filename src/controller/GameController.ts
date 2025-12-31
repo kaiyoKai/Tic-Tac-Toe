@@ -2,12 +2,12 @@ import TicTacToe from "../core/TicTacToe.js";
 import { Bot } from "../players/Bot.js";
 import { Player } from "../players/Player.js";
 
-import { GameSettings, Mode } from "../core/GameSettings.js";
-import { Difficulty } from "../players/Bot.js";
-import { PlayerType } from "../players/IPlayer.ts";
+import { GameSettings } from "../core/GameSettings.js";
+import { PlayerType } from "../types/Common.js";
+import { Difficulty, GameMode } from "../types/Common.js";
 
 interface GameControllerOptions {
-  mode?: Mode;
+  mode?: GameMode;
   boardSize?: number;
   winCon?: number;
   difficulty?: Difficulty;
@@ -56,7 +56,7 @@ export class GameController {
     this.setupPlayersByMode();
 
     this.currentIndex = 0;
-    if (newSettings.mode === Mode.Bot) {
+    if (newSettings.mode === GameMode.Bot) {
       for (const player of this.players) {
         if (player instanceof Bot) {
           //Assumes there is only one bot or all bots have the same difficulty
@@ -86,7 +86,7 @@ export class GameController {
     return this.gameSettings.winCon;
   }
 
-  getMode(): Mode {
+  getMode(): GameMode {
     return this.gameSettings.mode;
   }
 

@@ -1,8 +1,9 @@
 import { GameSettings } from "../core/GameSettings.js";
-import { GameResult, WinType } from "../core/GameResult.js";
-import { GameController } from "../controller/GameController.ts";
-import type { Mode } from "../core/GameSettings.js";
-import type { Difficulty } from "../players/Bot.ts";
+import { GameResult } from "../core/GameResult.js";
+import { WinType } from "../types/Common.js";
+import { GameController } from "../controller/GameController.js";
+import { GameMode } from "../types/Common.js";
+import type { Difficulty } from "../types/Common.js";
 
 export class GameUI {
   private root: HTMLElement;
@@ -93,7 +94,7 @@ export class GameUI {
   }
 
   sendSettingsFromFormToController() {
-    const gamemode = this.gameModeField.value as Mode;
+    const gamemode = this.gameModeField.value as GameMode;
     const boardSize = parseInt(this.boardSizeTextField.value);
     const winCon = parseInt(this.winConTextField.value);
     const difficulty = this.difficultyField.value as Difficulty;
@@ -141,6 +142,7 @@ export class GameUI {
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {
         const button = document.createElement("button");
+        // FIX 8: setAttribute erwartet Strings
         button.setAttribute("data-row", i.toString());
         button.setAttribute("data-col", j.toString());
 

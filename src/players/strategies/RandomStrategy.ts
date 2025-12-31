@@ -1,5 +1,5 @@
-import type TicTacToe from "../../core/TicTacToe.ts";
-import type { MoveStrategy } from "./MovesStrategy.ts";
+import type TicTacToe from "../../core/TicTacToe.js";
+import type { MoveStrategy } from "./MovesStrategy.js";
 
 export const RandomStrategy: MoveStrategy = {
   determineMove(

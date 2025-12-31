@@ -1,4 +1,4 @@
-import { Difficulty } from "./Bot.js";
+import { Difficulty } from "../types/Common.js";
 
 export const PlayerType = {
   Human: "human",
