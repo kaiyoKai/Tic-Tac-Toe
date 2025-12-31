@@ -1,11 +1,114 @@
+.light {
+  --bg-color: #eceff4;
+  --text-main: #2e3440;
+  --primary-accent: #88c0d0;
+  --cell-bg: #d8dee9;
+  --cell-hover: #abb9cf;
+  --color-error: #bf616a;
+  --color-win: #a3be8c;
+  --border-color: #2e3440;
+}
+.sakura {
+  --bg-color: #fff0f3;
+  --text-main: #8a4b58;
+  --primary-accent: #ff8fa3;
+
+  --cell-bg: #ffccd5;
+  --cell-hover: #fff0f3;
+  --cell-shadow-color: #ffb3c1;
+
+  --color-error: #e05263;
+  --color-win: #8bc34a;
+  --border-color: #ff8fa3;
+}
+
+.matcha {
+  --bg-color: #f1f8e9;
+  --text-main: #33691e;
+  --primary-accent: #9ccc65;
+
+  --cell-bg: #dcedc8;
+  --cell-hover: #f1f8e9;
+  --cell-shadow-color: #aed581;
+
+  --color-error: #e57373;
+  --color-win: #558b2f;
+  --border-color: #81c784;
+}
+
+.lavender {
+  --bg-color: #f3e5f5;
+  --text-main: #4a148c;
+  --primary-accent: #ab47bc;
+
+  --cell-bg: #e1bee7;
+  --cell-hover: #f3e5f5;
+  --cell-shadow-color: #ce93d8;
+
+  --color-error: #ec407a;
+  --color-win: #66bb6a;
+  --border-color: #ba68c8;
+}
+.dracula {
+  --bg-color: #282a36;
+  --text-main: #f8f8f2;
+  --primary-accent: #bd93f9;
+  --cell-bg: #44475a;
+  --cell-hover: #6272a4;
+  --color-error: #ff5555;
+  --color-win: #50fa7b;
+  --border-color: #000000;
+}
+.gruvbox {
+  --bg-color: #282828;
+  --text-main: #ebdbb2;
+  --primary-accent: #d79921;
+  --cell-bg: #3c3836;
+  --cell-hover: #504945;
+  --color-error: #cc241d;
+  --color-win: #98971a;
+  --border-color: #1d2021;
+}
+.catppuccin {
+  --bg-color: #1e1e2e;
+  --text-main: #cdd6f4;
+  --primary-accent: #cba6f7;
+  --cell-bg: #313244;
+  --cell-hover: #45475a;
+  --color-error: #f38ba8;
+  --color-win: #a6e3a1;
+  --border-color: #11111b;
+}
+.dark {
+  --bg-color: #121212;
+  --text-main: #e0e0e0;
+  --primary-accent: #bb86fc;
+
+  --cell-bg: #1e1e1e;
+  --cell-hover: #2c2c2c;
+  --cell-shadow-color: --color-error: #cf6679;
+  --color-win: #03dac6;
+  --border-color: #333333;
+}
 :root {
   --bg-color: #2e3440;
   --text-main: #eceff4;
   --primary-accent: #88c0d0;
 
   --cell-bg: #4c566a;
-  --cell-hover: #5e81ac;
+  --cell-hover: white;
+  --cell-shadow-color: #9c988f;
+  --color-error: #bf616a;
+  --color-win: #a3be8c;
+}
+.dark {
+  --bg-color: #2e3440;
+  --text-main: #eceff4;
+  --primary-accent: #88c0d0;
 
+  --cell-bg: #4c566a;
+  --cell-hover: white;
+  --cell-shadow-color: #9c988f;
   --color-error: #bf616a;
   --color-win: #a3be8c;
 }
@@ -19,20 +122,9 @@ header {
 }
 
 .right {
-  position: absolute; /* Löst das Element aus dem Stapel */
-  right: 0; /* Klebt es an den rechten Rand */
-  top: 0; /* Klebt es an den oberen Rand */
-}
-.stylelight {
-  --bg-color: #eceff4;
-  --text-main: #2e3440;
-  --primary-accent: #88c0d0;
-
-  --cell-bg: #5e81ac;
-  --cell-hover: #4c566a;
-
-  --color-error: #bf616a;
-  --color-win: #a3be8c;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 body {
@@ -59,7 +151,7 @@ body {
   width: 100%;
 
   container-type: inline-size;
-  font-size: calc(60cqw / var(--boardsize));
+  font-size: calc(75cqw / var(--boardsize));
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -67,13 +159,21 @@ body {
 
   display: flex;
   align-items: center;
+
   justify-content: center;
+  border: 5px solid #000;
+  border-radius: 10px;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
 }
 .grid button:hover {
-  background-color: white;
+  background-color: var(--cell-hover);
 }
 .grid button:active {
-  animation: textPopIn 0.8s ease-out forwards;
+  animation: textPopIn 0.8s ease-out backwards;
+  transform: translateY(4px);
+  box-shadow: none;
 }
 .grid button::after {
   content: "";
@@ -92,7 +192,7 @@ body {
 }
 
 .grid button.win {
-  background-color: aliceblue;
+  background-color: var(--color-win);
 }
 
 .top {
@@ -120,21 +220,30 @@ body {
   0% {
     opacity: 0;
     transform: scale(0.5);
+    z-index: 10;
   }
   50% {
     opacity: 0.8;
     transform: scale(1.2);
+    z-index: 10;
   }
   100% {
     opacity: 1;
     transform: scale(1);
+    z-index: 10;
   }
 }
 .error-flash {
   background-color: var(--color-error) !important;
   transition: background-color 0.2s ease;
 }
-
+select {
+  background-color: var(--cell-bg);
+  color: var(--text-main);
+  border: 1px solid var(--primary-accent);
+  border-radius: 4px;
+  padding: 2px 5px;
+}
 @keyframes shake {
   0% {
     transform: translateX(0);

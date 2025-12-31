@@ -4,6 +4,7 @@ import { WinType } from "../types/Common.js";
 import { GameController } from "../controller/GameController.js";
 import { GameMode } from "../types/Common.js";
 import type { Difficulty } from "../types/Common.js";
+import { ThemeMap, type ThemeType } from "./Colors.ts";
 
 export class GameUI {
   private root: HTMLElement;
@@ -81,6 +82,7 @@ export class GameUI {
     this.gameModeField.addEventListener("change", () => {
       this.handleDifficultyVisibility();
     });
+    this.initThemeSelector();
   }
 
   private handleDifficultyVisibility(): void {
@@ -222,6 +224,29 @@ export class GameUI {
       btn.textContent = "";
       btn.classList.remove("win");
       btn.style.removeProperty("--angle");
+    });
+  }
+
+  private changeTheme(theme: ThemeType) {
+    const allThemes = Object.values(ThemeMap);
+    document.body.classList.remove(...allThemes);
+    document.body.classList.add(theme);
+  }
+  private initThemeSelector() {
+    const selectElement = document.getElementById(
+      "colors",
+    ) as HTMLSelectElement;
+
+    selectElement.innerHTML = "";
+    Object.entries(ThemeMap).forEach(([displayName, cssClass]) => {
+      const option = document.createElement("option");
+      option.value = cssClass;
+      option.textContent = displayName;
+      selectElement.appendChild(option);
+    });
+    selectElement.addEventListener("change", (event) => {
+      const target = event.target as HTMLSelectElement;
+      this.changeTheme(target.value as ThemeType);
     });
   }
 }

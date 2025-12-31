@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { Bot } from "../../src/players/Bot.js";
 import TicTacToe from "../../src/core/TicTacToe.js";
+import { Difficulty } from "../../src/types/Common.js";
 
 describe("Bot", () => {
   let game;
@@ -10,7 +11,7 @@ describe("Bot", () => {
     game = new TicTacToe(3, 3);
     game.createBoard();
 
-    bot = new Bot("easy", "O", game);
+    bot = new Bot(Difficulty.Easy, "O", game);
   });
 
   it("should be initialzied correctly", () => {
