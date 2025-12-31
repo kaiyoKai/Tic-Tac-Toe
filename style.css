@@ -18,7 +18,7 @@
   --cell-shadow-color: #ffb3c1;
 
   --color-error: #e05263;
-  --color-win: #8bc34a;
+  --color-win: #bdffa0;
   --border-color: #ff8fa3;
 }
 
@@ -161,7 +161,9 @@ body {
   align-items: center;
 
   justify-content: center;
-  border: 5px solid #000;
+  border: 5px solid var(--text-main);
+  box-shadow: var(--text-main);
+
   border-radius: 10px;
   transition:
     transform 0.1s,
