@@ -10,6 +10,31 @@
   --color-win: #a3be8c;
 }
 
+header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 5px;
+}
+
+.right {
+  position: absolute; /* Löst das Element aus dem Stapel */
+  right: 0; /* Klebt es an den rechten Rand */
+  top: 0; /* Klebt es an den oberen Rand */
+}
+.stylelight {
+  --bg-color: #eceff4;
+  --text-main: #2e3440;
+  --primary-accent: #88c0d0;
+
+  --cell-bg: #5e81ac;
+  --cell-hover: #4c566a;
+
+  --color-error: #bf616a;
+  --color-win: #a3be8c;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-main);

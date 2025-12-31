@@ -1,4 +1,4 @@
-import { Difficulty, GameMode } from "../types/Common.ts";
+import { Difficulty, GameMode } from "../types/Common.js";
 
 export class GameSettings {
   constructor(
