@@ -40,18 +40,12 @@ export const MoveStatus = {
 } as const;
 export type MoveStatus = (typeof MoveStatus)[keyof typeof MoveStatus];
 
-export interface Position {
-  row: number;
-  col: number;
-}
-
 export interface PlayerConfig {
   name?: string;
   symbol: string;
   type: PlayerType;
   difficulty?: Difficulty;
 }
-
 export interface MoveResponse {
   status: MoveStatus;
   gameResult: IGameResult | null;

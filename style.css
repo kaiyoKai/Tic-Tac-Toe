@@ -183,7 +183,7 @@ body {
   top: 50%;
   left: 50%;
   width: 150%;
-  height: 4px;
+  height: 6px;
   background: transparent;
   transform: translate(-50%, -50%) rotate(var(--angle, 0deg));
   transform-origin: center;
