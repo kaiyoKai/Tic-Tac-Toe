@@ -82,7 +82,9 @@ export class GameUI {
     this.gameModeField.addEventListener("change", () => {
       this.handleDifficultyVisibility();
     });
+
     this.initThemeSelector();
+    this.loadGameModes();
   }
 
   private handleDifficultyVisibility(): void {
@@ -232,6 +234,7 @@ export class GameUI {
     document.body.classList.remove(...allThemes);
     document.body.classList.add(theme);
   }
+
   private initThemeSelector() {
     const selectElement = document.getElementById(
       "colors",
@@ -247,6 +250,16 @@ export class GameUI {
     selectElement.addEventListener("change", (event) => {
       const target = event.target as HTMLSelectElement;
       this.changeTheme(target.value as ThemeType);
+    });
+  }
+  private loadGameModes() {
+    const selectElement = document.getElementById("mode") as HTMLSelectElement;
+    selectElement.innerHTML = "";
+    Object.entries(GameMode).forEach(([key, val]) => {
+      const option = document.createElement("option");
+      option.value = val;
+      option.textContent = key;
+      selectElement.appendChild(option);
     });
   }
 }
