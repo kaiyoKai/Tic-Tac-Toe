@@ -234,9 +234,8 @@ export class GameUI {
   }
 
   private changeTheme(theme: ThemeType) {
-    if (!document.body.classList.replace(this.currentTheme, theme)) {
-      document.body.classList.add(theme); //Fallback , maybe i could add error handling later
-    }
+    document.body.classList.replace(this.currentTheme, theme);
+    this.currentTheme = theme;
   }
 
   private initThemeSelector() {
