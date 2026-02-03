@@ -25,6 +25,7 @@ export class GameUI {
 
   private baseTurnText: string;
   private basePlayerText: string;
+  private currentTheme: ThemeType;
 
   constructor(private controller: GameController) {
     this.root = document.getElementById("grid")!;
@@ -85,6 +86,10 @@ export class GameUI {
 
     this.initThemeSelector();
     this.loadGameModes();
+
+    // Standard theme :
+    this.currentTheme = ThemeMap.Dark;
+    document.body.classList.add(this.currentTheme);
   }
 
   private handleDifficultyVisibility(): void {
@@ -146,7 +151,6 @@ export class GameUI {
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {
         const button = document.createElement("button");
-        // FIX 8: setAttribute erwartet Strings
         button.setAttribute("data-row", i.toString());
         button.setAttribute("data-col", j.toString());
 
@@ -230,9 +234,9 @@ export class GameUI {
   }
 
   private changeTheme(theme: ThemeType) {
-    const allThemes = Object.values(ThemeMap);
-    document.body.classList.remove(...allThemes);
-    document.body.classList.add(theme);
+    if (!document.body.classList.replace(this.currentTheme, theme)) {
+      document.body.classList.add(theme); //Fallback , maybe i could add error handling later
+    }
   }
 
   private initThemeSelector() {

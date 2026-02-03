@@ -15,7 +15,9 @@ export const ShortSightedStrategy: MoveStrategy = {
     for (const move of validMoves) {
       for (const symbol of allSymbols) {
         game.board[move.row][move.col] = symbol;
+
         const wins = game.isFinished(move.row, move.col);
+
         game.board[move.row][move.col] = null;
 
         if (wins) {

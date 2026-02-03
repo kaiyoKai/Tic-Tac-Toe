@@ -79,40 +79,18 @@
   --color-win: #a6e3a1;
   --border-color: #11111b;
 }
+
 .dark {
-  --bg-color: #121212;
-  --text-main: #e0e0e0;
-  --primary-accent: #bb86fc;
-
-  --cell-bg: #1e1e1e;
-  --cell-hover: #2c2c2c;
-  --cell-shadow-color: --color-error: #cf6679;
-  --color-win: #03dac6;
-  --border-color: #333333;
+  --bg-color: #1e1e2e;
+  --text-main: #cdd6f4;
+  --primary-accent: #cba6f7;
+  --cell-bg: #313244;
+  --cell-hover: #45475a;
+  --color-error: #f38ba8;
+  --cell-shadow-color: #11111b;
+  --color-win: #a6e3a1;
+  --border-color: #11111b;
 }
-:root {
-  --bg-color: #121212;
-  --text-main: #e0e0e0;
-  --primary-accent: #bb86fc;
-
-  --cell-bg: #1e1e1e;
-  --cell-hover: #2c2c2c;
-  --cell-shadow-color: --color-error: #cf6679;
-  --color-win: #03dac6;
-  --border-color: #333333;
-}
-.dark {
-  --bg-color: #2e3440;
-  --text-main: #eceff4;
-  --primary-accent: #88c0d0;
-
-  --cell-bg: #4c566a;
-  --cell-hover: white;
-  --cell-shadow-color: #9c988f;
-  --color-error: #bf616a;
-  --color-win: #a3be8c;
-}
-
 header {
   position: relative;
   display: flex;
@@ -142,6 +120,7 @@ body {
   margin-bottom: 20px;
   box-sizing: border-box;
   container-type: inline-size;
+  perspective: 1000px;
 }
 
 .grid button {
@@ -149,7 +128,8 @@ body {
 
   aspect-ratio: 1/1;
   width: 100%;
-
+  min-width: 0;
+  min-height: 0;
   container-type: inline-size;
   font-size: calc(75cqw / var(--boardsize));
   box-sizing: border-box;
@@ -164,6 +144,7 @@ body {
   border: 5px solid var(--border-color);
   box-shadow: black;
 
+  /* i can change this to make the buttons round */
   border-radius: 10px;
   transition:
     transform 0.1s,
@@ -171,6 +152,7 @@ body {
 }
 .grid button:hover {
   background-color: var(--cell-hover);
+  perspective: 1000px;
 }
 .grid button:active {
   animation: textPopIn 0.8s ease-out backwards;
@@ -193,8 +175,23 @@ body {
   background: black;
 }
 
+@keyframes winRotate {
+  from {
+    transform: rotateY(0deg) scale(1);
+  }
+  to {
+    transform: rotateY(360deg) scale(1);
+  }
+}
+
 .grid button.win {
   background-color: var(--color-win);
+  animation: winRotate 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.grid button.win:active {
+  animation: textPopIn 0.8s ease-out backwards;
+  transform: translateY(4px);
+  box-shadow: none;
 }
 
 .top {
@@ -226,7 +223,7 @@ body {
   }
   50% {
     opacity: 0.8;
-    transform: scale(1.2);
+    transform: scale(1.3);
     z-index: 10;
   }
   100% {
