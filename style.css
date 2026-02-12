@@ -186,7 +186,7 @@ body {
 
 .grid button.win {
   background-color: var(--color-win);
-  animation: winRotate 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  animation: winRotate 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 .grid button.win:active {
   animation: textPopIn 0.8s ease-out backwards;

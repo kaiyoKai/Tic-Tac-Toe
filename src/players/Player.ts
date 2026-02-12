@@ -1,8 +1,8 @@
-import type { PlayerType } from "../types/Common.js";
+import type { Position } from "../types/Common.ts";
 
-export class Player {
-  constructor(
-    public type: PlayerType,
-    public symbol: string,
-  ) {}
+export interface Player {
+  symbol: string;
+  userName: string;
+  userId: number;
+  makeMove(): Promise<Position> | undefined;
 }

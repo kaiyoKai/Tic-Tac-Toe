@@ -1,21 +1,9 @@
 import { GameController } from "./controller/GameController.js";
+import EventBus from "./services/EventBus.ts";
+import type { GameEventMap } from "./types/Events.ts";
 import { GameUI } from "./ui/GameUI.js";
 
-const controller = new GameController({ mode: "local" });
-
-const ui = new GameUI(controller);
-
-controller.onMove = (row, col, symbol) => {
-  ui.renderButtonContent(row, col, symbol);
-  ui.renderTopText();
-  controller.game.displayBoardStringBetter();
-};
-
-controller.onFinish = (result) => ui.showWinner(result);
-
-controller.onReset = () => ui.resetUI();
-
-controller.onSettingsChanged = () => {
-  ui.updateSettings();
-  ui.resetUI();
-};
+const eventBus = new EventBus<GameEventMap>();
+const controller = new GameController({ bus: eventBus });
+const ui = new GameUI(eventBus);
+controller.startGameLoop();

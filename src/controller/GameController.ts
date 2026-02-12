@@ -1,12 +1,15 @@
 import TicTacToe from "../core/TicTacToe.js";
 import { Bot } from "../players/Bot.js";
-import { Player } from "../players/Player.js";
-
 import { GameSettings } from "../core/GameSettings.js";
-import { PlayerType } from "../types/Common.js";
+import { MoveStatus, PlayerType } from "../types/Common.js";
 import { Difficulty, GameMode } from "../types/Common.js";
+import type { Player } from "../players/Player.ts";
+import type EventBus from "../services/EventBus.ts";
+import type { GameEventMap } from "../types/Events.ts";
+import { LocalPlayer } from "../players/LocalPlayer.ts";
 
 interface GameControllerOptions {
+  bus: EventBus<GameEventMap>;
   mode?: GameMode;
   boardSize?: number;
   winCon?: number;
@@ -16,80 +19,126 @@ interface GameControllerOptions {
 export class GameController {
   public gameSettings: GameSettings;
   public game: TicTacToe;
-  public players: (Player | Bot)[] = [];
+  public players: Player[] = [];
   public currentIndex: number = 0;
+  private eventBus: EventBus<GameEventMap>;
+  private currentId = 0;
 
-  public onMove: ((row: number, col: number, symbol: string) => void) | null =
-    null;
-  public onFinish: ((result: any) => void) | null = null;
-  public onReset: (() => void) | null = null;
-  public onSettingsChanged: ((settings: GameSettings) => void) | null = null;
-
+  private activeGameId = 0;
   constructor({
+    bus,
     mode = "local",
     boardSize = 3,
     winCon = 3,
     difficulty = "medium",
-  }: GameControllerOptions = {}) {
+  }: GameControllerOptions) {
+    this.eventBus = bus;
     this.gameSettings = new GameSettings(mode, boardSize, winCon, difficulty);
-    if (!this.gameSettings.isValid()) {
-      this.gameSettings.fixInvalidValues();
-    }
+
+    this.initNewGame();
+
+    const resetSubscriber = this.eventBus.on("ui:reset-requested", () =>
+      this.handleReset(),
+    );
+    const settingsChangedSubscriber = this.eventBus.on(
+      "ui:settings-change-requested",
+      (data) => {
+        this.applySettings(data);
+        this.handleReset();
+        this.eventBus.emit("game:settings-changed", this.gameSettings);
+      },
+    );
+  }
+  private handleReset() {
+    this.activeGameId++;
+    this.eventBus.emit("game:reset", {
+      turn: this.getTurn(),
+      nextPlayerSymbol: this.getNextPlayerSymbol(),
+    });
+    this.initNewGame();
+  }
+
+  private initNewGame() {
+    console.log(`Initialisiere Spiel Nr. ${this.activeGameId}`);
+
     this.game = new TicTacToe(
       this.gameSettings.boardSize,
       this.gameSettings.winCon,
     );
 
-    this.players = [];
     this.currentIndex = 0;
     this.setupPlayersByMode();
+    this.startGameLoop(this.activeGameId);
+  }
+
+  handNewId(): number {
+    return this.currentId++;
+  }
+
+  public async startGameLoop(myGameId = 0) {
+    console.log(`Loop ${myGameId} gestartet.`);
+
+    while (!this.game.gameOver && myGameId === this.activeGameId) {
+      const currentPlayer = this.getCurrentPlayer();
+
+      const move = await currentPlayer.makeMove();
+
+      if (myGameId !== this.activeGameId) {
+        console.log(`Loop ${myGameId} gestorben. (Reset war schneller)`);
+        return;
+      }
+
+      const moveResult = this.game.move(
+        move.row,
+        move.col,
+        currentPlayer.symbol,
+      );
+
+      if (
+        moveResult.MoveStatus === MoveStatus.SUCCESS ||
+        moveResult.MoveStatus === MoveStatus.GAME_OVER
+      ) {
+        this.eventBus.emit("game:move-made", {
+          row: move.row,
+          col: move.col,
+          symbol: currentPlayer.symbol,
+          turn: this.getTurn(),
+          nextPlayerSymbol: this.getNextPlayerSymbol(),
+        });
+
+        if (moveResult.gameResult) {
+          this.eventBus.emit("game:finished", moveResult.gameResult);
+        } else {
+          this.togglePlayer();
+        }
+      }
+    }
   }
 
   public applySettings(newSettings: GameSettings) {
     if (!newSettings.isValid()) {
       newSettings.fixInvalidValues();
     }
-
     this.gameSettings = newSettings;
-    this.game = new TicTacToe(newSettings.boardSize, newSettings.winCon);
-
-    this.setupPlayersByMode();
-
-    this.currentIndex = 0;
-    if (newSettings.mode === GameMode.Bot) {
-      for (const player of this.players) {
-        if (player instanceof Bot) {
-          //Assumes there is only one bot or all bots have the same difficulty
-          player.changeDifficulty(newSettings.difficulty);
-          break;
-        }
-      }
-    }
-
-    if (this.onSettingsChanged) {
-      this.onSettingsChanged(this.gameSettings);
-    }
+    this.activeGameId++;
+    this.initNewGame();
   }
 
   getSettings(): GameSettings {
     return this.gameSettings;
   }
-
   getBoard(): (string | null)[][] {
     return this.game.board;
   }
   getBoardSize(): number {
     return this.game.getBoardLength();
   }
-
   getWinCon(): number {
     return this.gameSettings.winCon;
   }
-
   getMode(): GameMode {
     return this.gameSettings.mode;
   }
-
   getTurn(): number {
     return this.game.turn;
   }
@@ -103,16 +152,15 @@ export class GameController {
     this.players = [];
     const mode = this.gameSettings.mode;
 
-    if (mode === "local") {
-      this.addPlayer("human", "X");
-      this.addPlayer("human", "O");
-    } else if (mode === "bot") {
-      this.addPlayer("human", "X");
-      this.addPlayer("bot", "O");
-      console.log("Bot Mode!!!");
-    } else if (mode === "online") {
-      this.addPlayer("human", "X");
-      this.addPlayer("remote", "O");
+    if (mode === GameMode.Local) {
+      this.addPlayer(PlayerType.Human, "X", "Niklas");
+      this.addPlayer(PlayerType.Human, "O", "Kai");
+    } else if (mode === GameMode.Bot) {
+      this.addPlayer(PlayerType.Human, "X");
+      this.addPlayer(PlayerType.Bot, "O");
+    } else if (mode === GameMode.Online) {
+      this.addPlayer(PlayerType.Human, "X");
+      this.addPlayer(PlayerType.Remote, "O");
     }
   }
 
@@ -120,73 +168,46 @@ export class GameController {
     return this.game.gameOver;
   }
 
-  addPlayer(type: PlayerType = "human", symbol: string = "X") {
-    if (type === "bot") {
-      this.players.push(new Bot("easy", symbol, this.game));
+  addPlayer(
+    type: PlayerType = PlayerType.Human,
+    symbol: string = "X",
+    userName = "Test",
+  ) {
+    if (type === PlayerType.Bot) {
+      this.players.push(
+        new Bot(
+          this.getDifficulty(),
+          symbol,
+          userName + `Bot ${this.getDifficulty()}`,
+          this.handNewId(),
+          this.game,
+        ),
+      );
     } else {
-      this.players.push(new Player(type, symbol));
+      this.players.push(
+        new LocalPlayer(symbol, userName, this.handNewId(), this.eventBus),
+      );
     }
+    console.log(`Added player: Name:${userName} Type:${type}`);
   }
 
   getCurrentPlayer(): Player | Bot {
-    for (let i = 0; i < this.players.length; i++) {
-      console.log(`Player number ${i}: ${this.players[i].type}`);
-    }
-    const currentPlayer = this.players[this.currentIndex];
-    console.log(`The current player is ${currentPlayer.type}`);
-    return currentPlayer;
+    return this.players[this.currentIndex];
   }
 
   togglePlayer() {
     this.currentIndex = 1 - this.currentIndex;
   }
 
-  makeMove(row: number, col: number) {
-    const player = this.getCurrentPlayer();
-
-    if (!this.game.isValidMove(row, col)) return;
-
-    const moveResult = this.game.move(row, col, player.symbol);
-
-    if (this.onMove) this.onMove(row, col, player.symbol);
-
-    if (
-      moveResult.MoveStatus !== "SUCCESS" &&
-      moveResult.MoveStatus !== "GAME_OVER"
-    ) {
-      console.warn("Ungültiger Zug:", moveResult.MoveStatus);
-      return;
-    }
-    if (moveResult.gameResult !== null) {
-      if (this.onFinish) this.onFinish(moveResult.gameResult);
-      return;
-    }
-
-    this.togglePlayer();
-
-    const next = this.getCurrentPlayer();
-    if (next instanceof Bot) {
-      setTimeout(() => {
-        const move = next.getMove();
-        if (move) {
-          this.makeMove(move.row, move.col);
-        }
-      }, 400);
-    }
-  }
-  //Assumes there is only one bot or all bots have the same difficulty
   getDifficulty(): Difficulty {
     for (const player of this.players) {
-      if (player instanceof Bot) {
-        console.log(player.difficulty);
-        return player.difficulty;
-      }
+      if (player instanceof Bot) return player.difficulty;
     }
+    return "medium"; // Fallback
   }
 
-  resetGame() {
+  async resetGame() {
     this.game.resetGame();
     this.currentIndex = 0;
-    if (this.onReset) this.onReset();
   }
 }

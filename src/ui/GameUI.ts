@@ -1,10 +1,11 @@
 import { GameSettings } from "../core/GameSettings.js";
 import { GameResult } from "../core/GameResult.js";
 import { WinType } from "../types/Common.js";
-import { GameController } from "../controller/GameController.js";
 import { GameMode } from "../types/Common.js";
 import type { Difficulty } from "../types/Common.js";
 import { ThemeMap, type ThemeType } from "./Colors.ts";
+import type EventBus from "../services/EventBus.ts";
+import type { GameEventMap } from "../types/Events.ts";
 
 export class GameUI {
   private root: HTMLElement;
@@ -27,24 +28,39 @@ export class GameUI {
   private basePlayerText: string;
   private currentTheme: ThemeType;
 
-  constructor(private controller: GameController) {
+  constructor(private eventBus: EventBus<GameEventMap>) {
     this.root = document.getElementById("grid")!;
 
     this.root.addEventListener("click", (event) => {
       const target = (event.target as HTMLElement).closest("button");
 
-      if (!target || this.controller.isGameOver()) return;
+      if (!target) return;
 
-      const row = parseInt(target.dataset.row || "");
-      const col = parseInt(target.dataset.col || "");
+      const row = parseInt(target.dataset.row || undefined);
+      const col = parseInt(target.dataset.col || undefined);
 
       if (!isNaN(row) && !isNaN(col)) {
-        this.controller.makeMove(row, col);
+        this.eventBus.emit("ui:cell-clicked", { row, col });
+        console.log(`row:${row} col:${col}`);
       }
     });
 
-    this.createBoard();
+    this.createBoard(3);
 
+    this.eventBus.on("game:move-made", (data) => {
+      this.renderButtonContent(data.row, data.col, data.symbol);
+      this.renderTopText(data.turn, data.nextPlayerSymbol);
+    });
+
+    this.eventBus.on("game:finished", (result) => this.showWinner(result));
+    this.eventBus.on("game:reset", (data) =>
+      this.resetUI(data.turn, data.nextPlayerSymbol),
+    );
+    this.eventBus.on("game:settings-changed", (settings) => {
+      console.log("Ich habe diese Settings erhalten:", settings);
+
+      this.updateSettings(settings);
+    });
     this.turnPlayerLabel = document.getElementById("turnplayerlabel")!;
     this.turnNumberLabel = document.getElementById("turnnumlabel")!;
     this.winnerLabel = document.getElementById("winnerLabel")!;
@@ -68,14 +84,17 @@ export class GameUI {
     this.baseTurnText = this.turnNumberLabel.textContent || "";
     this.basePlayerText = this.turnPlayerLabel.textContent || "";
 
-    this.renderTopText();
+    this.renderTopText(0, "O");
 
     this.resetButton.addEventListener("click", () => {
-      this.controller.resetGame();
+      this.eventBus.emit("ui:reset-requested");
     });
 
     this.applyButton.addEventListener("click", () => {
-      this.sendSettingsFromFormToController();
+      this.eventBus.emit(
+        "ui:settings-change-requested",
+        this.getSettingsFromForm(),
+      );
     });
 
     this.handleDifficultyVisibility();
@@ -102,7 +121,7 @@ export class GameUI {
     }
   }
 
-  sendSettingsFromFormToController() {
+  private getSettingsFromForm(): GameSettings {
     const gamemode = this.gameModeField.value as GameMode;
     const boardSize = parseInt(this.boardSizeTextField.value);
     const winCon = parseInt(this.winConTextField.value);
@@ -114,24 +133,20 @@ export class GameUI {
       winCon,
       difficulty,
     );
-    this.controller.applySettings(newSettings);
+    return newSettings;
   }
 
-  updateSettings() {
-    const mode = this.controller.getMode();
-    this.gameModeField.value = mode;
+  updateSettings(settings: GameSettings) {
+    this.gameModeField.value = settings.mode;
 
-    this.boardSizeTextField.value = this.controller.getBoardSize().toString();
-    this.winConTextField.value = this.controller.getWinCon().toString();
-    this.difficultyField.value = this.controller.getSettings().difficulty;
+    this.boardSizeTextField.value = settings.boardSize.toString();
+    this.boardSizeTextField.value = settings.boardSize.toString();
+    this.winConTextField.value = settings.winCon.toString();
 
-    const size = this.controller.getBoardSize();
-    this.root.style.setProperty("--boardsize", size.toString());
+    this.root.style.setProperty("--boardsize", settings.boardSize.toString());
+    this.createBoard(settings.boardSize);
 
-    this.root.replaceChildren();
-    this.createBoard();
-
-    this.renderTopText();
+    this.renderTopText(0, "O"); //the settings will later include player informations
   }
 
   hideElement(element: HTMLElement) {
@@ -142,18 +157,15 @@ export class GameUI {
     element.classList.remove("hideable");
   }
 
-  createBoard() {
-    const size = this.controller.getBoardSize();
+  createBoard(size: number) {
     this.root.style.setProperty("--boardsize", size.toString());
-
+    this.root.replaceChildren();
     this.buttons = [];
-
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {
         const button = document.createElement("button");
         button.setAttribute("data-row", i.toString());
         button.setAttribute("data-col", j.toString());
-
         this.root.appendChild(button);
         this.buttons.push(button);
       }
@@ -212,16 +224,14 @@ export class GameUI {
     this.renderWinLines(result);
   }
 
-  renderTopText() {
-    this.turnNumberLabel.textContent =
-      this.baseTurnText + (this.controller.getTurn() + 1);
-    this.turnPlayerLabel.textContent =
-      this.basePlayerText + this.controller.getNextPlayerSymbol();
+  renderTopText(turn = 0, nextSymbol: string) {
+    this.turnNumberLabel.textContent = this.baseTurnText + (turn + 1);
+    this.turnPlayerLabel.textContent = this.basePlayerText + nextSymbol;
   }
 
-  resetUI() {
+  resetUI(turn = 0, nextSymbol: string) {
     this.resetBoard();
-    this.renderTopText();
+    this.renderTopText(turn, nextSymbol);
     this.winnerLabel.textContent = "";
   }
 
