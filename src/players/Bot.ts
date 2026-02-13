@@ -9,7 +9,7 @@ import { ShortSightedStrategy } from "./strategies/ShortSightedStrategy.js";
 const StrategyMap: Record<Difficulty, MoveStrategy> = {
   [Difficulty.Easy]: RandomStrategy,
   [Difficulty.Medium]: ShortSightedStrategy,
-  [Difficulty.Hard]: ShortSightedStrategy, // Hier später z.B. MinimaxStrategy kai (:
+  [Difficulty.Hard]: ShortSightedStrategy,
 };
 
 export class Bot implements Player {
@@ -32,11 +32,11 @@ export class Bot implements Player {
   }
 
   public getMove() {
-    const allSymbols = ["X", "O"]; // später muss ich hier aber dringend das hardcoding rausnehmen,machste bestimmt oder kai? (:
+    const allSymbols = ["X", "O"];
     return this.strategy.determineMove(this.game, this.symbol, allSymbols);
   }
 
   async makeMove(): Promise<Position> | undefined {
-    return await this.getMove();
+    return this.getMove();
   }
 }
