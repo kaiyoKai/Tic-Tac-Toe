@@ -37,27 +37,24 @@ export class GameController {
 
     this.initNewGame();
 
-    const resetSubscriber = this.eventBus.on("ui:reset-requested", () =>
-      this.handleReset(),
-    );
-    const settingsChangedSubscriber = this.eventBus.on(
-      "ui:settings-change-requested",
-      (data) => {
-        this.applySettings(data);
-        this.handleReset();
-        this.eventBus.emit("game:settings-changed", this.gameSettings);
-      },
-    );
+    this.eventBus.on("ui:reset-requested", () => this.handleReset());
+    this.eventBus.on("ui:settings-change-requested", (data) => {
+      this.applySettings(data);
+      this.handleReset();
+      this.eventBus.emit("game:settings-changed", this.gameSettings);
+    });
   }
   private handleReset() {
     this.activeGameId++;
-    this.eventBus.emit("game:reset", {
-      turn: this.getTurn(),
-      nextPlayerSymbol: this.getNextPlayerSymbol(),
-    });
-    this.initNewGame();
+    //Damit die listener im localplayer objekt sich rechtzeitig abmelden
+    setTimeout(() => {
+      this.initNewGame();
+      this.eventBus.emit("game:reset", {
+        turn: this.getTurn(),
+        nextPlayerSymbol: this.getNextPlayerSymbol(),
+      });
+    }, 0);
   }
-
   private initNewGame() {
     console.log(`Initialisiere Spiel Nr. ${this.activeGameId}`);
 
@@ -156,8 +153,8 @@ export class GameController {
       this.addPlayer(PlayerType.Human, "X", "Niklas");
       this.addPlayer(PlayerType.Human, "O", "Kai");
     } else if (mode === GameMode.Bot) {
-      this.addPlayer(PlayerType.Human, "X");
-      this.addPlayer(PlayerType.Bot, "O");
+      this.addPlayer(PlayerType.Human, "X", "Kai");
+      this.addPlayer(PlayerType.Bot, "O", "Terminator");
     } else if (mode === GameMode.Online) {
       this.addPlayer(PlayerType.Human, "X");
       this.addPlayer(PlayerType.Remote, "O");
@@ -176,9 +173,9 @@ export class GameController {
     if (type === PlayerType.Bot) {
       this.players.push(
         new Bot(
-          this.getDifficulty(),
+          this.getSettings().difficulty,
           symbol,
-          userName + `Bot ${this.getDifficulty()}`,
+          (userName += `(Bot) ${this.getSettings().difficulty}`),
           this.handNewId(),
           this.game,
         ),
@@ -200,10 +197,7 @@ export class GameController {
   }
 
   getDifficulty(): Difficulty {
-    for (const player of this.players) {
-      if (player instanceof Bot) return player.difficulty;
-    }
-    return "medium"; // Fallback
+    return this.getSettings().difficulty;
   }
 
   async resetGame() {

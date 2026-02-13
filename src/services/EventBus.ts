@@ -17,7 +17,7 @@ export default class EventBus<T> {
     eventFnList.push(callBack);
 
     console.log(
-      `[Bus] Event: ${String(event)} | Erhalten: ${eventFnList.length}`,
+      `[Bus] Event: ${String(event)} | Listener Registriert: ${eventFnList.length}`,
     );
 
     return {
