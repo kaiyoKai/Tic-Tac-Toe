@@ -4,7 +4,7 @@ import type { MoveStrategy } from "./MovesStrategy.js";
 export const RandomStrategy: MoveStrategy = {
   determineMove(
     game: TicTacToe,
-    _symbol: string,
+    _symbol,
   ): { row: number; col: number } | undefined {
     const validMoves = game.getValidMoves();
     if (validMoves.length === 0) return undefined;

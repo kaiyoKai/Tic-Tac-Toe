@@ -3,6 +3,19 @@ export interface Position {
   col: number;
 }
 
+export type PlayerSymbol = string & { readonly _brand: unique symbol };
+
+export function assertPlayerSymbol(symbol: string): PlayerSymbol {
+  const segmenter = new Intl.Segmenter();
+  const lenght = [...segmenter.segment(symbol)].length;
+  if (lenght !== 1) {
+    throw new Error(
+      `Invalides symbol:${symbol} es darf nur eine anzeige lenght von 1 haben`,
+    );
+  }
+  return symbol as PlayerSymbol;
+}
+
 export const Difficulty = {
   Easy: "easy",
   Medium: "medium",

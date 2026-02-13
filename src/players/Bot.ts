@@ -1,6 +1,9 @@
 import TicTacToe from "../core/TicTacToe.js";
-import { Difficulty, type Position } from "../types/Common.js";
-import { PlayerType } from "../types/Common.js";
+import {
+  Difficulty,
+  type PlayerSymbol,
+  type Position,
+} from "../types/Common.js";
 import type { Player } from "./Player.ts";
 import type { MoveStrategy } from "./strategies/MovesStrategy.js";
 import { RandomStrategy } from "./strategies/RandomStrategy.js";
@@ -16,7 +19,7 @@ export class Bot implements Player {
   private strategy: MoveStrategy;
   constructor(
     public difficulty: Difficulty,
-    public symbol: string,
+    public symbol: PlayerSymbol,
     public userName: string,
     public userId: number,
     private game: TicTacToe,
@@ -32,7 +35,7 @@ export class Bot implements Player {
   }
 
   public getMove() {
-    const allSymbols = ["X", "O"];
+    const allSymbols = this.game.getParticipants();
     return this.strategy.determineMove(this.game, this.symbol, allSymbols);
   }
 

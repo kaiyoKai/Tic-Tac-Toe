@@ -1,7 +1,12 @@
 import TicTacToe from "../core/TicTacToe.js";
 import { Bot } from "../players/Bot.js";
 import { GameSettings } from "../core/GameSettings.js";
-import { MoveStatus, PlayerType } from "../types/Common.js";
+import {
+  assertPlayerSymbol,
+  MoveStatus,
+  PlayerType,
+  type PlayerSymbol,
+} from "../types/Common.js";
 import { Difficulty, GameMode } from "../types/Common.js";
 import type { Player } from "../players/Player.ts";
 import type EventBus from "../services/EventBus.ts";
@@ -74,7 +79,6 @@ export class GameController {
 
   public async startGameLoop(myGameId = 0) {
     console.log(`Loop ${myGameId} gestartet.`);
-
     while (!this.game.gameOver && myGameId === this.activeGameId) {
       const currentPlayer = this.getCurrentPlayer();
 
@@ -117,10 +121,7 @@ export class GameController {
       newSettings.fixInvalidValues();
     }
     this.gameSettings = newSettings;
-    this.activeGameId++;
-    this.initNewGame();
   }
-
   getSettings(): GameSettings {
     return this.gameSettings;
   }
@@ -140,7 +141,7 @@ export class GameController {
     return this.game.turn;
   }
 
-  getNextPlayerSymbol(): string {
+  getNextPlayerSymbol(): PlayerSymbol {
     let nextPlayerIndex = 1 - this.currentIndex;
     return this.players[nextPlayerIndex].symbol;
   }
@@ -150,42 +151,44 @@ export class GameController {
     const mode = this.gameSettings.mode;
 
     if (mode === GameMode.Local) {
-      this.addPlayer(PlayerType.Human, "X", "Niklas");
-      this.addPlayer(PlayerType.Human, "O", "Kai");
+      const p1 = this.createPlayer(PlayerType.Human, "🎃", "Niklas");
+      const p2 = this.createPlayer(PlayerType.Human, "🈲", "Kai");
+      this.addPlayers(p1, p2);
     } else if (mode === GameMode.Bot) {
-      this.addPlayer(PlayerType.Human, "X", "Kai");
-      this.addPlayer(PlayerType.Bot, "O", "Terminator");
-    } else if (mode === GameMode.Online) {
-      this.addPlayer(PlayerType.Human, "X");
-      this.addPlayer(PlayerType.Remote, "O");
+      const p1 = this.createPlayer(PlayerType.Human, "🫃", "Kai");
+      const p2 = this.createPlayer(PlayerType.Bot, "🚀", "Terminator");
+      this.addPlayers(p1, p2);
     }
-  }
 
-  isGameOver(): boolean {
-    return this.game.gameOver;
+    this.players.forEach((p) => this.game.addParticipant(p.symbol));
   }
-
-  addPlayer(
+  addPlayers(...players: Player[]) {
+    this.players.push(...players);
+  }
+  createPlayer(
     type: PlayerType = PlayerType.Human,
-    symbol: string = "X",
+    symbolInput: PlayerSymbol | string = "X",
     userName = "Test",
   ) {
+    const symbol =
+      typeof symbolInput === "string"
+        ? assertPlayerSymbol(symbolInput)
+        : symbolInput;
+
     if (type === PlayerType.Bot) {
-      this.players.push(
-        new Bot(
-          this.getSettings().difficulty,
-          symbol,
-          (userName += `(Bot) ${this.getSettings().difficulty}`),
-          this.handNewId(),
-          this.game,
-        ),
+      return new Bot(
+        this.getSettings().difficulty,
+        symbol,
+        (userName += `(Bot) ${this.getSettings().difficulty}`),
+        this.handNewId(),
+        this.game,
       );
     } else {
-      this.players.push(
-        new LocalPlayer(symbol, userName, this.handNewId(), this.eventBus),
-      );
+      return new LocalPlayer(symbol, userName, this.handNewId(), this.eventBus);
     }
-    console.log(`Added player: Name:${userName} Type:${type}`);
+  }
+  isGameOver(): boolean {
+    return this.game.gameOver;
   }
 
   getCurrentPlayer(): Player | Bot {

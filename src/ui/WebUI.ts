@@ -1,6 +1,11 @@
 import { GameSettings } from "../core/GameSettings.js";
 import { GameResult } from "../core/GameResult.js";
-import { WinType, GameMode, type Difficulty } from "../types/Common.js";
+import {
+  WinType,
+  GameMode,
+  type Difficulty,
+  assertPlayerSymbol,
+} from "../types/Common.js";
 import { ThemeMap, type ThemeType } from "./Colors.ts";
 import type EventBus from "../services/EventBus.ts";
 import type { GameEventMap } from "../types/Events.ts";
@@ -8,7 +13,7 @@ import { DOM_ID, CSS_CLASS, CSS_VAR } from "./DomConstants.ts";
 
 export class WebUI {
   private root: HTMLElement;
-  private buttons: HTMLButtonElement[] = [];
+  private buttonGrid: HTMLButtonElement[][] = [];
 
   private turnPlayerLabel!: HTMLElement;
   private turnNumberLabel!: HTMLElement;
@@ -29,7 +34,6 @@ export class WebUI {
   private currentTheme: ThemeType = ThemeMap.Dark;
 
   constructor(private eventBus: EventBus<GameEventMap>) {
-    // Verwendung der Konstanten bei der Initialisierung
     this.root = document.getElementById(DOM_ID.GRID)!;
 
     this.initializeElements();
@@ -100,14 +104,20 @@ export class WebUI {
 
   private setupBusSubscriptions(): void {
     this.eventBus.on("game:move-made", (data) => {
-      this.renderButtonContent(data.row, data.col, data.symbol);
-      this.renderTopText(data.turn, data.nextPlayerSymbol);
+      const playerSym = assertPlayerSymbol(data.symbol);
+      const nextPlayerSym = assertPlayerSymbol(data.nextPlayerSymbol);
+
+      this.renderButtonContent(data.row, data.col, playerSym);
+      this.renderTopText(data.turn, nextPlayerSym);
     });
 
     this.eventBus.on("game:finished", (result) => this.showWinner(result));
-    this.eventBus.on("game:reset", (data) =>
-      this.resetUI(data.turn, data.nextPlayerSymbol),
-    );
+
+    this.eventBus.on("game:reset", (data) => {
+      const nextPlayerSym = assertPlayerSymbol(data.nextPlayerSymbol);
+      this.resetUI(data.turn, nextPlayerSym);
+    });
+
     this.eventBus.on("game:settings-changed", (settings) =>
       this.updateSettings(settings),
     );
@@ -118,12 +128,10 @@ export class WebUI {
     this.initThemeOptions();
     this.handleDifficultyVisibility();
     this.createBoard(3);
-    this.renderTopText(0, "O");
+    this.renderTopText(0, "");
 
     document.body.classList.add(this.currentTheme);
   }
-
-  // --- UI Logik ---
 
   public updateSettings(settings: GameSettings): void {
     this.gameModeField.value = settings.mode;
@@ -137,24 +145,28 @@ export class WebUI {
   public createBoard(size: number): void {
     this.root.style.setProperty(CSS_VAR.BOARD_SIZE, size.toString());
     this.root.replaceChildren();
-    this.buttons = [];
+    this.buttonGrid = [];
 
     for (let i = 0; i < size; i++) {
+      this.buttonGrid[i] = [];
       for (let j = 0; j < size; j++) {
         const button = document.createElement("button");
         button.dataset.row = i.toString();
         button.dataset.col = j.toString();
+
         this.root.appendChild(button);
-        this.buttons.push(button);
+        this.buttonGrid[i][j] = button;
       }
     }
   }
 
   private renderButtonContent(row: number, col: number, sym: string): void {
-    const btn = this.buttons.find(
-      (b) => Number(b.dataset.row) === row && Number(b.dataset.col) === col,
-    );
-    if (btn) btn.textContent = sym;
+    const btn = this.buttonGrid[row]?.[col];
+    if (btn) {
+      btn.textContent = sym;
+    } else {
+      console.error("Button nicht gefunden im Grid", row, col);
+    }
   }
 
   private renderTopText(turn: number, nextSymbol: string): void {
@@ -182,13 +194,7 @@ export class WebUI {
     const lineLength = isDiagonal ? "142%" : "102%";
 
     const winningButtons = result.positions
-      .map((pos) =>
-        this.buttons.find(
-          (b) =>
-            Number(b.dataset.row) === pos.row &&
-            Number(b.dataset.col) === pos.col,
-        ),
-      )
+      .map((pos) => this.buttonGrid[pos.row]?.[pos.col])
       .filter((btn): btn is HTMLButtonElement => !!btn);
 
     winningButtons.forEach((btn) => {
@@ -196,7 +202,6 @@ export class WebUI {
       btn.style.setProperty(CSS_VAR.ANGLE, angle);
       btn.style.setProperty(CSS_VAR.LINE_LENGTH, lineLength);
     });
-
     await this.delay(700);
 
     for (const btn of winningButtons) {
@@ -252,7 +257,7 @@ export class WebUI {
   }
 
   private resetUI(turn: number, nextSymbol: string): void {
-    this.buttons.forEach((btn) => {
+    this.buttonGrid.flat().forEach((btn) => {
       btn.textContent = "";
       btn.classList.remove(CSS_CLASS.WIN, CSS_CLASS.SPIN, CSS_CLASS.DRAW_LINE);
       btn.style.removeProperty(CSS_VAR.ANGLE);

@@ -1,4 +1,4 @@
-import { MoveStatus, WinType } from "../types/Common.js";
+import { MoveStatus, WinType, type PlayerSymbol } from "../types/Common.js";
 import { GameResult } from "./GameResult.js";
 
 export const DIRECTIONS = {
@@ -21,6 +21,7 @@ export default class TicTacToe {
   public gameOver: boolean;
   public winCon: number;
   public board: (string | null)[][];
+  private participants: PlayerSymbol[] = [];
 
   constructor(size: number = 3, winCon: number = 3) {
     this.size = size;
@@ -37,6 +38,17 @@ export default class TicTacToe {
     );
   }
 
+  addParticipant(symbol: PlayerSymbol) {
+    this.participants.push(symbol);
+  }
+
+  getOpponentsOf(mySymbol: PlayerSymbol): PlayerSymbol[] {
+    return this.participants.filter((s) => s !== mySymbol);
+  }
+
+  getParticipants() {
+    return this.participants;
+  }
   move(row: number, col: number, symbol: string): MoveResponse {
     if (this.gameOver) {
       return { MoveStatus: MoveStatus.GAME_OVER, gameResult: null };
@@ -49,6 +61,7 @@ export default class TicTacToe {
     this.turn++;
 
     const matchResult = this.isFinished(row, col);
+    this.displayBoardStringBetter();
 
     if (matchResult !== null) {
       this.gameOver = true;
@@ -64,11 +77,8 @@ export default class TicTacToe {
     };
   }
   isFinished(row: number, col: number): GameResult | null {
-    for (const type in DIRECTIONS) {
-      const result = this.checkDirection(row, col, type as DirectionType);
-
-      if (result) return result;
-    }
+    const win = this.checkWinOnBoard(this.board, row, col);
+    if (win) return win;
 
     if (this.turn >= this.getTotalCells()) {
       return GameResult.createDraw();
@@ -76,30 +86,24 @@ export default class TicTacToe {
 
     return null;
   }
-
   checkDirection(
     row: number,
     col: number,
     type: DirectionType,
+    board: (string | null)[][] = this.board,
   ): GameResult | null {
     const { dRow, dCol } = DIRECTIONS[type];
 
-    const symbol = this.board[row][col];
+    const symbol = board[row][col];
     if (!symbol) return null;
 
     const line = [{ row, col }];
     const boardLength = this.getBoardLength();
 
-    // forwards
+    //forwards
     let r = row + dRow;
     let c = col + dCol;
-    while (
-      r >= 0 &&
-      r < boardLength &&
-      c >= 0 &&
-      c < boardLength &&
-      this.board[r][c] === symbol
-    ) {
+    while (this.isInsideBounds(r, c, boardLength) && board[r][c] === symbol) {
       line.push({ row: r, col: c });
       r += dRow;
       c += dCol;
@@ -108,13 +112,7 @@ export default class TicTacToe {
     // backwards
     r = row - dRow;
     c = col - dCol;
-    while (
-      r >= 0 &&
-      r < boardLength &&
-      c >= 0 &&
-      c < boardLength &&
-      this.board[r][c] === symbol
-    ) {
+    while (this.isInsideBounds(r, c, boardLength) && board[r][c] === symbol) {
       line.unshift({ row: r, col: c });
       r -= dRow;
       c -= dCol;
@@ -127,10 +125,31 @@ export default class TicTacToe {
     return null;
   }
 
+  public isInsideBounds(row: number, col: number, boardLength: number) {
+    return row >= 0 && row < boardLength && col >= 0 && col < boardLength;
+  }
+
+  public checkWinOnBoard(
+    board: (string | null)[][],
+    row: number,
+    col: number,
+  ): GameResult | null {
+    for (const type in DIRECTIONS) {
+      const result = this.checkDirection(
+        row,
+        col,
+        type as DirectionType,
+        board,
+      );
+      if (result) return result;
+    }
+    return null;
+  }
   public resetGame() {
     this.createBoard();
     this.turn = 0;
     this.gameOver = false;
+    this.participants = [];
   }
 
   public clearBoard() {

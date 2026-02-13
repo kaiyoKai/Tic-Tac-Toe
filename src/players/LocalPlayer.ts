@@ -1,10 +1,10 @@
-import type { Position } from "../types/Common.js";
+import type { PlayerSymbol, Position } from "../types/Common.js";
 import type { Player } from "./Player.js";
 import EventBus, { type Subscription } from "../services/EventBus.js";
 import type { GameEventMap } from "../types/Events.ts";
 export class LocalPlayer implements Player {
   constructor(
-    public symbol: string,
+    public symbol: PlayerSymbol,
     public userName: string,
     public userId: number,
     private eventBus: EventBus<GameEventMap>,
@@ -14,10 +14,12 @@ export class LocalPlayer implements Player {
     return new Promise((resolve) => {
       let clickSub: Subscription;
       let resetSub: Subscription;
+      let settingsSub: Subscription;
 
       const cleanup = () => {
         clickSub.unsubscribe();
         resetSub.unsubscribe();
+        settingsSub.unsubscribe();
       };
 
       clickSub = this.eventBus.on("ui:cell-clicked", (data) => {
@@ -26,6 +28,11 @@ export class LocalPlayer implements Player {
       });
 
       resetSub = this.eventBus.on("ui:reset-requested", () => {
+        cleanup();
+        resolve(null);
+      });
+
+      settingsSub = this.eventBus.on("ui:settings-change-requested", () => {
         cleanup();
         resolve(null);
       });
