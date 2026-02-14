@@ -160,35 +160,39 @@ body {
   transform: translateY(4px);
   box-shadow: none;
 }
+
+.grid button {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
 .grid button::after {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--line-length, 100%);
+
+  top: var(--line-top, 50%);
+  left: var(--line-left, 0%);
+  width: 200%;
+  width: var(--after-width, 200%);
+
   height: 6px;
   background-color: black;
-  transform-origin: center;
-  transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scaleX(0);
-  pointer-events: none;
-  z-index: 5;
-  border-radius: 3px;
-}
 
-.grid button.draw-line::after {
-  transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scaleX(1);
+  transform-origin: left center;
+
+  transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(0);
+
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 3px;
+
   transition: transform 0.4s ease-out;
 }
-.grid button.win {
-  background-color: var(--color-win) !important;
-  transition: background-color 0.3s ease;
-}
 
-.grid button.spin {
-  animation: winRotate 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
 .grid button.draw-line::after {
-  transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scaleX(1);
+  transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(1);
+  transition: transform 0.4s ease-out;
 }
 @keyframes winRotate {
   from {

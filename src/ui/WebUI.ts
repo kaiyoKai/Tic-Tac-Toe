@@ -8,10 +8,11 @@ import {
 } from "../types/Common.js";
 import { ThemeMap, type ThemeType } from "./Colors.ts";
 import type EventBus from "../services/EventBus.ts";
-import type { GameEventMap } from "../types/Events.ts";
+import { EventActor, type GameEventMap } from "../types/Events.ts";
 import { DOM_ID, CSS_CLASS, CSS_VAR } from "./DomConstants.ts";
 
 export class WebUI {
+  private currentAnimationId: number = 0;
   private root: HTMLElement;
   private buttonGrid: HTMLButtonElement[][] = [];
 
@@ -78,7 +79,7 @@ export class WebUI {
       const col = parseInt(target.dataset.col || "");
 
       if (!isNaN(row) && !isNaN(col)) {
-        this.eventBus.emit("ui:cell-clicked", { row, col });
+        this.eventBus.emit("ui:cell-clicked", EventActor.WebUI, { row, col });
       }
     });
 
@@ -89,6 +90,7 @@ export class WebUI {
     this.applyButton.addEventListener("click", () => {
       this.eventBus.emit(
         "ui:settings-change-requested",
+        EventActor.WebUI,
         this.getSettingsFromForm(),
       );
     });
@@ -103,7 +105,7 @@ export class WebUI {
   }
 
   private setupBusSubscriptions(): void {
-    this.eventBus.on("game:move-made", (data) => {
+    this.eventBus.on("game:move-made", EventActor.WebUI, (data) => {
       const playerSym = assertPlayerSymbol(data.symbol);
       const nextPlayerSym = assertPlayerSymbol(data.nextPlayerSymbol);
 
@@ -111,14 +113,17 @@ export class WebUI {
       this.renderTopText(data.turn, nextPlayerSym);
     });
 
-    this.eventBus.on("game:finished", (result) => this.showWinner(result));
+    this.eventBus.on("game:finished", EventActor.WebUI, (result) =>
+      this.showWinner(result),
+    );
 
-    this.eventBus.on("game:reset", (data) => {
+    this.eventBus.on("game:reset", EventActor.WebUI, (data) => {
+      this.currentAnimationId++;
       const nextPlayerSym = assertPlayerSymbol(data.nextPlayerSymbol);
       this.resetUI(data.turn, nextPlayerSym);
     });
 
-    this.eventBus.on("game:settings-changed", (settings) =>
+    this.eventBus.on("game:settings-changed", EventActor.WebUI, (settings) =>
       this.updateSettings(settings),
     );
   }
@@ -184,32 +189,63 @@ export class WebUI {
     await this.renderWinLines(result);
   }
 
+  private getLineConfig(type: WinType) {
+    switch (type) {
+      case WinType.Horizontal:
+        return { top: "50%", left: "0%", angle: "0deg" };
+      case WinType.Vertical:
+        return { top: "0%", left: "50%", angle: "90deg" };
+      case WinType.DiagonalMain:
+        return { top: "0%", left: "0%", angle: "45deg" };
+      case WinType.DiagonalAnti:
+        return { top: "100%", left: "0%", angle: "-45deg" };
+      default:
+        return { top: "50%", left: "0%", angle: "0deg" };
+    }
+  }
   private async renderWinLines(result: GameResult): Promise<void> {
     if (result.type === WinType.Draw || !result.positions) return;
 
-    const angle = this.determineAngle(result.type);
-    const isDiagonal =
-      result.type === WinType.DiagonalMain ||
-      result.type === WinType.DiagonalAnti;
-    const lineLength = isDiagonal ? "142%" : "102%";
-
+    const config = this.getLineConfig(result.type as WinType);
     const winningButtons = result.positions
       .map((pos) => this.buttonGrid[pos.row]?.[pos.col])
       .filter((btn): btn is HTMLButtonElement => !!btn);
 
-    winningButtons.forEach((btn) => {
-      btn.classList.add(CSS_CLASS.SPIN, CSS_CLASS.WIN);
-      btn.style.setProperty(CSS_VAR.ANGLE, angle);
-      btn.style.setProperty(CSS_VAR.LINE_LENGTH, lineLength);
+    const spinPromises = winningButtons.map((btn) => {
+      btn.classList.add(CSS_CLASS.WIN, CSS_CLASS.SPIN);
+      return this.waitForEvent(btn, "animationend");
     });
-    await this.delay(700);
+
+    await Promise.all(spinPromises);
+
+    winningButtons.forEach((btn) => {
+      btn.style.setProperty("--line-top", config.top);
+      btn.style.setProperty("--line-left", config.left);
+      btn.style.setProperty(CSS_VAR.ANGLE, config.angle);
+      btn.style.setProperty("--after-width", "200%");
+    });
+
+    await this.delay(200);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
     for (const btn of winningButtons) {
       btn.classList.add(CSS_CLASS.DRAW_LINE);
-      await this.delay(250);
+
+      await this.waitForEvent(btn, "transitionend");
     }
   }
+  private waitForEvent(element: HTMLElement, eventName: string): Promise<void> {
+    return new Promise((resolve) => {
+      const handler = (event: Event) => {
+        if (event.target !== element) return;
 
+        element.removeEventListener(eventName, handler);
+        resolve();
+      };
+      element.addEventListener(eventName, handler);
+      setTimeout(resolve, 2000); //fallback
+    });
+  }
   private getSettingsFromForm(): GameSettings {
     return new GameSettings(
       this.gameModeField.value as GameMode,
@@ -234,16 +270,6 @@ export class WebUI {
     this.currentTheme = theme;
   }
 
-  private determineAngle(type: WinType): string {
-    const angles: Record<string, string> = {
-      [WinType.DiagonalMain]: "45deg",
-      [WinType.DiagonalAnti]: "-45deg",
-      [WinType.Horizontal]: "0deg",
-      [WinType.Vertical]: "90deg",
-    };
-    return angles[type] || "0deg";
-  }
-
   private loadGameModes(): void {
     this.gameModeField.innerHTML = Object.entries(GameMode)
       .map(([key, val]) => `<option value="${val}">${key}</option>`)
@@ -255,14 +281,20 @@ export class WebUI {
       .map(([name, css]) => `<option value="${css}">${name}</option>`)
       .join("");
   }
-
   private resetUI(turn: number, nextSymbol: string): void {
     this.buttonGrid.flat().forEach((btn) => {
       btn.textContent = "";
+      btn.style.setProperty("--after-width", "0");
       btn.classList.remove(CSS_CLASS.WIN, CSS_CLASS.SPIN, CSS_CLASS.DRAW_LINE);
       btn.style.removeProperty(CSS_VAR.ANGLE);
       btn.style.removeProperty(CSS_VAR.LINE_LENGTH);
+      btn.style.removeProperty("--line-top");
+      btn.style.removeProperty("--line-left");
+      btn.style.removeProperty("--line-origin");
+      btn.style.removeProperty("--line-translate");
+      btn.style.removeProperty("z-index:");
     });
+
     this.renderTopText(turn, nextSymbol);
     this.winnerLabel.textContent = "";
   }

@@ -22,3 +22,11 @@ export interface GameEventMap {
 
   "sys:error": { message: string; code?: number };
 }
+export const EventActor = {
+  Controller: "controller",
+  WebUI: "webui",
+  LocalPlayer: "localPlayer",
+  Anonymous: "anonymous",
+} as const;
+
+export type EventActor = (typeof EventActor)[keyof typeof EventActor];

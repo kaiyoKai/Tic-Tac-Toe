@@ -1,12 +1,20 @@
+import { EventActor } from "../types/Events.ts"; //
+
 export interface Subscription {
   unsubscribe(): void;
 }
 
+interface ListenerEntry {
+  callBack: Function;
+  subscriberName: EventActor;
+}
+
 export default class EventBus<T> {
-  private listeners: Map<keyof T, Function[]> = new Map();
+  private listeners: Map<keyof T, ListenerEntry[]> = new Map();
 
   on<K extends keyof T>(
     event: K,
+    subscriberName: EventActor = EventActor.Anonymous,
     callBack: (data: T[K]) => void,
   ): Subscription {
     if (!this.listeners.has(event)) {
@@ -14,10 +22,10 @@ export default class EventBus<T> {
     }
 
     const eventFnList = this.listeners.get(event)!;
-    eventFnList.push(callBack);
+    eventFnList.push({ callBack, subscriberName });
 
     console.log(
-      `[Bus] Event: ${String(event)} | Listener Registriert: ${eventFnList.length}`,
+      `[Bus] On: "${String(event)}" | Registriert von: [${subscriberName}] (Gesamt: ${eventFnList.length})`,
     );
 
     return {
@@ -29,8 +37,7 @@ export default class EventBus<T> {
     const eventFnList = this.listeners.get(event);
     if (!eventFnList) return;
 
-    const filtered = eventFnList.filter((fn) => fn !== callBack);
-
+    const filtered = eventFnList.filter((entry) => entry.callBack !== callBack);
     if (filtered.length === 0) {
       this.listeners.delete(event);
     } else {
@@ -40,27 +47,36 @@ export default class EventBus<T> {
 
   emit<K extends keyof T>(
     event: K,
-    ...args: T[K] extends void ? [] : [T[K]] //args are optionals because some events dont need any
+    emitterName: EventActor = EventActor.Anonymous,
+    ...args: T[K] extends void ? [] : [T[K]]
   ): void {
     const data = args[0] as T[K];
     const eventFnList = this.listeners.get(event) || [];
 
     console.log(
-      `[Bus] Event: ${String(event)} | Versendet: ${eventFnList.length}`,
+      `[Bus] Emit: "${String(event)}" | Von: [${emitterName}] | Empfänger: ${eventFnList.length}`,
     );
 
     if (eventFnList.length === 0) {
-      console.warn(`[Bus] Warnung: Niemand hört auf "${String(event)}"!`);
+      console.warn(`[Bus]  Warnung: Niemand hört auf "${String(event)}"!`);
       return;
     }
 
-    [...eventFnList].forEach((callBack) => callBack(data));
+    [...eventFnList].forEach((entry) => {
+      console.log(` ==> Zustellung an: [${entry.subscriberName}]`);
+      entry.callBack(data);
+    });
   }
-  once<K extends keyof T>(event: K, callBack: (data: T[K]) => void): void {
+
+  once<K extends keyof T>(
+    event: K,
+    subscriberName: EventActor = EventActor.Anonymous,
+    callBack: (data: T[K]) => void,
+  ): void {
     const handler = (data: T[K]) => {
       this.off(event, handler);
       callBack(data);
     };
-    this.on(event, handler);
+    this.on(event, subscriberName, handler);
   }
 }

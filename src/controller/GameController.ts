@@ -10,7 +10,7 @@ import {
 import { Difficulty, GameMode } from "../types/Common.js";
 import type { Player } from "../players/Player.ts";
 import type EventBus from "../services/EventBus.ts";
-import type { GameEventMap } from "../types/Events.ts";
+import { EventActor, type GameEventMap } from "../types/Events.ts";
 import { LocalPlayer } from "../players/LocalPlayer.ts";
 
 interface GameControllerOptions {
@@ -42,19 +42,30 @@ export class GameController {
 
     this.initNewGame();
 
-    this.eventBus.on("ui:reset-requested", () => this.handleReset());
-    this.eventBus.on("ui:settings-change-requested", (data) => {
-      this.applySettings(data);
-      this.handleReset();
-      this.eventBus.emit("game:settings-changed", this.gameSettings);
-    });
+    this.eventBus.on("ui:reset-requested", EventActor.Controller, () =>
+      this.handleReset(),
+    );
+
+    this.eventBus.on(
+      "ui:settings-change-requested",
+      EventActor.Controller,
+      (data) => {
+        this.applySettings(data);
+        this.handleReset();
+        this.eventBus.emit(
+          "game:settings-changed",
+          EventActor.Controller,
+          this.gameSettings,
+        );
+      },
+    );
   }
   private handleReset() {
     this.activeGameId++;
     //Damit die listener im localplayer objekt sich rechtzeitig abmelden
     setTimeout(() => {
       this.initNewGame();
-      this.eventBus.emit("game:reset", {
+      this.eventBus.emit("game:reset", EventActor.Controller, {
         turn: this.getTurn(),
         nextPlayerSymbol: this.getNextPlayerSymbol(),
       });
@@ -99,7 +110,7 @@ export class GameController {
         moveResult.MoveStatus === MoveStatus.SUCCESS ||
         moveResult.MoveStatus === MoveStatus.GAME_OVER
       ) {
-        this.eventBus.emit("game:move-made", {
+        this.eventBus.emit("game:move-made", EventActor.Controller, {
           row: move.row,
           col: move.col,
           symbol: currentPlayer.symbol,
@@ -108,7 +119,11 @@ export class GameController {
         });
 
         if (moveResult.gameResult) {
-          this.eventBus.emit("game:finished", moveResult.gameResult);
+          this.eventBus.emit(
+            "game:finished",
+            EventActor.Controller,
+            moveResult.gameResult,
+          );
         } else {
           this.togglePlayer();
         }
