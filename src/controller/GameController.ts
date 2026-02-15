@@ -12,6 +12,7 @@ import type { Player } from "../players/Player.ts";
 import type EventBus from "../services/EventBus.ts";
 import { EventActor, type GameEventMap } from "../types/Events.ts";
 import { LocalPlayer } from "../players/LocalPlayer.ts";
+import { Logger } from "../services/Logger.ts";
 
 interface GameControllerOptions {
   bus: EventBus<GameEventMap>;
@@ -72,7 +73,10 @@ export class GameController {
     }, 0);
   }
   private initNewGame() {
-    console.log(`Initialisiere Spiel Nr. ${this.activeGameId}`);
+    Logger.log(
+      EventActor.Controller,
+      `Initialisiere Spiel Nr. ${this.activeGameId}`,
+    );
 
     this.game = new TicTacToe(
       this.gameSettings.boardSize,
@@ -89,14 +93,17 @@ export class GameController {
   }
 
   public async startGameLoop(myGameId = 0) {
-    console.log(`Loop ${myGameId} gestartet.`);
+    Logger.log(EventActor.Controller, `Loop ${myGameId} gestartet.`);
     while (!this.game.gameOver && myGameId === this.activeGameId) {
       const currentPlayer = this.getCurrentPlayer();
 
       const move = await currentPlayer.makeMove();
 
       if (myGameId !== this.activeGameId) {
-        console.log(`Loop ${myGameId} gestorben. (Reset war schneller)`);
+        Logger.log(
+          EventActor.Controller,
+          `Loop ${myGameId} gestorben. (Reset war schneller)`,
+        );
         return;
       }
 

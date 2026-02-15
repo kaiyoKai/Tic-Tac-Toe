@@ -10,6 +10,7 @@ import { ThemeMap, type ThemeType } from "./Colors.ts";
 import type EventBus from "../services/EventBus.ts";
 import { EventActor, type GameEventMap } from "../types/Events.ts";
 import { DOM_ID, CSS_CLASS, CSS_VAR } from "./DomConstants.ts";
+import { Logger } from "../services/Logger.ts";
 
 export class WebUI {
   private currentAnimationId: number = 0;
@@ -84,7 +85,7 @@ export class WebUI {
     });
 
     this.resetButton.addEventListener("click", () => {
-      this.eventBus.emit("ui:reset-requested");
+      this.eventBus.emit("ui:reset-requested", EventActor.WebUI);
     });
 
     this.applyButton.addEventListener("click", () => {
@@ -170,7 +171,7 @@ export class WebUI {
     if (btn) {
       btn.textContent = sym;
     } else {
-      console.error("Button nicht gefunden im Grid", row, col);
+      Logger.error(EventActor.WebUI, "Button nicht gefunden im Grid", row, col);
     }
   }
 
@@ -285,6 +286,7 @@ export class WebUI {
     this.buttonGrid.flat().forEach((btn) => {
       btn.textContent = "";
       btn.style.setProperty("--after-width", "0");
+
       btn.classList.remove(CSS_CLASS.WIN, CSS_CLASS.SPIN, CSS_CLASS.DRAW_LINE);
       btn.style.removeProperty(CSS_VAR.ANGLE);
       btn.style.removeProperty(CSS_VAR.LINE_LENGTH);

@@ -1,4 +1,5 @@
 import { EventActor } from "../types/Events.ts"; //
+import { Logger } from "./Logger.ts";
 
 export interface Subscription {
   unsubscribe(): void;
@@ -24,8 +25,9 @@ export default class EventBus<T> {
     const eventFnList = this.listeners.get(event)!;
     eventFnList.push({ callBack, subscriberName });
 
-    console.log(
-      `[Bus] On: "${String(event)}" | Registriert von: [${subscriberName}] (Gesamt: ${eventFnList.length})`,
+    Logger.log(
+      EventActor.Bus,
+      `On: "${String(event)}" | Registriert von: [${subscriberName}] (Gesamt: ${eventFnList.length})`,
     );
 
     return {
@@ -53,17 +55,24 @@ export default class EventBus<T> {
     const data = args[0] as T[K];
     const eventFnList = this.listeners.get(event) || [];
 
-    console.log(
-      `[Bus] Emit: "${String(event)}" | Von: [${emitterName}] | Empfänger: ${eventFnList.length}`,
+    Logger.log(
+      EventActor.Bus,
+      `Emit: "${String(event)}" | Von: [${emitterName}] | Empfänger: ${eventFnList.length}`,
     );
 
     if (eventFnList.length === 0) {
-      console.warn(`[Bus]  Warnung: Niemand hört auf "${String(event)}"!`);
+      Logger.warn(
+        EventActor.Bus,
+        `[Bus]  Warnung: Niemand hört auf "${String(event)}"!`,
+      );
       return;
     }
 
     [...eventFnList].forEach((entry) => {
-      console.log(` ==> Zustellung an: [${entry.subscriberName}]`);
+      Logger.log(
+        EventActor.Bus,
+        `==> Zustellung an: [${entry.subscriberName}]`,
+      );
       entry.callBack(data);
     });
   }

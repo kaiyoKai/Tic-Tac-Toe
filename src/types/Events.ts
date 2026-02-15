@@ -26,7 +26,10 @@ export const EventActor = {
   Controller: "controller",
   WebUI: "webui",
   LocalPlayer: "localPlayer",
+  Game: "game",
   Anonymous: "anonymous",
+  Bot: "bot",
+  Bus: "bus",
 } as const;
 
 export type EventActor = (typeof EventActor)[keyof typeof EventActor];

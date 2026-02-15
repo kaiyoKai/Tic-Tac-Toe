@@ -1,4 +1,6 @@
+import { Logger } from "../services/Logger.ts";
 import { MoveStatus, WinType, type PlayerSymbol } from "../types/Common.js";
+import { EventActor } from "../types/Events.ts";
 import { GameResult } from "./GameResult.js";
 
 export const DIRECTIONS = {
@@ -61,7 +63,7 @@ export default class TicTacToe {
     this.turn++;
 
     const matchResult = this.isFinished(row, col);
-    this.displayBoardStringBetter();
+    this.displayBoardString();
 
     if (matchResult !== null) {
       this.gameOver = true;
@@ -167,15 +169,15 @@ export default class TicTacToe {
         boardString += "  [" + this.board[row][col] + "]  ";
       }
     }
-    console.log("Board Test:");
-    console.log("Current turn:" + this.turn);
-    console.log(boardString);
+    Logger.log(EventActor.Game, "Board Test:");
+    Logger.log(EventActor.Game, "Current turn:" + this.turn);
+    Logger.log(EventActor.Game, boardString);
   }
 
   public displayBoardStringBetter() {
-    console.log("Board Test:");
-    console.log("Current turn:" + this.turn);
-    console.table(this.board);
+    Logger.log(EventActor.Game, "Board Test:");
+    Logger.log(EventActor.Game, "Current turn:" + this.turn);
+    Logger.table(EventActor.Game, this.board);
   }
 
   public getTotalCells(): number {

@@ -1,9 +1,11 @@
 import TicTacToe from "../core/TicTacToe.js";
+import { Logger } from "../services/Logger.ts";
 import {
   Difficulty,
   type PlayerSymbol,
   type Position,
 } from "../types/Common.js";
+import { EventActor } from "../types/Events.ts";
 import type { Player } from "./Player.ts";
 import type { MoveStrategy } from "./strategies/MovesStrategy.js";
 import { RandomStrategy } from "./strategies/RandomStrategy.js";
@@ -31,7 +33,10 @@ export class Bot implements Player {
     if (this.difficulty === difficulty) return;
     this.difficulty = difficulty;
     this.strategy = StrategyMap[difficulty];
-    console.log(`Bot Strategy changed to: ${difficulty} (${this.strategy})`);
+    Logger.log(
+      EventActor.Bot,
+      `Bot Strategy changed to: ${difficulty} (${this.strategy})`,
+    );
   }
 
   public getMove() {
