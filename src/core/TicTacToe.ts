@@ -63,7 +63,7 @@ export default class TicTacToe {
     this.turn++;
 
     const matchResult = this.isFinished(row, col);
-    this.displayBoardString();
+    this.displayBoardStringBetter();
 
     if (matchResult !== null) {
       this.gameOver = true;
@@ -121,6 +121,7 @@ export default class TicTacToe {
     }
 
     if (line.length >= this.winCon) {
+      Logger.log(EventActor.Game, line);
       return GameResult.createWin(symbol, type as WinType, line);
     }
 

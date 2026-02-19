@@ -10,8 +10,8 @@ const LogStyles = {
   reset: "color: inherit;",
 } as const;
 export class Logger {
-  static isDebug = true;
-  private static registeredScopes = new Set<EventActor>();
+  static isDebug = false;
+  public static registeredScopes = new Set<EventActor>();
 
   private constructor() {}
 
@@ -32,16 +32,16 @@ export class Logger {
   }
 
   private static formatAndLog(
-    level: "log" | "info" | "warn" | "table" | "error",
+    level: "log" | "info" | "warn" | "error",
     owner: EventActor,
     ...data: any[]
   ) {
     if (this.isDebug && this.registeredScopes.has(owner)) {
       const style = LogStyles[owner] || LogStyles.reset;
-
-      console[level](`%c[${owner}]`, style, ...data);
+      console[level](`%c[${owner}]%c`, style, LogStyles.reset, ...data);
     }
   }
+
   static log(owner: EventActor, ...data: any[]) {
     this.formatAndLog("log", owner, ...data);
   }
@@ -51,9 +51,11 @@ export class Logger {
   static warn(owner: EventActor, ...data: any[]) {
     this.formatAndLog("warn", owner, ...data);
   }
-
-  static table(owner: EventActor, ...data: any[]) {
-    this.formatAndLog("table", owner, ...data);
+  static table(owner: EventActor, tabularData: any) {
+    if (this.isDebug && this.registeredScopes.has(owner)) {
+      this.info(owner, "Table:");
+      console.table(tabularData);
+    }
   }
   static error(owner: EventActor, ...data: any[]) {
     this.formatAndLog("error", owner, ...data);

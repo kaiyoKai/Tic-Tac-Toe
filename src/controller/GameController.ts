@@ -28,7 +28,7 @@ export class GameController {
   public players: Player[] = [];
   public currentIndex: number = 0;
   private eventBus: EventBus<GameEventMap>;
-  private currentId = 0;
+  private currentPlayerId = 0;
 
   private activeGameId = 0;
   constructor({
@@ -88,8 +88,8 @@ export class GameController {
     this.startGameLoop(this.activeGameId);
   }
 
-  handNewId(): number {
-    return this.currentId++;
+  getNewPlayerID(): number {
+    return this.currentPlayerId++;
   }
 
   public async startGameLoop(myGameId = 0) {
@@ -202,11 +202,16 @@ export class GameController {
         this.getSettings().difficulty,
         symbol,
         (userName += `(Bot) ${this.getSettings().difficulty}`),
-        this.handNewId(),
+        this.getNewPlayerID(),
         this.game,
       );
     } else {
-      return new LocalPlayer(symbol, userName, this.handNewId(), this.eventBus);
+      return new LocalPlayer(
+        symbol,
+        userName,
+        this.getNewPlayerID(),
+        this.eventBus,
+      );
     }
   }
   isGameOver(): boolean {

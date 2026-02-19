@@ -3,6 +3,8 @@ import EventBus from "./services/EventBus.ts";
 import { Logger } from "./services/Logger.ts";
 import { EventActor, type GameEventMap } from "./types/Events.ts";
 import { WebUI } from "./ui/WebUI.js";
+
+Logger.isDebug = true;
 Logger.setScopeAll();
 
 Logger.log(EventActor.Anonymous, "⚠️ MAIN.TS WIRD AUSGEFÜHRT ⚠️");

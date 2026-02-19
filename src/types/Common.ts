@@ -7,10 +7,10 @@ export type PlayerSymbol = string & { readonly _brand: unique symbol };
 
 export function assertPlayerSymbol(symbol: string): PlayerSymbol {
   const segmenter = new Intl.Segmenter();
-  const lenght = [...segmenter.segment(symbol)].length;
-  if (lenght !== 1) {
+  const length = [...segmenter.segment(symbol)].length;
+  if (length !== 1) {
     throw new Error(
-      `Invalides symbol:${symbol} es darf nur eine anzeige lenght von 1 haben`,
+      `Invalides symbol:${symbol} es darf nur eine anzeige length von 1 haben`,
     );
   }
   return symbol as PlayerSymbol;

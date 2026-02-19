@@ -207,6 +207,10 @@ export class WebUI {
   private async renderWinLines(result: GameResult): Promise<void> {
     if (result.type === WinType.Draw || !result.positions) return;
 
+    if (result.type === WinType.DiagonalAnti) {
+      //It works this way so i won't touch it (:
+      result.positions.sort((a, b) => b.row - a.row);
+    }
     const config = this.getLineConfig(result.type as WinType);
     const winningButtons = result.positions
       .map((pos) => this.buttonGrid[pos.row]?.[pos.col])
@@ -267,35 +271,42 @@ export class WebUI {
   }
 
   private changeTheme(theme: ThemeType): void {
-    document.body.classList.replace(this.currentTheme, theme);
+    if (!document.body.classList.contains(this.currentTheme)) {
+      document.body.classList.add(theme);
+    } else {
+      document.body.classList.replace(this.currentTheme, theme);
+    }
     this.currentTheme = theme;
   }
 
   private loadGameModes(): void {
-    this.gameModeField.innerHTML = Object.entries(GameMode)
-      .map(([key, val]) => `<option value="${val}">${key}</option>`)
-      .join("");
+    this.populateSelect(this.gameModeField, GameMode);
   }
 
   private initThemeOptions(): void {
-    this.themeSelector.innerHTML = Object.entries(ThemeMap)
-      .map(([name, css]) => `<option value="${css}">${name}</option>`)
-      .join("");
+    this.populateSelect(this.themeSelector, ThemeMap);
   }
-  private resetUI(turn: number, nextSymbol: string): void {
-    this.buttonGrid.flat().forEach((btn) => {
-      btn.textContent = "";
-      btn.style.setProperty("--after-width", "0");
 
-      btn.classList.remove(CSS_CLASS.WIN, CSS_CLASS.SPIN, CSS_CLASS.DRAW_LINE);
-      btn.style.removeProperty(CSS_VAR.ANGLE);
-      btn.style.removeProperty(CSS_VAR.LINE_LENGTH);
-      btn.style.removeProperty("--line-top");
-      btn.style.removeProperty("--line-left");
-      btn.style.removeProperty("--line-origin");
-      btn.style.removeProperty("--line-translate");
-      btn.style.removeProperty("z-index:");
+  private populateSelect(
+    selectElement: HTMLSelectElement,
+    data: Record<string, string>,
+    ...stylingClasses: string[]
+  ) {
+    const options = Object.entries(data).map(([label, value]) => {
+      const option = document.createElement("option");
+
+      if (stylingClasses.length > 0) option.classList.add(...stylingClasses);
+
+      option.textContent = label;
+      option.value = value;
+
+      return option;
     });
+    selectElement.replaceChildren(...options);
+  }
+
+  private resetUI(turn: number, nextSymbol: string): void {
+    this.createBoard(this.buttonGrid.length);
 
     this.renderTopText(turn, nextSymbol);
     this.winnerLabel.textContent = "";
