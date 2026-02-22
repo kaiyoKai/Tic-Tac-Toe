@@ -42,8 +42,38 @@ export class WebUI {
     this.setupEventListeners();
     this.setupBusSubscriptions();
     this.initializeUIState();
+    this.setupSidebarLogic();
   }
+  private setupSidebarLogic(): void {
+    const sidebar = document.getElementById("main-sidebar")!;
+    const toggle = document.getElementById("sidebar-toggle")!;
 
+    const chatSidebar = document.getElementById("chat-sidebar")!;
+    const chatToggle = document.getElementById("chat-toggle-btn")!;
+
+    const settingsBtn = document.getElementById("open-settings-btn")!;
+    const settingsDialog = document.getElementById(
+      "lobby-dialog",
+    ) as HTMLDialogElement;
+    const closeLobbyBtn = document.getElementById("close-lobby-btn")!;
+
+    const profileBtn = document.getElementById("open-profile-btn")!;
+    const profileDialog = document.getElementById(
+      "profile-dialog",
+    ) as HTMLDialogElement;
+    const closeProfileBtn = document.getElementById("close-profile-btn")!;
+
+    toggle.addEventListener("click", () => sidebar.classList.toggle("open"));
+    chatToggle.addEventListener("click", () =>
+      chatSidebar.classList.toggle("open"),
+    );
+
+    settingsBtn.addEventListener("click", () => settingsDialog.showModal());
+    profileBtn.addEventListener("click", () => profileDialog.showModal());
+
+    closeLobbyBtn.addEventListener("click", () => settingsDialog.close());
+    closeProfileBtn.addEventListener("click", () => profileDialog.close());
+  }
   private initializeElements(): void {
     this.turnPlayerLabel = document.getElementById(DOM_ID.TURN_PLAYER)!;
     this.turnNumberLabel = document.getElementById(DOM_ID.TURN_NUMBER)!;
@@ -135,7 +165,6 @@ export class WebUI {
     this.handleDifficultyVisibility();
     this.createBoard(3);
     this.renderTopText(0, "");
-
     document.body.classList.add(this.currentTheme);
   }
 
@@ -193,13 +222,13 @@ export class WebUI {
   private getLineConfig(type: WinType) {
     switch (type) {
       case WinType.Horizontal:
-        return { top: "50%", left: "0%", angle: "0deg" };
+        return { top: "50%", left: "0%", angle: "0deg", width: "100%" };
       case WinType.Vertical:
-        return { top: "0%", left: "50%", angle: "90deg" };
+        return { top: "0%", left: "50%", angle: "90deg", width: "100%" };
       case WinType.DiagonalMain:
-        return { top: "0%", left: "0%", angle: "45deg" };
+        return { top: "0%", left: "0%", angle: "45deg", width: "141%" }; // pythagoras theorem was used to determine the width(162 when buttons are roundes )
       case WinType.DiagonalAnti:
-        return { top: "100%", left: "0%", angle: "-45deg" };
+        return { top: "100%", left: "0%", angle: "-45deg", width: "141%" };
       default:
         return { top: "50%", left: "0%", angle: "0deg" };
     }
@@ -224,10 +253,10 @@ export class WebUI {
     await Promise.all(spinPromises);
 
     winningButtons.forEach((btn) => {
+      btn.style.setProperty("--after-width", config.width);
       btn.style.setProperty("--line-top", config.top);
       btn.style.setProperty("--line-left", config.left);
       btn.style.setProperty(CSS_VAR.ANGLE, config.angle);
-      btn.style.setProperty("--after-width", "200%");
     });
 
     await this.delay(200);
@@ -271,12 +300,11 @@ export class WebUI {
   }
 
   private changeTheme(theme: ThemeType): void {
-    if (!document.body.classList.contains(this.currentTheme)) {
-      document.body.classList.add(theme);
-    } else {
+    document.startViewTransition(() => {
       document.body.classList.replace(this.currentTheme, theme);
-    }
-    this.currentTheme = theme;
+      this.currentTheme = theme;
+      Logger.log(EventActor.WebUI, this.currentTheme, theme);
+    });
   }
 
   private loadGameModes(): void {

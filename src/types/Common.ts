@@ -9,6 +9,7 @@ export function assertPlayerSymbol(symbol: string): PlayerSymbol {
   const segmenter = new Intl.Segmenter();
   const length = [...segmenter.segment(symbol)].length;
   if (length !== 1) {
+    //changing the error later
     throw new Error(
       `Invalides symbol:${symbol} es darf nur eine anzeige length von 1 haben`,
     );

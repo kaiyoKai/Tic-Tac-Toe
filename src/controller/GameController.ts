@@ -173,8 +173,8 @@ export class GameController {
     const mode = this.gameSettings.mode;
 
     if (mode === GameMode.Local) {
-      const p1 = this.createPlayer(PlayerType.Human, "🎃", "Niklas");
-      const p2 = this.createPlayer(PlayerType.Human, "🈲", "Kai");
+      const p1 = this.createPlayer(PlayerType.Human, "🦆", "Niklas");
+      const p2 = this.createPlayer(PlayerType.Human, "🍃", "Kai");
       this.addPlayers(p1, p2);
     } else if (mode === GameMode.Bot) {
       const p1 = this.createPlayer(PlayerType.Human, "🫃", "Kai");
