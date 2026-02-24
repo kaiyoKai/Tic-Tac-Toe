@@ -17,6 +17,8 @@ export function assertPlayerSymbol(symbol: string): PlayerSymbol {
   return symbol as PlayerSymbol;
 }
 
+export const dummyPlayerSymbol = assertPlayerSymbol("X");
+
 export const Difficulty = {
   Easy: "easy",
   Medium: "medium",

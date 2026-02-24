@@ -9,6 +9,7 @@ const LogStyles = {
   [EventActor.Bus]: "color: #aaaaaa; font-style: italic;", // Grau
   reset: "color: inherit;",
 } as const;
+
 export class Logger {
   static isDebug = false;
   public static registeredScopes = new Set<EventActor>();
