@@ -3,11 +3,11 @@ import type TicTacToe from "../../core/TicTacToe.ts";
 import type { Position, PlayerSymbol } from "../../types/Common.js";
 
 export const ShortSightedStrategy: MoveStrategy = {
-  determineMove(
+  async determineMove(
     game: TicTacToe,
     mySymbol,
     allSymbols = [],
-  ): Position | undefined {
+  ): Promise<Position | undefined> {
     const validMoves = game.getValidMoves();
     if (validMoves.length === 0) return undefined;
 
@@ -28,9 +28,12 @@ export const ShortSightedStrategy: MoveStrategy = {
         }
       }
     }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const move =
+      blockingMoves.length > 0
+        ? blockingMoves[Math.floor(Math.random() * blockingMoves.length)]
+        : validMoves[Math.floor(Math.random() * validMoves.length)];
 
-    return blockingMoves.length > 0
-      ? blockingMoves[Math.floor(Math.random() * blockingMoves.length)]
-      : validMoves[Math.floor(Math.random() * validMoves.length)];
+    return move;
   },
 };

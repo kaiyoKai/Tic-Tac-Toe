@@ -61,6 +61,7 @@ export class GameController {
       },
     );
   }
+
   private handleReset() {
     this.activeGameId++;
     //Damit die listener im localplayer objekt sich rechtzeitig abmelden
@@ -98,7 +99,6 @@ export class GameController {
       const currentPlayer = this.getCurrentPlayer();
 
       const move = await currentPlayer.makeMove();
-
       if (myGameId !== this.activeGameId) {
         Logger.log(
           EventActor.Controller,
@@ -164,7 +164,7 @@ export class GameController {
   }
 
   getNextPlayerSymbol(): PlayerSymbol {
-    let nextPlayerIndex = 1 - this.currentIndex;
+    let nextPlayerIndex = (this.currentIndex + 1) % this.players.length;
     return this.players[nextPlayerIndex].symbol;
   }
 
@@ -172,21 +172,27 @@ export class GameController {
     this.players = [];
     const mode = this.gameSettings.mode;
 
+    const p1 = this.createPlayer(PlayerType.Human, "🎮️", "Niklas");
+    const p2 = this.createPlayer(PlayerType.Human, "🫐", "Kai");
+    const p3 = this.createPlayer(PlayerType.Human, "❤️", "Nico");
+
+    const p4 = this.createPlayer(PlayerType.Bot, "🚀", "Terminator");
+    const p5 = this.createPlayer(PlayerType.Bot, "🐶", "Bastion");
+    const p6 = this.createPlayer(PlayerType.Bot, "🈺", "Bastion");
+
     if (mode === GameMode.Local) {
-      const p1 = this.createPlayer(PlayerType.Human, "🦆", "Niklas");
-      const p2 = this.createPlayer(PlayerType.Human, "🍃", "Kai");
-      this.addPlayers(p1, p2);
+      this.addPlayers(p1, p2, p3);
     } else if (mode === GameMode.Bot) {
-      const p1 = this.createPlayer(PlayerType.Human, "🫃", "Kai");
-      const p2 = this.createPlayer(PlayerType.Bot, "🚀", "Terminator");
-      this.addPlayers(p1, p2);
+      this.addPlayers(p4, p5, p6);
     }
 
     this.players.forEach((p) => this.game.addParticipant(p.symbol));
   }
+
   addPlayers(...players: Player[]) {
     this.players.push(...players);
   }
+
   createPlayer(
     type: PlayerType = PlayerType.Human,
     symbolInput: PlayerSymbol | string = "X",
@@ -223,7 +229,8 @@ export class GameController {
   }
 
   togglePlayer() {
-    this.currentIndex = 1 - this.currentIndex;
+    this.currentIndex = (this.currentIndex + 1) % this.players.length;
+    Logger.log(EventActor.Controller, `Playercount:${this.players.length}`);
   }
 
   getDifficulty(): Difficulty {

@@ -1,15 +1,14 @@
 import type TicTacToe from "../../core/TicTacToe.js";
 import type { MoveStrategy } from "./MovesStrategy.js";
+import type { Position, PlayerSymbol } from "../../types/Common.js";
 
 export const RandomStrategy: MoveStrategy = {
-  determineMove(
-    game: TicTacToe,
-    _symbol,
-  ): { row: number; col: number } | undefined {
+  async determineMove(game: TicTacToe): Promise<Position | undefined> {
     const validMoves = game.getValidMoves();
     if (validMoves.length === 0) return undefined;
 
     const randomIndex = Math.floor(Math.random() * validMoves.length);
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return validMoves[randomIndex];
   },
 };
