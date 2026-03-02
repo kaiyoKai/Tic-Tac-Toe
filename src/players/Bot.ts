@@ -25,6 +25,7 @@ export class Bot implements Player {
     public userName: string,
     public userId: number,
     private game: TicTacToe,
+    private participant: Map<number, Player>,
   ) {
     this.strategy = StrategyMap[difficulty];
   }
@@ -40,7 +41,10 @@ export class Bot implements Player {
   }
 
   public getMove() {
-    const allSymbols = this.game.getParticipants();
+    const allSymbols = Array.from(
+      this.participant.values(),
+      (player) => player.symbol,
+    );
     return this.strategy.determineMove(this.game, this.symbol, allSymbols);
   }
 

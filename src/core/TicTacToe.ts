@@ -1,5 +1,5 @@
 import { Logger } from "../services/Logger.ts";
-import { MoveStatus, WinType, type PlayerSymbol } from "../types/Common.js";
+import { MoveStatus, WinType } from "../types/Common.js";
 import { EventActor } from "../types/Events.ts";
 import { GameResult } from "./GameResult.js";
 
@@ -23,7 +23,6 @@ export default class TicTacToe {
   public gameOver: boolean;
   public winCon: number;
   public board: (string | null)[][];
-  private participants: PlayerSymbol[] = [];
 
   constructor(size: number = 3, winCon: number = 3) {
     this.size = size;
@@ -40,17 +39,6 @@ export default class TicTacToe {
     );
   }
 
-  addParticipant(symbol: PlayerSymbol) {
-    this.participants.push(symbol);
-  }
-
-  getOpponentsOf(mySymbol: PlayerSymbol): PlayerSymbol[] {
-    return this.participants.filter((s) => s !== mySymbol);
-  }
-
-  getParticipants() {
-    return this.participants;
-  }
   move(row: number, col: number, symbol: string): MoveResponse {
     if (this.gameOver) {
       return { MoveStatus: MoveStatus.GAME_OVER, gameResult: null };
@@ -152,7 +140,6 @@ export default class TicTacToe {
     this.createBoard();
     this.turn = 0;
     this.gameOver = false;
-    this.participants = [];
   }
 
   public clearBoard() {

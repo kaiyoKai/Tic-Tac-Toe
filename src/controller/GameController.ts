@@ -25,7 +25,10 @@ interface GameControllerOptions {
 export class GameController {
   public gameSettings: GameSettings;
   public game: TicTacToe;
-  public players: Player[] = [];
+
+  public players: Map<number, Player> = new Map();
+  private playerOrder: number[] = [];
+
   public currentIndex: number = 0;
   private eventBus: EventBus<GameEventMap>;
   private currentPlayerId = 0;
@@ -162,75 +165,68 @@ export class GameController {
   getTurn(): number {
     return this.game.turn;
   }
-
   getNextPlayerSymbol(): PlayerSymbol {
-    let nextPlayerIndex = (this.currentIndex + 1) % this.players.length;
-    return this.players[nextPlayerIndex].symbol;
+    const nextIdx = (this.currentIndex + 1) % this.playerOrder.length;
+    const nextPlayerId = this.playerOrder[nextIdx];
+    return this.players.get(nextPlayerId)!.symbol;
   }
 
   setupPlayersByMode() {
-    this.players = [];
     const mode = this.gameSettings.mode;
 
-    const p1 = this.createPlayer(PlayerType.Human, "🎮️", "Niklas");
-    const p2 = this.createPlayer(PlayerType.Human, "🫐", "Kai");
-    const p3 = this.createPlayer(PlayerType.Human, "❤️", "Nico");
-
-    const p4 = this.createPlayer(PlayerType.Bot, "🚀", "Terminator");
-    const p5 = this.createPlayer(PlayerType.Bot, "🐶", "Bastion");
-    const p6 = this.createPlayer(PlayerType.Bot, "🈺", "Bastion");
+    this.currentPlayerId = 0;
+    this.playerOrder = [];
+    this.players.clear();
 
     if (mode === GameMode.Local) {
-      this.addPlayers(p1, p2, p3);
+      this.addPlayer(this.createPlayer(PlayerType.Human, "🎮️", "Niklas"));
+      this.addPlayer(this.createPlayer(PlayerType.Human, "🫐", "Kai"));
+      this.addPlayer(this.createPlayer(PlayerType.Human, "❤️", "Nico"));
     } else if (mode === GameMode.Bot) {
-      this.addPlayers(p4, p5, p6);
+      this.addPlayer(this.createPlayer(PlayerType.Bot, "🎁", "Niklas"));
+      this.addPlayer(this.createPlayer(PlayerType.Bot, "🫐", "Kai"));
+      this.addPlayer(this.createPlayer(PlayerType.Bot, "🦅", "Adrian"));
+      this.addPlayer(this.createPlayer(PlayerType.Bot, "🇺🇲", "Donald Trump"));
     }
-
-    this.players.forEach((p) => this.game.addParticipant(p.symbol));
   }
 
-  addPlayers(...players: Player[]) {
-    this.players.push(...players);
+  addPlayer(player: Player) {
+    const id = player.userId;
+    this.players.set(id, player);
+    this.playerOrder.push(id);
   }
-
-  createPlayer(
-    type: PlayerType = PlayerType.Human,
-    symbolInput: PlayerSymbol | string = "X",
-    userName = "Test",
-  ) {
-    const symbol =
-      typeof symbolInput === "string"
-        ? assertPlayerSymbol(symbolInput)
-        : symbolInput;
+  createPlayer(type: PlayerType, symbolInput: string, userName: string) {
+    const id = this.getNewPlayerID();
+    const symbol = assertPlayerSymbol(symbolInput);
 
     if (type === PlayerType.Bot) {
       return new Bot(
-        this.getSettings().difficulty,
-        symbol,
-        (userName += `(Bot) ${this.getSettings().difficulty}`),
-        this.getNewPlayerID(),
-        this.game,
-      );
-    } else {
-      return new LocalPlayer(
+        this.gameSettings.difficulty,
         symbol,
         userName,
-        this.getNewPlayerID(),
-        this.eventBus,
+        id,
+        this.game,
+        this.players,
       );
+    } else {
+      return new LocalPlayer(symbol, userName, id, this.eventBus);
     }
   }
   isGameOver(): boolean {
     return this.game.gameOver;
   }
 
-  getCurrentPlayer(): Player | Bot {
-    return this.players[this.currentIndex];
+  getCurrentPlayer(): Player {
+    const currentPlayerID = this.playerOrder[this.currentIndex];
+    return this.players.get(currentPlayerID);
   }
-
   togglePlayer() {
-    this.currentIndex = (this.currentIndex + 1) % this.players.length;
-    Logger.log(EventActor.Controller, `Playercount:${this.players.length}`);
+    if (this.playerOrder.length === 0) return;
+    this.currentIndex = (this.currentIndex + 1) % this.playerOrder.length;
+
+    const activeId = this.playerOrder[this.currentIndex];
+
+    Logger.log(EventActor.Controller, `Spieler mit ID ${activeId} ist am Zug.`);
   }
 
   getDifficulty(): Difficulty {
