@@ -19,6 +19,14 @@ export function assertPlayerSymbol(symbol: string): PlayerSymbol {
 
 export const dummyPlayerSymbol = assertPlayerSymbol("X");
 
+export type PlayerID = number & { readonly _brand: unique symbol };
+
+export function assertPlayerID(id: number): PlayerID {
+  if (id <= 256) {
+    throw new Error(`Invalide id:${id} muss weniger als 255 sein`);
+  }
+  return id as PlayerID;
+}
 export const Difficulty = {
   Easy: "easy",
   Medium: "medium",

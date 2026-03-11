@@ -21,6 +21,13 @@ interface GameControllerOptions {
   winCon?: number;
   difficulty?: Difficulty;
 }
+export type PlayerID = number & { readonly _brand: unique symbol };
+export function assertPlayerID(id: number): PlayerID {
+  if (id >= 256 || id === 0) {
+    throw new Error(`Invalide id:${id} muss weniger als 255 sein`);
+  }
+  return id as PlayerID;
+}
 
 export class GameController {
   public gameSettings: GameSettings;
@@ -31,9 +38,9 @@ export class GameController {
 
   public currentIndex: number = 0;
   private eventBus: EventBus<GameEventMap>;
-  private currentPlayerId = 0;
-
+  private currentPlayerId = assertPlayerID(1);
   private activeGameId = 0;
+
   constructor({
     bus,
     mode = "local",
@@ -92,8 +99,8 @@ export class GameController {
     this.startGameLoop(this.activeGameId);
   }
 
-  getNewPlayerID(): number {
-    return this.currentPlayerId++;
+  getNewPlayerID(): PlayerID {
+    return assertPlayerID(this.currentPlayerId++);
   }
 
   public async startGameLoop(myGameId = 0) {
@@ -174,20 +181,24 @@ export class GameController {
   setupPlayersByMode() {
     const mode = this.gameSettings.mode;
 
-    this.currentPlayerId = 0;
+    this.currentPlayerId = assertPlayerID(1);
     this.playerOrder = [];
     this.players.clear();
 
     if (mode === GameMode.Local) {
       this.addPlayer(this.createPlayer(PlayerType.Human, "🎮️", "Niklas"));
-      this.addPlayer(this.createPlayer(PlayerType.Human, "🫐", "Kai"));
       this.addPlayer(this.createPlayer(PlayerType.Human, "❤️", "Nico"));
     } else if (mode === GameMode.Bot) {
-      this.addPlayer(this.createPlayer(PlayerType.Bot, "🎁", "Niklas"));
-      this.addPlayer(this.createPlayer(PlayerType.Bot, "🫐", "Kai"));
-      this.addPlayer(this.createPlayer(PlayerType.Bot, "🦅", "Adrian"));
-      this.addPlayer(this.createPlayer(PlayerType.Bot, "🇺🇲", "Donald Trump"));
+      this.addPlayer(this.createPlayer(PlayerType.Bot, "💅", "Aleyna"));
+      this.addPlayer(this.createPlayer(PlayerType.Bot, "🇺🇲", "Donald-Trump"));
     }
+
+    this.playerOrder.map((id, index) =>
+      Logger.log(
+        EventActor.Controller,
+        `Spielzug reihenfolge: PlayerID:${id} UserName:${this.players.get(id).userName} Position:[${index}]`,
+      ),
+    );
   }
 
   addPlayer(player: Player) {
