@@ -1,15 +1,14 @@
 import { EventActor } from "../types/Events.ts";
-
-const LogStyles = {
-  [EventActor.Controller]: "color: #ff00ff; font-weight: bold;", // Magenta
-  [EventActor.WebUI]: "color: #00ffff; font-weight: bold;", // Cyan
-  [EventActor.LocalPlayer]: "color: #00ff00; font-weight: bold;", // Grün
-  [EventActor.Anonymous]: "color: #ffffff;", // Weiß
-  [EventActor.Game]: "color: #ff8800; font-weight: bold;", // Orange
-  [EventActor.Bus]: "color: #aaaaaa; font-style: italic;", // Grau
+const LogStyles: Record<EventActor, string> & { reset: string } = {
+  [EventActor.Controller]: "color: #ff00ff; font-weight: bold;",
+  [EventActor.WebUI]: "color: #00ffff; font-weight: bold;",
+  [EventActor.LocalPlayer]: "color: #00ff00; font-weight: bold;",
+  [EventActor.Anonymous]: "color: #ffffff;",
+  [EventActor.Game]: "color: #ff8800; font-weight: bold;",
+  [EventActor.Bus]: "color: #aaaaaa; font-style: italic;",
+  [EventActor.Bot]: "color: #ff0000;",
   reset: "color: inherit;",
-} as const;
-
+};
 export class Logger {
   static isDebug = false;
   public static registeredScopes = new Set<EventActor>();

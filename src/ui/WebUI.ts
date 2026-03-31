@@ -315,16 +315,48 @@ export class WebUI {
     await this.renderWinLines(result);
   }
 
+  private getButtonShape() {
+    return this.root.style.getPropertyValue("--cell-radius");
+  }
+
   private getLineConfig(type: WinType) {
+    let widthMult = 1;
+    if (this.getButtonShape() === "100%") {
+      widthMult = 1.3;
+    }
     switch (type) {
       case WinType.Horizontal:
         return { top: "50%", left: "0%", angle: "0deg", width: "100%" };
       case WinType.Vertical:
         return { top: "0%", left: "50%", angle: "90deg", width: "100%" };
       case WinType.DiagonalMain:
-        return { top: "0%", left: "0%", angle: "45deg", width: "141%" };
+        return {
+          top: "0%",
+          left: "0%",
+          angle: "45deg",
+          width: `${widthMult * 141}%`,
+        };
       case WinType.DiagonalAnti:
-        return { top: "100%", left: "0%", angle: "-45deg", width: "141%" };
+        return {
+          top: "100%",
+          left: "0%",
+          angle: "-45deg",
+          width: `${widthMult * 141}%`,
+        };
+      default:
+        return { top: "50%", left: "0%", angle: "0deg", width: "100%" };
+    }
+  }
+  private getLineConfigRounded(type: WinType) {
+    switch (type) {
+      case WinType.Horizontal:
+        return { top: "50%", left: "0%", angle: "0deg", width: "100%" };
+      case WinType.Vertical:
+        return { top: "0%", left: "50%", angle: "90deg", width: "100%" };
+      case WinType.DiagonalMain:
+        return { top: "0%", left: "0%", angle: "45deg", width: "160%" };
+      case WinType.DiagonalAnti:
+        return { top: "100%", left: "0%", angle: "-45deg", width: "160%" };
       default:
         return { top: "50%", left: "0%", angle: "0deg", width: "100%" };
     }
