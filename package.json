@@ -31,6 +31,7 @@
     "express": "^5.2.1",
     "fdir": "^6.5.0",
     "get-tsconfig": "^4.13.0",
+    "lit": "^3.3.2",
     "magic-string": "^0.30.21",
     "nanoid": "^3.3.11",
     "obug": "^2.1.1",
