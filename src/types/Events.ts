@@ -16,12 +16,15 @@ export interface GameEventMap {
     turn: number;
     nextPlayerSymbol: PlayerSymbol;
   };
+
   "game:finished": GameResult;
   "game:reset": { turn: number; nextPlayerSymbol: PlayerSymbol };
   "game:settings-changed": GameSettings;
 
   "sys:error": { message: string; code?: number };
+  "chat:message-sent": { message: string };
 }
+
 export const EventActor = {
   Controller: "controller",
   WebUI: "webui",

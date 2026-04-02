@@ -62,7 +62,6 @@ export class GameBoard extends LitElement {
       width: min(80vmin, 37.5rem);
       aspect-ratio: 1/1;
       perspective: 1000px;
-      /* HIER SIND DIE FIXES FÜR DAS GRID: */
       container-type: inline-size;
       grid-auto-rows: 1fr;
     }

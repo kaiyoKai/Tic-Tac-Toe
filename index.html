@@ -5,108 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>XOXO & CO</title>
     <link href="style.css" rel="stylesheet" />
-    <script type="module" src="src/main.js" defer></script>
-    <style></style>
+    <script type="module" src="/src/main.ts" defer></script>
   </head>
-  <body>
-    <svg style="display: none">
-      <symbol id="main-logo" viewBox="0 0 1000 1000"></symbol>
-    </svg>
+  <body class="light">
     <div class="app-shell">
-      <nav id="sidebar">
-        <ul>
-          <li>
-            <span class="logo" aria-label="XOXO & CO">
-              <svg class="logo-icon sidebar-logo">
-                <use href="./logo.svg#main-logo"></use>
-              </svg>
-            </span>
-            <button id="toggle-btn" title="Menü umschalten">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24"
-                viewBox="0 -960 960 960"
-                width="24"
-                fill="currentColor"
-              >
-                <path
-                  d="m313-480 155 156q11 11 11.5 27.5T468-268q-11 11-28 11t-28-11L228-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 27.5-11.5T468-692q11 11 11 28t-11 28L313-480Zm264 0 155 156q11 11 11.5 27.5T732-268q-11 11-28 11t-28-11L492-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 27.5-11.5T732-692q11 11 11 28t-11 28L577-480Z"
-                />
-              </svg>
-            </button>
-          </li>
-          <li class="active">
-            <a href="#" onclick="return false;">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24"
-                viewBox="0 -960 960 960"
-                width="24"
-                fill="currentColor"
-              >
-                <path
-                  d="M240-200h120v-200q0-17 11.5-28.5T400-440h160q17 0 28.5 11.5T600-400v200h120v-360L480-740 240-560v360Zm-80 0v-360q0-19 8.5-36t23.5-28l240-180q21-16 48-16t48 16l240 180q15 11 23.5 28t8.5 36v360q0 33-23.5 56.5T720-120H560q-17 0-28.5-11.5T520-160v-200h-80v200q0 17-11.5 28.5T400-120H240q-33 0-56.5-23.5T160-200Zm320-270Z"
-                />
-              </svg>
-              <span>Game</span>
-            </a>
-          </li>
-          <li>
-            <button class="dropdown-btn">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24"
-                viewBox="0 -960 960 960"
-                width="24"
-                fill="currentColor"
-              >
-                <path
-                  d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h207q16 0 30.5 6t25.5 17l57 57h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"
-                />
-              </svg>
-              <span>Lobby</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24"
-                viewBox="0 -960 960 960"
-                width="24"
-                fill="currentColor"
-              >
-                <path
-                  d="M480-361q-8 0-15-2.5t-13-8.5L268-556q-11-11-11-28t11-28q11-11 28-11t28 11l156 156 156-156q11-11 28-11t28 11q11 11 11 28t-11 28L508-372q-6 6-13 8.5t-15 2.5Z"
-                />
-              </svg>
-            </button>
-            <ul class="sub-menu">
-              <li><a href="#" id="lobby-browser-btn">Browser</a></li>
-              <li><a href="#" id="open-settings-btn">Settings</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="#" id="open-profile-btn">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24"
-                viewBox="0 -960 960 960"
-                width="24"
-                fill="currentColor"
-              >
-                <path
-                  d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-240v-32q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v32q0 33-23.5 56.5T720-160H240q-33 0-56.5-23.5T160-240Zm80 0h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Z"
-                />
-              </svg>
-              <span>Profile</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <side-bar></side-bar>
 
       <main class="game-view">
-        <game-board id="grid">
-          <svg slot="logo" class="logo-icon header-logo" aria-label="XOXO & CO">
-            <use href="./logo.svg#main-logo"></use>
-          </svg>
-        </game-board>
+        <game-board id="grid"></game-board>
+
         <button
           id="chat-toggle-btn"
           class="chat-toggle-btn"
@@ -116,156 +23,11 @@
         </button>
       </main>
 
-      <aside class="chat-drawer" id="chat-sidebar">
-        <div class="drawer-header">
-          <span>Chat</span>
-          <button type="button" class="close-btn" aria-label="Schließen">
-            ✕
-          </button>
-        </div>
-        <div id="chat-messages" class="chat-content"></div>
-        <div class="chat-input-area">
-          <label for="message" class="visually-hidden">Nachricht!</label>
-          <textarea
-            id="message"
-            name="nachricht"
-            rows="1"
-            placeholder="Schreibe eine Nachricht..."
-            class="input-like"
-          ></textarea>
-          <button id="chat-send">Senden</button>
-        </div>
-      </aside>
+      <chat-drawer></chat-drawer>
 
-      <dialog id="lobby-dialog" class="custom-modal">
-        <div class="modal-content">
-          <h2>Lobby Einstellungen</h2>
-          <div class="form-group">
-            <label for="mode">Spielmodus</label>
-            <select id="mode"></select>
-          </div>
-          <div class="form-group">
-            <label for="difficulty" id="difficulty-label">Schwierigkeit</label>
-            <select id="difficulty">
-              <option value="easy">Einfach</option>
-              <option value="medium" selected>Normal</option>
-              <option value="hard">Schwer</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="boardsize">Spielfeldgröße</label>
-            <input type="number" id="boardsize" min="3" max="10" value="3" />
-          </div>
-          <div class="form-group">
-            <label for="wincon">Gewinnbedingung</label>
-            <input type="number" id="wincon" min="3" max="10" value="3" />
-          </div>
-          <div class="modal-actions">
-            <button id="apply" class="primary-btn">Übernehmen</button>
-            <button id="close-lobby-btn" class="close-btn">Abbrechen</button>
-          </div>
-        </div>
-      </dialog>
-
-      <dialog id="profile-dialog" class="custom-modal">
-        <div class="modal-content">
-          <header>
-            <h2>Personalisierung</h2>
-          </header>
-
-          <main class="modal-body">
-            <section class="form-group">
-              <label for="colors">Farbschema wählen</label>
-              <select id="colors"></select>
-            </section>
-
-            <fieldset class="shape-choice">
-              <legend>Spielfelderform</legend>
-
-              <div class="radio-option">
-                <input type="radio" id="squareChoice" name="shape" value="5%" />
-                <label for="squareChoice">Quadratisch</label>
-              </div>
-
-              <div class="radio-option">
-                <input
-                  type="radio"
-                  id="roundChoice"
-                  name="shape"
-                  value="100%"
-                />
-                <label for="roundChoice">Rund</label>
-              </div>
-            </fieldset>
-          </main>
-
-          <footer class="modal-actions">
-            <button id="close-profile-btn" class="primary-btn">
-              Speichern
-            </button>
-          </footer>
-        </div>
-      </dialog>
-      <dialog id="lobby-browser-dialog" class="custom-modal">
-        <div class="modal-content">
-          <header class="modal-header">
-            <h2>Lobby Browser</h2>
-            <button type="button" class="close-btn" aria-label="Schließen">
-              ×
-            </button>
-          </header>
-
-          <section class="toolbar">
-            <div class="search-wrapper">
-              <input
-                type="search"
-                id="lobby-search"
-                placeholder="Suche..."
-                class="search-bar"
-              />
-            </div>
-            <div class="action-buttons">
-              <button
-                type="button"
-                class="icon-btn refresh"
-                title="Aktualisieren"
-              >
-                ↻
-              </button>
-              <button type="button" class="filter-btn">Filter</button>
-              <button type="button" class="primary-btn create">+ Create</button>
-            </div>
-          </section>
-
-          <div class="lobby-list-container">
-            <div class="list-header" aria-hidden="true">
-              <span class="cell-name">Name</span>
-              <span class="cell-players">Spieler</span>
-              <span class="cell-game">Spiel</span>
-            </div>
-
-            <div class="list-body" id="lobby-list-data">
-              <div class="lobby-row" data-lobby-id="123">
-                <span class="cell-name" data-label="Name">♥FRIENDLY♥</span>
-                <span class="cell-players" data-label="Spieler">1/8</span>
-                <span class="cell-game" data-label="Spiel">Tictactoe</span>
-              </div>
-              <div class="lobby-row" data-lobby-id="456">
-                <span class="cell-name" data-label="Name">Pro Gamers Only</span>
-                <span class="cell-players" data-label="Spieler">4/4</span>
-                <span class="cell-game" data-label="Spiel">ConnectFour</span>
-              </div>
-              <div class="lobby-row" data-lobby-id="6767">
-                <span class="cell-name" data-label="Name"
-                  >Wer das liest ist doof</span
-                >
-                <span class="cell-players" data-label="Spieler">6/7</span>
-                <span class="cell-game" data-label="Spiel">GTA 6</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </dialog>
+      <lobby-dialog></lobby-dialog>
+      <profile-dialog></profile-dialog>
+      <browser-dialog></browser-dialog>
     </div>
   </body>
 </html>
