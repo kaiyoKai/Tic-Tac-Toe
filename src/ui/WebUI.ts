@@ -17,7 +17,7 @@ export class WebUI {
     this.autoWireComponents();
   }
 
-  private autoWireComponents() {
+  private async autoWireComponents() {
     const selectors = [
       "game-board",
       "side-bar",
@@ -27,9 +27,15 @@ export class WebUI {
       "browser-dialog",
     ];
 
+    await Promise.all(selectors.map((tag) => customElements.whenDefined(tag)));
+
     selectors.forEach((tag) => {
-      const el = document.querySelector(tag);
+      const el = document.querySelector(tag) as any;
       if (!el) return;
+
+      if (el.hasAttribute("data-wired")) return;
+      el.setAttribute("data-wired", "true");
+
       const klass = el.constructor as any;
 
       if (klass.busEvents) {
@@ -62,41 +68,58 @@ export class WebUI {
         });
       }
 
-      el.addEventListener("ui-action", (e: any) => {
+      el.addEventListener("ui-action", async (e: any) => {
         const { action, payload } = e.detail;
-        if (action === "open-dialog")
-          (document.querySelector(payload) as any)?.show?.();
-        if (action === "apply-theme") this.changeTheme(payload as ThemeKey);
+
+        if (action === "open-dialog") {
+          const dialog = document.querySelector(payload) as any;
+          if (dialog) {
+            if (dialog.updateComplete) await dialog.updateComplete;
+            dialog.show?.();
+          }
+        }
+
+        if (action === "apply-theme") {
+          this.changeTheme(payload as ThemeKey);
+        }
+
+        if (action === "set-cell-radius") {
+          const board = document.querySelector("game-board") as any;
+          if (board) board.cellRadius = payload;
+          document.documentElement.style.setProperty("--cell-radius", payload);
+        }
       });
     });
-
-    document
-      .getElementById("chat-toggle-btn")
-      ?.addEventListener("click", () => {
-        (document.querySelector("chat-drawer") as any)?.toggle();
-      });
   }
 
-  private changeTheme(themeName: ThemeKey): void {
+  private changeTheme(themeName: ThemeKey, skipTransition = false): void {
     const theme = ThemeMap[themeName];
-    if (!theme || !document.startViewTransition) return;
-    document.startViewTransition(() => {
+    if (!theme) return;
+
+    const performUpdate = () => {
       Object.entries(theme).forEach(([p, v]) =>
         document.documentElement.style.setProperty(`--${p}`, v as string),
       );
-      document.body.classList.replace(
-        this.currentThemeName.toLowerCase(),
-        themeName.toLowerCase(),
-      );
+      document.body.className = themeName.toLowerCase();
       this.currentThemeName = themeName;
       localStorage.setItem("user-theme", themeName);
-    });
+    };
+
+    if (skipTransition || !document.startViewTransition) {
+      performUpdate();
+      return;
+    }
+
+    try {
+      document.startViewTransition(() => performUpdate());
+    } catch (e) {
+      performUpdate();
+    }
   }
 
   private initializeUIState(): void {
     const saved =
       (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
-    document.body.classList.add(saved.toLowerCase());
-    this.changeTheme(saved);
+    this.changeTheme(saved, true);
   }
 }

@@ -1,4 +1,3 @@
-// src/components/LobbyDialog.ts
 import { LitElement, html, css } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { GameSettings } from "../core/GameSettings.js";
@@ -39,6 +38,7 @@ export class LobbyDialog extends LitElement {
     this.baseDialog.close();
   }
 
+  static styles = css``;
   render() {
     return html`
       <base-dialog title="Spiel-Einstellungen">

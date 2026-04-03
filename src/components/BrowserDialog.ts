@@ -6,7 +6,6 @@ import "./BaseDialog.js";
 export class BrowserDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
 
-  // MANIFEST: Mappt das lokale Event auf das EventBus-Event
   static busEvents = {
     "join-server": "ui:join-server-requested",
   };
@@ -34,6 +33,7 @@ export class BrowserDialog extends LitElement {
     }
     .server-item:hover {
       background: var(--cell-hover);
+      box-shadow: 0 0.375rem 1.25rem var(--glow-core);
     }
     .server-info {
       display: flex;

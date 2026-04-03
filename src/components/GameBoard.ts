@@ -2,15 +2,29 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { WinType, type IGameResult } from "../types/Common.js";
 import "./GameLogo.js";
+
 @customElement("game-board")
 export class GameBoard extends LitElement {
+  static busEvents = {
+    "cell-clicked": "ui:cell-clicked",
+    "reset-requested": "ui:reset-requested",
+  };
+
+  static busSubscriptions = {
+    "game:board-state": "onBoardState",
+    "game:move-made": "onMoveMade",
+    "game:finished": "onGameFinished",
+    "game:reset": "resetBoard",
+    "game:settings-changed": "onSettingsChanged",
+  };
+
   @property({ type: Number }) boardSize = 3;
   @property({ type: String }) cellRadius = "5%";
   @property({ type: Number }) turnNumber = 1;
   @property({ type: String }) currentPlayer = "";
   @property({ type: String }) winnerMessage = "";
 
-  @state() private cells: string[][] = [];
+  @state() public cells: string[][] = [];
 
   constructor() {
     super();
@@ -27,6 +41,23 @@ export class GameBoard extends LitElement {
     this.cells = Array.from({ length: this.boardSize }, () =>
       Array(this.boardSize).fill(""),
     );
+  }
+
+  public onBoardState(data: any) {
+    this.cells = data.grid.map((row: any[]) => row.map((cell) => cell || ""));
+  }
+
+  public onMoveMade(data: any) {
+    this.turnNumber = data.turn;
+    this.currentPlayer = data.nextPlayerSymbol;
+    this.updateCell(data.row, data.col, data.symbol);
+  }
+
+  public async onGameFinished(result: IGameResult) {
+    this.winnerMessage = result.winner
+      ? `${result.winner} Won!`
+      : "It's a draw!";
+    await this.showWinAnimation(result);
   }
 
   static styles = css`
@@ -237,7 +268,10 @@ export class GameBoard extends LitElement {
       }),
     );
   }
-
+  public onSettingsChanged(settings: any) {
+    this.boardSize = settings.boardSize;
+    this.initBoard();
+  }
   public updateCell(row: number, col: number, symbol: string) {
     const newCells = [...this.cells];
     newCells[row][col] = symbol;
@@ -247,6 +281,7 @@ export class GameBoard extends LitElement {
   public resetBoard() {
     this.initBoard();
     this.winnerMessage = "";
+    this.turnNumber = 1;
 
     this.shadowRoot
       ?.querySelectorAll<HTMLButtonElement>("button.cell-btn")

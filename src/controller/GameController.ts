@@ -40,6 +40,7 @@ export class GameController {
   private eventBus: EventBus<GameEventMap>;
   private currentPlayerId = assertPlayerID(1);
   private activeGameId = 0;
+  private resetTimeout: number | null = null;
 
   constructor({
     bus,
@@ -74,14 +75,23 @@ export class GameController {
 
   private handleReset() {
     this.activeGameId++;
-    //Damit die listener im localplayer objekt sich rechtzeitig abmelden
-    setTimeout(() => {
+
+    if (this.resetTimeout !== null) {
+      clearTimeout(this.resetTimeout);
+    }
+
+    const gameIdForThisReset = this.activeGameId;
+
+    this.resetTimeout = setTimeout(() => {
+      if (this.activeGameId !== gameIdForThisReset) return;
+
       this.initNewGame();
       this.eventBus.emit("game:reset", EventActor.Controller, {
         turn: this.getTurn(),
         nextPlayerSymbol: this.getNextPlayerSymbol(),
       });
-    }, 0);
+      this.resetTimeout = null;
+    }, 0) as unknown as number;
   }
   private initNewGame() {
     Logger.log(
