@@ -67,7 +67,6 @@ export class GameBoard extends LitElement {
     }
 
     button.cell-btn {
-      /* HIER SIND DIE FIXES FÜR DIE BUTTON-GRÖSSE: */
       width: 100%;
       height: 100%;
       min-width: 0;
@@ -298,7 +297,7 @@ export class GameBoard extends LitElement {
   }
 
   private getLineConfig(type: WinType) {
-    const widthMult = this.cellRadius === "100%" ? 1.3 : 1;
+    const widthMult = this.cellRadius === "100%" ? 1.09 : 1;
     switch (type) {
       case WinType.Horizontal:
         return { top: "50%", left: "0%", angle: "0deg", width: "100%" };

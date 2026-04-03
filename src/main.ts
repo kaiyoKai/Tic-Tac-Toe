@@ -9,6 +9,18 @@ Logger.setScopeAll();
 
 Logger.log(EventActor.Anonymous, "⚠️ MAIN.TS WIRD AUSGEFÜHRT ⚠️");
 
-const eventBus = new EventBus<GameEventMap>();
-const controller = new GameController({ bus: eventBus });
-const webUI = new WebUI(eventBus);
+async function init() {
+  const eventBus = new EventBus<GameEventMap>();
+
+  await Promise.all([
+    customElements.whenDefined("game-board"),
+    customElements.whenDefined("side-bar"),
+  ]);
+  const webUI = new WebUI(eventBus);
+
+  const controller = new GameController({ bus: eventBus });
+  const ui = new WebUI(eventBus);
+}
+
+init();
+Logger.log(EventActor.Anonymous, " Intit! ");

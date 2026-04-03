@@ -9,4 +9,6 @@ export const ThemeMap = {
   Lavender: "lavender",
 } as const;
 
-export type ThemeType = keyof typeof ThemeMap;
+export type ThemeKey = keyof typeof ThemeMap;
+
+export type ThemeValue = (typeof ThemeMap)[ThemeKey];

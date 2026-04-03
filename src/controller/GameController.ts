@@ -133,8 +133,8 @@ export class GameController {
           symbol: currentPlayer.symbol,
           turn: this.getTurn(),
           nextPlayerSymbol: this.getNextPlayerSymbol(),
+          grid: this.getBoard(),
         });
-
         if (moveResult.gameResult) {
           this.eventBus.emit(
             "game:finished",

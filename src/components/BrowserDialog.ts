@@ -5,6 +5,12 @@ import "./BaseDialog.js";
 @customElement("browser-dialog")
 export class BrowserDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
+
+  // MANIFEST: Mappt das lokale Event auf das EventBus-Event
+  static busEvents = {
+    "join-server": "ui:join-server-requested",
+  };
+
   @state() private servers = [
     { id: 1, name: "GTA 6", players: "1/2", ping: "24ms" },
     { id: 2, name: "Wer das liest ist cool", players: "0/5", ping: "42ms" },
