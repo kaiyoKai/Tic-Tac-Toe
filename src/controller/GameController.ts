@@ -127,6 +127,8 @@ export class GameController {
         return;
       }
 
+      if (!move) return;
+
       const moveResult = this.game.move(
         move.row,
         move.col,

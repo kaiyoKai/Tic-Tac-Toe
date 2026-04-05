@@ -39,7 +39,6 @@ export class ProfileDialog extends LitElement {
     this.baseDialog.show();
   }
 
-  // In ProfileDialog.ts
   private handleThemeChange(e: Event) {
     const target = e.target as HTMLSelectElement;
     const selectedKey = target.value;

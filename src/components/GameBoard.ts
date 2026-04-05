@@ -143,7 +143,7 @@ export class GameBoard extends LitElement {
       left: var(--line-left, 0%);
       width: var(--after-width, 100%);
       height: 0.375rem;
-      background-color: var(--border-color);
+      background-color: var(--text-main);
       transform-origin: left center;
       transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(0);
       transition: transform 0.4s ease-out;
@@ -192,6 +192,8 @@ export class GameBoard extends LitElement {
     .reset-btn:hover {
       border-color: var(--primary-accent);
       background-color: var(--cell-hover);
+    }
+    logo-icon {
     }
   `;
 

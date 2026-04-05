@@ -17,9 +17,7 @@ async function init() {
     customElements.whenDefined("side-bar"),
   ]);
   const webUI = new WebUI(eventBus);
-
   const controller = new GameController({ bus: eventBus });
-  const ui = new WebUI(eventBus);
 }
 
 init();
