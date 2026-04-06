@@ -21,7 +21,7 @@ export class BrowserDialog extends LitElement {
   @state() private lobbys: Lobby[] = [
     {
       id: "1",
-      name: "Pro Gamer Only",
+      name: "Pro Gamers Only",
       currentPlayers: 1,
       maxPlayers: 2,
       ping: 24,
@@ -77,21 +77,24 @@ export class BrowserDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+
     }
     .lobby-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0.8rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
+      background: var(--cell-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       cursor: pointer;
       transition: 0.2s;
+      filter: drop-shadow(0 0 1rem var(--glow-core));
+
     }
     .lobby-item:hover {
-      background: #333;
-      border-color: #666;
+      background --cell-hover:
+      border-color: --;
     }
     .lobby-info {
       display: flex;
@@ -99,13 +102,25 @@ export class BrowserDialog extends LitElement {
     }
     .lobby-name {
       font-weight: bold;
-      color: #fff;
+      color: var(--text-main);
     }
     .lobby-stats {
       font-size: 0.8rem;
-      color: #aaa;
+      color: var(--border-color);
     }
+.btn-primary{
+      padding: 0.5rem 1rem;
+      background: var(--border-color);
+      color: var(--bg-color);
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-weight: bold;
+      flex-shrink: 1;}
   `;
+  public show() {
+    this.baseDialog.show();
+  }
 
   render() {
     return html`
@@ -121,7 +136,7 @@ export class BrowserDialog extends LitElement {
                     ${l.ping}ms ${l.isPrivate ? "🔒" : "🔓"}
                   </span>
                 </div>
-                <button class="btn primary">Join</button>
+                <button class="btn-primary">Beitreten</button>
               </div>
             `,
           )}

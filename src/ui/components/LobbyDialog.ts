@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, query } from "lit/decorators.js";
-import { GameSettings } from "../core/GameSettings.js";
-import { GameMode, Difficulty } from "../types/Common.js";
+import { GameSettings } from "../../core/GameSettings.js";
+import { GameMode, Difficulty } from "../../types/Common.js";
 import "./BaseDialog.js";
 
 @customElement("lobby-dialog")

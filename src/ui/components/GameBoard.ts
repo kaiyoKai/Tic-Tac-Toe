@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { WinType, type IGameResult } from "../types/Common.js";
+import { WinType, type IGameResult } from "../../types/Common.js";
 import "./GameLogo.js";
 
 @customElement("game-board")
@@ -107,7 +107,7 @@ export class GameBoard extends LitElement {
       color: var(--color-win);
       min-height: 2.2rem;
       text-transform: uppercase;
-      text-shadow: 0 0 1rem var(--color-win);
+      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
 
     .board-wrapper {
@@ -144,6 +144,7 @@ export class GameBoard extends LitElement {
       cursor: pointer;
       padding: 0;
       margin: 0;
+      overflow: hidden;
     }
 
     button.cell-btn:hover {
@@ -384,7 +385,7 @@ export class GameBoard extends LitElement {
 
   private getLineConfig(type: WinType) {
     const isCircle = this.cellRadius === "50%";
-    const widthMult = isCircle ? 1.15 : 1;
+    const widthMult = isCircle ? 1.17 : 1;
     switch (type) {
       case WinType.Horizontal:
         return { top: "50%", left: "0%", angle: "0deg", width: "100%" };

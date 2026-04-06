@@ -24,7 +24,6 @@ export class BaseDialog extends LitElement {
       border: 1px solid var(--border-color);
     }
 
-    /* Der dunkle Hintergrund (Backdrop) */
     dialog::backdrop {
       background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);

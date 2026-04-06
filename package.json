@@ -24,6 +24,7 @@
   "dependencies": {
     "assertion-error": "^2.0.1",
     "chai": "^6.2.2",
+    "emoji-picker-element": "^1.29.1",
     "es-module-lexer": "^1.7.0",
     "esbuild": "^0.27.2",
     "estree-walker": "^3.0.3",

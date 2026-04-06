@@ -21,13 +21,13 @@ const NAV_CONFIG: NavItem[] = [
       {
         id: "lobby-browser",
         label: "Lobby Liste",
-        icon: null,
+        icon: Icons.Browser,
         dialog: "browser-dialog",
       },
       {
         id: "lobby-settings",
         label: "Einstellungen",
-        icon: null,
+        icon: Icons.Settings,
         dialog: "lobby-dialog",
       },
     ],
