@@ -55,201 +55,257 @@ export class GameBoard extends LitElement {
 
   public async onGameFinished(result: IGameResult) {
     this.winnerMessage = result.winner
-      ? `${result.winner} Won!`
-      : "It's a draw!";
+      ? `${result.winner} hat gewonnen!`
+      : "Unentschieden!";
     await this.showWinAnimation(result);
+  }
+
+  public onSettingsChanged(settings: any) {
+    this.boardSize = settings.boardSize;
+    this.initBoard();
   }
 
   static styles = css`
     :host {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
       width: 100%;
+      height: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .game-header {
       text-align: center;
-      margin-bottom: 1.25rem;
+      padding: 1rem 0 0 0;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    game-logo {
+      display: block;
+      height: clamp(8rem, 20vh, 15rem);
+      width: auto;
+      margin: 0 auto;
+      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
 
     .status-container {
       display: flex;
-      gap: 1.25rem;
+      gap: 2rem;
       justify-content: center;
-      font-size: 1.2rem;
-      margin: 0.625rem 0;
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+      font-weight: 600;
     }
 
     .victory-message {
       font-size: 1.5rem;
-      font-weight: bold;
+      font-weight: 900;
       color: var(--color-win);
-      min-height: 2rem;
+      min-height: 2.2rem;
+      text-transform: uppercase;
+      text-shadow: 0 0 1rem var(--color-win);
     }
 
+    .board-wrapper {
+      width: 100%;
+      height: 100%;
+      overflow: auto; /* Erlaubt das Scrollen, falls Logo + Board zu hoch sind */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
     .grid {
       display: grid;
-      width: min(80vmin, 37.5rem);
-      aspect-ratio: 1/1;
-      perspective: 1000px;
+      gap: 0.5rem;
       container-type: inline-size;
-      grid-auto-rows: 1fr;
+      perspective: 1000px;
+      margin: auto;
     }
 
     button.cell-btn {
       width: 100%;
       height: 100%;
-      min-width: 0;
-      min-height: 0;
-
+      aspect-ratio: 1 / 1;
       background-color: var(--cell-bg);
-      border: 0.3125rem solid var(--border-color);
+
+      border: 0.25rem solid var(--border-color);
       color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      overflow: visible !important;
-      transition:
-        background-color 0.2s,
-        border-color 0.2s,
-        transform 0.2s,
-        border-radius 0.3s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
-      margin: 0;
       padding: 0;
-      line-height: 1;
+      margin: 0;
     }
 
     button.cell-btn:hover {
       background-color: var(--cell-hover);
       border-color: var(--primary-accent);
       z-index: 10;
-      box-shadow:
-        0 0 1.25rem var(--glow-core),
-        0 0 1.25rem var(--glow-aura);
+      transform: scale(1.03);
     }
 
-    button.cell-btn:active {
-      transform: translateY(0.3125rem);
-    }
-
-    /* Animationen für den Win */
+    /* Win Animation */
     button.cell-btn::after {
       content: "";
       position: absolute;
       top: var(--line-top, 50%);
       left: var(--line-left, 0%);
       width: var(--after-width, 100%);
-      height: 0.375rem;
+      height: 0.4rem;
       background-color: var(--text-main);
       transform-origin: left center;
       transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(0);
-      transition: transform 0.4s ease-out;
+      transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
       pointer-events: none;
-      z-index: 110;
-      border-radius: 0.1875rem;
+      z-index: 20;
+      border-radius: 1rem;
     }
 
     button.draw-line::after {
       transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(1);
     }
-
     button.win {
       background-color: var(--color-win) !important;
       border-color: var(--text-main);
-      box-shadow: 0 0 3.125rem var(--glow-core);
-    }
-
-    @keyframes winRotate {
-      from {
-        transform: perspective(1000px) rotateY(0deg);
-      }
-      to {
-        transform: perspective(1000px) rotateY(360deg);
-      }
+      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
 
     button.spin {
-      animation: winRotate 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
-      z-index: 100;
+      animation: winRotate 0.8s forwards;
+    }
+    button.win:active {
+      animation: winRotateClick 0.8s ease;
+    }
+    @keyframes winRotate {
+      from {
+        transform: rotateY(0deg);
+      }
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+
+    .action-panel {
+      padding: 1rem 0 2rem 0;
+      display: flex;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
     .reset-btn {
-      display: block;
-      font-size: 1.5rem;
-      padding: 0.625rem 2.5rem;
-      background-color: var(--cell-bg);
+      padding: 1rem 3rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: var(--cell-bg);
       color: var(--text-main);
-      border: 0.125rem solid var(--border-color);
-      border-radius: 0.625rem;
+      border: 0.2rem solid var(--border-color);
+      border-radius: 1rem;
       cursor: pointer;
-      transition: 0.2s;
-      margin-top: 1.5rem;
+      transition: 0.3s;
     }
 
     .reset-btn:hover {
       border-color: var(--primary-accent);
-      background-color: var(--cell-hover);
-    }
-    logo-icon {
+      background: var(--cell-hover);
+      box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
     }
   `;
 
   render() {
-    return html`
-      <header class="game-header">
-        <game-logo
-          class="logo-icon header-logo"
-          aria-label="XOXO & CO"
-        ></game-logo>
-        <div class="status-container">
-          <p>Current Turn: ${this.currentPlayer}</p>
-          <p>Turn Number: ${this.turnNumber}</p>
-        </div>
-        <p class="victory-message">${this.winnerMessage}</p>
-      </header>
+    const isSmallBoard = this.boardSize <= 5;
 
+    return html`
       <style>
-        .grid {
-          grid-template-columns: repeat(${this.boardSize}, minmax(0, 1fr));
+        :host {
+          height: 100vh;
+          display: grid;
+          grid-template-rows: auto 1fr auto;
         }
+
+        .board-wrapper {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 0;
+          flex: 1;
+          padding: 1rem;
+          overflow: ${isSmallBoard ? "hidden" : "auto"};
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(${this.boardSize}, 1fr);
+          grid-template-rows: repeat(${this.boardSize}, 1fr);
+          aspect-ratio: 1 / 1;
+
+          ${isSmallBoard
+          ? `
+            height: 100%;
+            width: auto;
+            max-width: 100%;
+            max-height: 100%;
+            `
+          : `
+            width: calc(${this.boardSize} * 4.5rem);
+            height: calc(${this.boardSize} * 4.5rem);
+            `}
+        }
+
         button.cell-btn {
           border-radius: ${this.cellRadius};
-          font-size: calc(65cqw / ${this.boardSize});
+          font-size: calc(60cqw / ${this.boardSize});
         }
       </style>
 
-      <div class="grid" @click="${this._handleCellClick}">
-        ${this.cells.map((row, r) =>
-          row.map(
-            (cell, c) => html`
-              <button
-                class="cell-btn"
-                data-row="${r}"
-                data-col="${c}"
-                id="btn-${r}-${c}"
-              >
-                ${cell}
-              </button>
-            `,
-          ),
-        )}
+      <header class="game-header">
+        <game-logo></game-logo>
+        <div class="status-container">
+          <span>Spieler: ${this.currentPlayer}</span>
+          <span>Zug: ${this.turnNumber}</span>
+        </div>
+        <div class="victory-message">${this.winnerMessage}</div>
+      </header>
+
+      <div class="board-wrapper">
+        <div class="grid" @click="${this._handleCellClick}">
+          ${this.cells.map((row, r) =>
+            row.map(
+              (cell, c) => html`
+                <button
+                  class="cell-btn"
+                  data-row="${r}"
+                  data-col="${c}"
+                  id="btn-${r}-${c}"
+                >
+                  ${cell}
+                </button>
+              `,
+            ),
+          )}
+        </div>
       </div>
 
-      <button class="reset-btn" @click="${this._handleResetClick}">
-        Zurücksetzen
-      </button>
+      <div class="action-panel">
+        <button class="reset-btn" @click="${this._handleResetClick}">
+          Neu starten
+        </button>
+      </div>
     `;
   }
-
   private _handleCellClick(e: Event) {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
       "button.cell-btn",
     );
-    if (!btn) return;
-
+    if (!btn || btn.innerText !== "" || this.winnerMessage !== "") return;
     this.dispatchEvent(
       new CustomEvent("cell-clicked", {
         detail: {
@@ -264,16 +320,10 @@ export class GameBoard extends LitElement {
 
   private _handleResetClick() {
     this.dispatchEvent(
-      new CustomEvent("reset-requested", {
-        bubbles: true,
-        composed: true,
-      }),
+      new CustomEvent("reset-requested", { bubbles: true, composed: true }),
     );
   }
-  public onSettingsChanged(settings: any) {
-    this.boardSize = settings.boardSize;
-    this.initBoard();
-  }
+
   public updateCell(row: number, col: number, symbol: string) {
     const newCells = [...this.cells];
     newCells[row][col] = symbol;
@@ -284,7 +334,6 @@ export class GameBoard extends LitElement {
     this.initBoard();
     this.winnerMessage = "";
     this.turnNumber = 1;
-
     this.shadowRoot
       ?.querySelectorAll<HTMLButtonElement>("button.cell-btn")
       .forEach((btn) => {
@@ -334,7 +383,8 @@ export class GameBoard extends LitElement {
   }
 
   private getLineConfig(type: WinType) {
-    const widthMult = this.cellRadius === "100%" ? 1.09 : 1;
+    const isCircle = this.cellRadius === "50%";
+    const widthMult = isCircle ? 1.15 : 1;
     switch (type) {
       case WinType.Horizontal:
         return { top: "50%", left: "0%", angle: "0deg", width: "100%" };

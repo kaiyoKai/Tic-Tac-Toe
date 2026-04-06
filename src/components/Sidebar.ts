@@ -1,6 +1,44 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { map } from "lit/directives/map.js";
 import { Icons } from "./SideBarIcons.js";
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: any;
+  dialog?: string;
+  children?: NavItem[];
+}
+
+const NAV_CONFIG: NavItem[] = [
+  { id: "game", label: "Spiel", icon: Icons.Home },
+  {
+    id: "lobby",
+    label: "Lobby",
+    icon: Icons.Lobby,
+    children: [
+      {
+        id: "lobby-browser",
+        label: "Lobby Liste",
+        icon: null,
+        dialog: "browser-dialog",
+      },
+      {
+        id: "lobby-settings",
+        label: "Einstellungen",
+        icon: null,
+        dialog: "lobby-dialog",
+      },
+    ],
+  },
+  {
+    id: "profile",
+    label: "Profil",
+    icon: Icons.Profile,
+    dialog: "profile-dialog",
+  },
+];
 
 @customElement("side-bar")
 export class SideBar extends LitElement {
@@ -8,192 +46,248 @@ export class SideBar extends LitElement {
   @state() private openDropdown: string | null = null;
   @state() private activeTab = "game";
 
-  private navigationMap: Record<string, string> = {
-    "lobby-settings": "lobby-dialog",
-    profile: "profile-dialog",
-    "lobby-browser": "browser-dialog",
-  };
-
   static styles = css`
     :host {
-      display: block;
-      width: 15.625rem;
-      height: 100vh;
-      padding: 0.3125rem 1em;
-      background-color: var(--cell-bg);
-      border-right: 0.0625rem solid var(--border-color);
-      transition: 300ms ease-in-out;
+      --sidebar-width: 14rem;
+      --sidebar-collapsed-width: 4rem;
+      --anim-speed: 300ms;
+
+      display: flex;
+      flex-direction: column;
+      width: var(--sidebar-width);
+      height: 100dvh;
+      padding: 0.5rem;
+      background-color: var(--cell-bg, #1a1a1a);
+      border-right: 1px solid var(--border-color, #333);
+      transition: width var(--anim-speed) ease-in-out;
+      box-sizing: border-box;
       overflow-x: hidden;
+      overflow-y: auto;
       white-space: nowrap;
       flex-shrink: 0;
       z-index: 200;
     }
+
     :host([collapsed]) {
-      padding: 0.3125rem;
-      width: 4.5rem;
+      width: var(--sidebar-collapsed-width);
     }
+
     nav {
       display: flex;
       flex-direction: column;
       height: 100%;
+      gap: 0.25rem;
     }
+
     .header {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 0 0.5rem;
     }
+
     .icon {
       flex-shrink: 0;
-      fill: var(--text-main);
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: var(--text-main, #fff);
       display: flex;
       align-items: center;
+      justify-content: center;
     }
+
     .menu-item {
-      border-radius: 0.5em;
-      padding: 0.85em;
-      color: var(--text-main);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      color: var(--text-main, #fff);
       display: flex;
       align-items: center;
-      gap: 1em;
+      gap: 0.75rem;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
+      user-select: none;
+      overflow: hidden;
     }
+
     .menu-item:hover {
-      background-color: var(--cell-hover);
+      background-color: var(--cell-hover, rgba(255, 255, 255, 0.1));
     }
     .menu-item.active {
-      color: var(--primary-accent);
+      color: var(--primary-accent, #007bff);
       background-color: color-mix(
         in srgb,
-        var(--primary-accent),
-        transparent 90%
+        var(--primary-accent) 15%,
+        transparent
       );
     }
     .menu-item.active .icon {
-      fill: var(--primary-accent);
+      fill: var(--primary-accent, #007bff);
     }
+
     .label {
-      transition: opacity 0.2s;
+      flex-grow: 1;
+      opacity: 1;
+      max-width: 10rem;
+      transition:
+        opacity var(--anim-speed),
+        max-width var(--anim-speed);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.9rem;
     }
-    :host([collapsed]) .label,
-    :host([collapsed]) .chevron {
-      display: none;
+
+    .sub-menu {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition:
+        grid-template-rows var(--anim-speed) ease,
+        opacity var(--anim-speed) ease;
     }
+    .sub-menu.show {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    .sub-menu-inner {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+    .sub-item {
+      padding-left: 2.5rem;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
     .chevron {
-      margin-left: auto;
-      transition: transform 200ms ease;
+      display: flex;
+      flex-shrink: 0;
+      transition:
+        transform var(--anim-speed) ease,
+        opacity var(--anim-speed);
     }
     .chevron.open {
       transform: rotate(180deg);
     }
-    .sub-menu {
-      height: 0;
-      opacity: 0;
-      visibility: hidden;
-      overflow: hidden;
-      transition:
-        height 300ms ease-in-out,
-        opacity 300ms ease,
-        visibility 300ms;
-    }
-    .sub-menu.show {
-      height: auto;
-      opacity: 1;
-      visibility: visible;
-    }
-    .sub-item {
-      padding-left: 3.5em;
-      font-size: 0.9em;
-      opacity: 0.8;
-    }
+
     button.toggle-btn {
       background: transparent;
       border: none;
       color: var(--text-main);
       cursor: pointer;
-      padding: 0.3125rem;
-      border-radius: 4px;
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
     }
     button.toggle-btn:hover {
       background-color: var(--cell-hover);
     }
-    button.toggle-btn svg {
-      transition: transform 300ms ease;
+
+    :host([collapsed]) .label,
+    :host([collapsed]) .chevron {
+      opacity: 0;
+      max-width: 0;
+      margin: 0;
+    }
+    :host([collapsed]) .sub-menu {
+      display: none;
     }
     :host([collapsed]) button.toggle-btn svg {
       transform: rotate(180deg);
     }
 
-    /* Mobile Styles aus deiner originalen CSS */
+    /* --- MOBILE --- */
     @media (max-width: 37.5rem) {
       :host {
         width: 100%;
-        height: 3.75rem;
+        height: 3.5rem;
         bottom: 0;
         top: auto;
         position: fixed;
         border-right: none;
-        border-top: 0.0625rem solid var(--border-color);
+        border-top: 1px solid var(--border-color);
         padding: 0;
+        flex-direction: row;
         z-index: 1000;
+        overflow-y: visible;
       }
       nav {
         flex-direction: row;
-        justify-content: space-evenly;
+        justify-content: space-around;
         align-items: center;
+        width: 100%;
         height: 100%;
+        padding: 0;
+        gap: 0;
       }
-      .header,
-      .label,
-      .chevron {
+      .header {
         display: none;
       }
       .menu-item {
-        flex: 1;
-        justify-content: center;
+        flex-direction: column;
+        gap: 0.15rem;
+        border-radius: 0;
         padding: 0;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+      }
+      .icon {
+        width: 1.1rem;
+        height: 1.1rem;
       }
       .icon svg {
-        transform: scale(1.1);
+        transform: scale(1);
+      }
+      .label {
+        font-size: 0.65rem;
+        display: block;
+        max-width: 100%;
+        opacity: 1;
+        text-align: center;
       }
       .sub-menu {
         position: absolute;
-        bottom: 3.75rem;
+        bottom: 3.5rem;
         left: 0;
         width: 100%;
-        background: var(--bg-color);
-        border-top: 0.0625rem solid var(--border-color);
-        box-shadow: 0 -0.3125rem 1.25rem rgba(0, 0, 0, 0.3);
+        background: var(--cell-bg, #1a1a1a);
+        border-top: 1px solid var(--border-color);
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
       }
       .sub-menu.show {
-        height: auto;
+        display: block;
       }
       .sub-item {
-        padding: 0.9375rem;
+        padding: 0.75rem;
         justify-content: center;
-        border-bottom: 0.0625rem solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.85rem;
+      }
+      .chevron {
+        display: none !important;
       }
     }
   `;
 
-  private handleNav(id: string, hasChildren: boolean) {
-    if (this.collapsed) {
-      this.collapsed = false;
-      this.removeAttribute("collapsed");
-    }
-
-    if (hasChildren) {
-      this.openDropdown = this.openDropdown === id ? null : id;
+  private handleNav(item: NavItem) {
+    if (this.collapsed) this.toggleCollapse(false);
+    if (item.children) {
+      this.openDropdown = this.openDropdown === item.id ? null : item.id;
     } else {
-      this.activeTab = id;
-
-      const target = this.navigationMap[id];
-      if (target) {
-        // WICHTIG: bubbles und composed, damit die WebUI es hören kann!
+      this.activeTab = item.id;
+      if (item.dialog) {
         this.dispatchEvent(
           new CustomEvent("ui-action", {
-            detail: { action: "open-dialog", payload: target },
+            detail: { action: "open-dialog", payload: item.dialog },
             bubbles: true,
             composed: true,
           }),
@@ -202,62 +296,52 @@ export class SideBar extends LitElement {
     }
   }
 
+  private toggleCollapse(force?: boolean) {
+    this.collapsed = force !== undefined ? force : !this.collapsed;
+    if (this.collapsed) this.setAttribute("collapsed", "");
+    else this.removeAttribute("collapsed");
+  }
+
+  private renderMenuItem(item: NavItem, isSubItem = false): TemplateResult {
+    const isActive = this.activeTab === item.id;
+    const hasChildren = !!item.children;
+    const isOpen = this.openDropdown === item.id;
+
+    return html`
+      <div
+        class="menu-item ${isSubItem ? "sub-item" : ""} ${isActive
+          ? "active"
+          : ""}"
+        @click="${() => this.handleNav(item)}"
+      >
+        ${item.icon ? html`<span class="icon">${item.icon}</span>` : ""}
+        <span class="label">${item.label}</span>
+        ${hasChildren
+          ? html`<span class="chevron ${isOpen ? "open" : ""}"
+              >${Icons.Chevron}</span
+            >`
+          : ""}
+      </div>
+      ${hasChildren
+        ? html`<div class="sub-menu ${isOpen ? "show" : ""}">
+            <div class="sub-menu-inner">
+              ${item.children!.map((child) => this.renderMenuItem(child, true))}
+            </div>
+          </div>`
+        : ""}
+    `;
+  }
+
   render() {
     return html`
       <nav>
         <div class="header">
           <span class="icon">${Icons.Logo}</span>
-          <button
-            class="toggle-btn"
-            @click="${() => {
-              this.collapsed = !this.collapsed;
-              this.collapsed
-                ? this.setAttribute("collapsed", "")
-                : this.removeAttribute("collapsed");
-            }}"
-          >
+          <button class="toggle-btn" @click="${() => this.toggleCollapse()}">
             ${Icons.Toggle}
           </button>
         </div>
-
-        <div
-          class="menu-item ${this.activeTab === "game" ? "active" : ""}"
-          @click="${() => this.handleNav("game", false)}"
-        >
-          <span class="icon">${Icons.Home}</span>
-          <span class="label">Spiel</span>
-        </div>
-
-        <div class="menu-item" @click="${() => this.handleNav("lobby", true)}">
-          <span class="icon">${Icons.Lobby}</span>
-          <span class="label">Lobby</span>
-          <span class="chevron ${this.openDropdown === "lobby" ? "open" : ""}"
-            >${Icons.Chevron}</span
-          >
-        </div>
-
-        <div class="sub-menu ${this.openDropdown === "lobby" ? "show" : ""}">
-          <div
-            class="menu-item sub-item"
-            @click="${() => this.handleNav("lobby-browser", false)}"
-          >
-            <span class="label">Server Liste</span>
-          </div>
-          <div
-            class="menu-item sub-item"
-            @click="${() => this.handleNav("lobby-settings", false)}"
-          >
-            <span class="label">Einstellungen</span>
-          </div>
-        </div>
-
-        <div
-          class="menu-item ${this.activeTab === "profile" ? "active" : ""}"
-          @click="${() => this.handleNav("profile", false)}"
-        >
-          <span class="icon">${Icons.Profile}</span>
-          <span class="label">Profil</span>
-        </div>
+        ${map(NAV_CONFIG, (item) => this.renderMenuItem(item))}
       </nav>
     `;
   }

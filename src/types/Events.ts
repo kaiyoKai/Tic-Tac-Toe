@@ -15,7 +15,7 @@ export interface GameEventMap {
     symbol: PlayerSymbol;
     turn: number;
     nextPlayerSymbol: PlayerSymbol;
-    grid: (string | null)[][]; // Schick den neuen State direkt mit!
+    grid: (string | null)[][];
   };
   "game:finished": GameResult;
   "game:reset": { turn: number; nextPlayerSymbol: PlayerSymbol };

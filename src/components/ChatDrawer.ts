@@ -130,6 +130,7 @@ export class ChatDrawer extends LitElement {
       border-radius: 0.25rem;
       cursor: pointer;
       font-weight: bold;
+      flex-shrink: 1;
     }
 
     .message {
@@ -190,7 +191,7 @@ export class ChatDrawer extends LitElement {
   }
 
   public onChatMessage(data: { message: string; sender?: string }) {
-    const senderName = data.sender || "System";
+    const senderName = data.sender || "Du";
     this.addMessage(senderName, data.message);
   }
 
@@ -216,7 +217,7 @@ export class ChatDrawer extends LitElement {
 
       <div class="drawer-header">
         <span>Global Chat</span>
-        <button class="close-btn" @click="${this.toggle}">X</button>
+        <button class="close-btn" @click="${this.toggle}">x</button>
       </div>
       <div class="chat-content"></div>
       <div class="chat-input-area">

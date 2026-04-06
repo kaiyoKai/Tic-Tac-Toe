@@ -13,18 +13,14 @@ export class GameLogo extends LitElement {
       fill: inherit;
     }
     svg {
-      width: 80%;
-      height: 80%;
+      width: 100%;
+      height: 100%;
       display: block;
     }
   `;
   render() {
     return html`
-      <svg
-        viewBox="0 0 1000 1000"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
+      <svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
         <g transform="matrix(1.876138,0,0,1.876138,-34.699454,-18.752277)">
           <path
             fill="var(--logo-base, currentColor)"
