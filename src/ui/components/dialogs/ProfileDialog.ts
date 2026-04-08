@@ -10,7 +10,6 @@ import { AppEvent, EventActor } from "@events/EventTypes.ts";
 @customElement("profile-dialog")
 export class ProfileDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
-
   @state() public selectedThemeName: ThemeKey =
     (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
   @state() private buttonShape: string =

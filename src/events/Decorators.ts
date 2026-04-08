@@ -33,3 +33,33 @@ export function Subscribe<K extends keyof GlobalEventMap>(
     };
   };
 }
+
+export function Emit<K extends keyof GlobalEventMap>(
+  eventName: K,
+  actor: EventActor = EventActor.WebUI,
+) {
+  return function (
+    _target: any,
+    _propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      const result = originalMethod.apply(this, args);
+
+      if (result instanceof Promise) {
+        result.then((_resolvedValue) => {
+          // TypeScript  mit Array-Spread austricksen, weil der Compiler dynamischen Typen sonst nicht schluckt (Magie die ich nur halb verstehe)
+          globalEventBus.emit(eventName, actor, ...([result] as any));
+        });
+      } else {
+        globalEventBus.emit(eventName, actor, ...([result] as any));
+      }
+
+      return result;
+    };
+
+    return descriptor;
+  };
+}

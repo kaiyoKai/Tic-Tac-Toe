@@ -4,7 +4,7 @@ import { WinType, type IGameResult } from "@shared/Common.js";
 import "./GameLogo.js";
 import { keyed } from "lit/directives/keyed.js";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
-import { Subscribe } from "@events/Subscribe.ts";
+import { Subscribe } from "@events/Decorators.ts";
 import { globalEventBus } from "@events/EventBus.ts";
 @customElement("game-board")
 export class GameBoard extends LitElement {
@@ -63,6 +63,10 @@ export class GameBoard extends LitElement {
   @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
   public onReset() {
     this.resetBoard();
+  }
+  @Subscribe(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
+  public onShapeChanged(radius: string) {
+    this.cellRadius = radius;
   }
 
   static styles = css`

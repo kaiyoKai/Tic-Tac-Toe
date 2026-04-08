@@ -38,7 +38,6 @@ export class GameController {
   private playerOrder: number[] = [];
 
   public currentIndex: number = 0;
-  // HIER: 'private eventBus' wurde entfernt!
   private currentPlayerId = assertPlayerID(1);
   private activeGameId = 0;
   private resetTimeout: number | null = null;
@@ -53,7 +52,6 @@ export class GameController {
 
     this.initNewGame();
 
-    // HIER: Direkt globalEventBus nutzen!
     globalEventBus.on(AppEvent.UI.ResetRequested, EventActor.Controller, () =>
       this.handleReset(),
     );
@@ -65,7 +63,6 @@ export class GameController {
         this.applySettings(data);
         this.handleReset();
 
-        // HIER: Direkt globalEventBus nutzen!
         globalEventBus.emit(
           AppEvent.Game.SettingsChanged,
           EventActor.Controller,
@@ -88,7 +85,6 @@ export class GameController {
       if (this.activeGameId !== gameIdForThisReset) return;
 
       this.initNewGame();
-      // HIER: Direkt globalEventBus nutzen!
       globalEventBus.emit(AppEvent.Game.Reset, EventActor.Controller, {
         turn: this.getTurn(),
         nextPlayerSymbol: this.getNextPlayerSymbol(),
@@ -143,7 +139,6 @@ export class GameController {
         moveResult.MoveStatus === MoveStatus.SUCCESS ||
         moveResult.MoveStatus === MoveStatus.GAME_OVER
       ) {
-        // HIER: Direkt globalEventBus nutzen!
         globalEventBus.emit(AppEvent.Game.MoveMade, EventActor.Controller, {
           row: move.row,
           col: move.col,
@@ -153,7 +148,6 @@ export class GameController {
           grid: this.getBoard(),
         });
         if (moveResult.gameResult) {
-          // HIER: Direkt globalEventBus nutzen!
           globalEventBus.emit(
             AppEvent.Game.Finished,
             EventActor.Controller,

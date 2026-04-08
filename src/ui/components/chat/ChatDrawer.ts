@@ -1,6 +1,6 @@
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
-import { Subscribe } from "@events/Subscribe.ts";
+import { Subscribe } from "@events/Decorators.ts";
 import { LitElement, html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 

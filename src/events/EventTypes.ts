@@ -16,7 +16,8 @@ export const AppEvent = {
     DifficultyChanged: "ui:difficulty-changed",
     ThemeChanged: "ui:theme-changed",
     ButtonShapeChanged: "ui:shape-changed",
-    ProfileChangeRequested: "ui:profile-changeRequested",
+    ProfileChangeRequested: "ui:profile-change-requested",
+    DialogOpenRequested: "ui:dialog-open-requested",
   },
   Game: {
     BoardState: "game:board-state",
@@ -41,6 +42,7 @@ export interface UIEventMap {
   [AppEvent.UI.ThemeChanged]: ThemeKey;
   [AppEvent.UI.ButtonShapeChanged]: "50%" | "5%";
   [AppEvent.UI.ProfileChangeRequested]: User;
+  [AppEvent.UI.DialogOpenRequested]: string;
 }
 
 export interface GameEventMap {

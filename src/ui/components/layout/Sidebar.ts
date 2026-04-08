@@ -2,6 +2,8 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { map } from "lit/directives/map.js";
 import { Icons } from "@components/icons/Icons.js";
+import { Emit } from "@events/Decorators.ts";
+import { AppEvent, EventActor } from "@events/EventTypes.ts";
 
 interface NavItem {
   id: string;
@@ -278,6 +280,10 @@ export class SideBar extends LitElement {
     }
   `;
 
+  @Emit(AppEvent.UI.DialogOpenRequested, EventActor.WebUI)
+  private requestDialog(dialogId: string) {
+    return dialogId;
+  }
   private handleNav(item: NavItem) {
     if (this.collapsed) this.toggleCollapse(false);
     if (item.children) {
@@ -285,15 +291,7 @@ export class SideBar extends LitElement {
     } else {
       this.activeTab = item.id;
       if (item.dialog) {
-        const dialogElement = document.querySelector(item.dialog) as any;
-
-        if (dialogElement && typeof dialogElement.show === "function") {
-          dialogElement.show();
-        } else {
-          console.warn(
-            `Dialog-Element <${item.dialog}> nicht im DOM gefunden!`,
-          );
-        }
+        this.requestDialog(item.dialog);
       }
     }
   }
