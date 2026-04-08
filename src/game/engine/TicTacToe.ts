@@ -1,7 +1,7 @@
-import { Logger } from "../services/Logger.ts";
-import { MoveStatus, WinType } from "../types/Common.js";
-import { EventActor } from "../types/Events.ts";
-import { GameResult } from "./GameResult.js";
+import { Logger } from "@shared/Logger.ts";
+import { MoveStatus, WinType } from "@shared/Common.js";
+import { EventActor } from "@events/EventTypes.ts";
+import { GameResult } from "@engine/GameResult.js";
 
 export const DIRECTIONS = {
   [WinType.Horizontal]: { dRow: 0, dCol: 1 },

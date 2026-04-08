@@ -1,8 +1,10 @@
 import { LitElement, html, css } from "lit";
 import { customElement, query } from "lit/decorators.js";
-import { GameSettings } from "../../core/GameSettings.js";
-import { GameMode, Difficulty } from "../../types/Common.js";
+import { GameSettings } from "@engine/GameSettings.ts";
+import { GameMode, Difficulty } from "@shared/Common.ts";
 import "./BaseDialog.js";
+import { globalEventBus } from "@events/EventBus.ts";
+import { AppEvent, EventActor } from "@events/EventTypes.ts";
 
 @customElement("lobby-dialog")
 export class LobbyDialog extends LitElement {
@@ -11,10 +13,6 @@ export class LobbyDialog extends LitElement {
   @query("#difficulty") private difficulty!: HTMLSelectElement;
   @query("#board-size") private boardSize!: HTMLInputElement;
   @query("#win-condition") private winCondition!: HTMLInputElement;
-
-  static busEvents = {
-    "settings-applied": "ui:settings-change-requested",
-  };
 
   public show() {
     this.baseDialog.show();
@@ -28,17 +26,16 @@ export class LobbyDialog extends LitElement {
       this.difficulty.value as Difficulty,
     );
 
-    this.dispatchEvent(
-      new CustomEvent("settings-applied", {
-        detail: settings,
-        bubbles: true,
-        composed: true,
-      }),
+    globalEventBus.emit(
+      AppEvent.UI.SettingsChangeRequested,
+      EventActor.WebUI,
+      settings,
     );
     this.baseDialog.close();
   }
 
   static styles = css``;
+
   render() {
     return html`
       <base-dialog title="Spiel-Einstellungen">
@@ -70,7 +67,9 @@ export class LobbyDialog extends LitElement {
         </div>
         <div slot="footer">
           <button @click="${() => this.baseDialog.close()}">Abbrechen</button>
-          <button class="primary" @click="${this.applySettings}">Start</button>
+          <button class="btn primary" @click="${this.applySettings}">
+            Speichern
+          </button>
         </div>
       </base-dialog>
     `;

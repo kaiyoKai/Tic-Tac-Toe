@@ -1,6 +1,6 @@
-import type TicTacToe from "../../core/TicTacToe.js";
+import type TicTacToe from "@engine/TicTacToe.js";
 import type { MoveStrategy } from "./MovesStrategy.js";
-import type { Position, PlayerSymbol } from "../../types/Common.js";
+import type { Position, PlayerSymbol } from "@shared/Common.js";
 
 export const RandomStrategy: MoveStrategy = {
   async determineMove(game: TicTacToe): Promise<Position | undefined> {

@@ -1,3 +1,6 @@
+import { globalEventBus } from "@events/EventBus.ts";
+import { AppEvent, EventActor } from "@events/EventTypes.ts";
+import { Subscribe } from "@events/Subscribe.ts";
 import { LitElement, html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 
@@ -6,15 +9,6 @@ export class ChatDrawer extends LitElement {
   @state() private isOpen = false;
   @query(".chat-content") private container!: HTMLElement;
   @query("#chat-input") private input!: HTMLInputElement;
-
-  static busEvents = {
-    "send-chat": "chat:message-sent",
-  };
-
-  static busSubscriptions = {
-    "chat:message-sent": "onChatMessage",
-  };
-
   static styles = css`
     :host {
       width: 0;
@@ -180,16 +174,14 @@ export class ChatDrawer extends LitElement {
     const msg = this.input.value.trim();
     if (!msg) return;
 
-    this.dispatchEvent(
-      new CustomEvent("send-chat", {
-        detail: { message: msg },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    globalEventBus.emit(AppEvent.Chat.MessageSent, EventActor.WebUI, {
+      message: msg,
+    });
+
     this.input.value = "";
   }
 
+  @Subscribe(AppEvent.Chat.MessageSent, EventActor.WebUI)
   public onChatMessage(data: { message: string; sender?: string }) {
     const senderName = data.sender || "Du";
     this.addMessage(senderName, data.message);

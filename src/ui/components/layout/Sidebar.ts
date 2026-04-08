@@ -1,7 +1,7 @@
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { map } from "lit/directives/map.js";
-import { Icons } from "./SideBarIcons.js";
+import { Icons } from "@components/icons/Icons.js";
 
 interface NavItem {
   id: string;
@@ -285,13 +285,15 @@ export class SideBar extends LitElement {
     } else {
       this.activeTab = item.id;
       if (item.dialog) {
-        this.dispatchEvent(
-          new CustomEvent("ui-action", {
-            detail: { action: "open-dialog", payload: item.dialog },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+        const dialogElement = document.querySelector(item.dialog) as any;
+
+        if (dialogElement && typeof dialogElement.show === "function") {
+          dialogElement.show();
+        } else {
+          console.warn(
+            `Dialog-Element <${item.dialog}> nicht im DOM gefunden!`,
+          );
+        }
       }
     }
   }

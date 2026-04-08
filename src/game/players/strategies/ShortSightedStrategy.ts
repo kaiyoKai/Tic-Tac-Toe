@@ -1,6 +1,6 @@
 import type { MoveStrategy } from "./MovesStrategy.ts";
-import type TicTacToe from "../../core/TicTacToe.ts";
-import type { Position, PlayerSymbol } from "../../types/Common.js";
+import type TicTacToe from "@engine/TicTacToe.ts";
+import type { Position, PlayerSymbol } from "@shared/Common.ts";
 
 export const ShortSightedStrategy: MoveStrategy = {
   async determineMove(

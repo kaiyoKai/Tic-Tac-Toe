@@ -1,4 +1,4 @@
-import { EventActor } from "../types/Events.ts";
+import { EventActor } from "@events/EventTypes.ts";
 const LogStyles: Record<EventActor, string> & { reset: string } = {
   [EventActor.Controller]: "color: #ff00ff; font-weight: bold;",
   [EventActor.WebUI]: "color: #00ffff; font-weight: bold;",

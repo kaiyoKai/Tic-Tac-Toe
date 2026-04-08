@@ -1,26 +1,27 @@
-import TicTacToe from "../core/TicTacToe.js";
-import { Bot } from "../players/Bot.js";
-import { GameSettings } from "../core/GameSettings.js";
+import TicTacToe from "@engine/TicTacToe.js";
+import { Bot } from "@players/Bot.js";
+import { GameSettings } from "@engine/GameSettings.js";
 import {
   assertPlayerSymbol,
   MoveStatus,
   PlayerType,
   type PlayerSymbol,
-} from "../types/Common.js";
-import { Difficulty, GameMode } from "../types/Common.js";
-import type { Player } from "../players/Player.ts";
-import type EventBus from "../services/EventBus.ts";
-import { EventActor, type GameEventMap } from "../types/Events.ts";
-import { LocalPlayer } from "../players/LocalPlayer.ts";
-import { Logger } from "../services/Logger.ts";
+} from "@shared/Common.js";
+import { Difficulty, GameMode } from "@shared/Common.js";
+import type { Player } from "@players/Player.js";
+
+import { globalEventBus } from "@events/EventBus.ts";
+import { EventActor, AppEvent } from "@events/EventTypes.js";
+import { LocalPlayer } from "@players/LocalPlayer.js";
+import { Logger } from "@shared/Logger.js";
 
 interface GameControllerOptions {
-  bus: EventBus<GameEventMap>;
   mode?: GameMode;
   boardSize?: number;
   winCon?: number;
   difficulty?: Difficulty;
 }
+
 export type PlayerID = number & { readonly _brand: unique symbol };
 export function assertPlayerID(id: number): PlayerID {
   if (id >= 256 || id === 0) {
@@ -37,35 +38,36 @@ export class GameController {
   private playerOrder: number[] = [];
 
   public currentIndex: number = 0;
-  private eventBus: EventBus<GameEventMap>;
+  // HIER: 'private eventBus' wurde entfernt!
   private currentPlayerId = assertPlayerID(1);
   private activeGameId = 0;
   private resetTimeout: number | null = null;
 
   constructor({
-    bus,
     mode = "local",
     boardSize = 3,
     winCon = 3,
     difficulty = "medium",
-  }: GameControllerOptions) {
-    this.eventBus = bus;
+  }: GameControllerOptions = {}) {
     this.gameSettings = new GameSettings(mode, boardSize, winCon, difficulty);
 
     this.initNewGame();
 
-    this.eventBus.on("ui:reset-requested", EventActor.Controller, () =>
+    // HIER: Direkt globalEventBus nutzen!
+    globalEventBus.on(AppEvent.UI.ResetRequested, EventActor.Controller, () =>
       this.handleReset(),
     );
 
-    this.eventBus.on(
-      "ui:settings-change-requested",
+    globalEventBus.on(
+      AppEvent.UI.SettingsChangeRequested,
       EventActor.Controller,
       (data) => {
         this.applySettings(data);
         this.handleReset();
-        this.eventBus.emit(
-          "game:settings-changed",
+
+        // HIER: Direkt globalEventBus nutzen!
+        globalEventBus.emit(
+          AppEvent.Game.SettingsChanged,
           EventActor.Controller,
           this.gameSettings,
         );
@@ -86,13 +88,15 @@ export class GameController {
       if (this.activeGameId !== gameIdForThisReset) return;
 
       this.initNewGame();
-      this.eventBus.emit("game:reset", EventActor.Controller, {
+      // HIER: Direkt globalEventBus nutzen!
+      globalEventBus.emit(AppEvent.Game.Reset, EventActor.Controller, {
         turn: this.getTurn(),
         nextPlayerSymbol: this.getNextPlayerSymbol(),
       });
       this.resetTimeout = null;
     }, 0) as unknown as number;
   }
+
   private initNewGame() {
     Logger.log(
       EventActor.Controller,
@@ -139,7 +143,8 @@ export class GameController {
         moveResult.MoveStatus === MoveStatus.SUCCESS ||
         moveResult.MoveStatus === MoveStatus.GAME_OVER
       ) {
-        this.eventBus.emit("game:move-made", EventActor.Controller, {
+        // HIER: Direkt globalEventBus nutzen!
+        globalEventBus.emit(AppEvent.Game.MoveMade, EventActor.Controller, {
           row: move.row,
           col: move.col,
           symbol: currentPlayer.symbol,
@@ -148,8 +153,9 @@ export class GameController {
           grid: this.getBoard(),
         });
         if (moveResult.gameResult) {
-          this.eventBus.emit(
-            "game:finished",
+          // HIER: Direkt globalEventBus nutzen!
+          globalEventBus.emit(
+            AppEvent.Game.Finished,
             EventActor.Controller,
             moveResult.gameResult,
           );
@@ -232,7 +238,7 @@ export class GameController {
         this.players,
       );
     } else {
-      return new LocalPlayer(symbol, userName, id, this.eventBus);
+      return new LocalPlayer(symbol, userName, id);
     }
   }
   isGameOver(): boolean {

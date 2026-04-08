@@ -1,5 +1,5 @@
-import TicTacToe from "../../core/TicTacToe.js";
-import type { PlayerSymbol, Position } from "../../types/Common.ts";
+import TicTacToe from "@engine/TicTacToe.js";
+import type { PlayerSymbol, Position } from "@shared/Common.js";
 
 export interface MoveStrategy {
   determineMove(

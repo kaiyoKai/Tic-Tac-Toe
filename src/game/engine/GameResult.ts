@@ -1,4 +1,4 @@
-import { WinType, type Position } from "../types/Common.js";
+import { WinType, type Position } from "@shared/Common.js";
 
 export class GameResult {
   private constructor(

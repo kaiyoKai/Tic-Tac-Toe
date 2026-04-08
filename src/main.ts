@@ -1,8 +1,7 @@
 import { GameController } from "./controller/GameController.js";
-import EventBus from "./services/EventBus.ts";
-import { Logger } from "./services/Logger.ts";
-import { EventActor, type GameEventMap } from "./types/Events.ts";
+import { Logger } from "@shared/Logger.js";
 import { WebUI } from "./ui/WebUI.js";
+import { EventActor } from "@events/EventTypes.ts";
 
 Logger.isDebug = true;
 Logger.setScopeAll();
@@ -10,14 +9,12 @@ Logger.setScopeAll();
 Logger.log(EventActor.Anonymous, "⚠️ MAIN.TS WIRD AUSGEFÜHRT ⚠️");
 
 async function init() {
-  const eventBus = new EventBus<GameEventMap>();
-
   await Promise.all([
     customElements.whenDefined("game-board"),
     customElements.whenDefined("side-bar"),
   ]);
-  const webUI = new WebUI(eventBus);
-  const controller = new GameController({ bus: eventBus });
+  const webUI = new WebUI();
+  const controller = new GameController();
 }
 
 init();

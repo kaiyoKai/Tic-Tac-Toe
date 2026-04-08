@@ -1,13 +1,13 @@
-import type { PlayerSymbol, Position } from "../types/Common.js";
+import type { PlayerSymbol, Position } from "@shared/Common.js";
 import type { Player } from "./Player.js";
-import EventBus, { type Subscription } from "../services/EventBus.js";
-import { EventActor, type GameEventMap } from "../types/Events.ts";
+import { type Subscription } from "@events/EventBus.js";
+import { globalEventBus } from "@events/EventBus.ts";
+import { AppEvent, EventActor } from "@events/EventTypes.ts";
 export class LocalPlayer implements Player {
   constructor(
     public symbol: PlayerSymbol,
     public userName: string,
     public userId: number,
-    private eventBus: EventBus<GameEventMap>,
   ) {}
 
   async makeMove(): Promise<Position | null> {
@@ -22,8 +22,8 @@ export class LocalPlayer implements Player {
         settingsSub.unsubscribe();
       };
 
-      clickSub = this.eventBus.on(
-        "ui:cell-clicked",
+      clickSub = globalEventBus.on(
+        AppEvent.UI.CellClicked,
         EventActor.LocalPlayer,
         (data) => {
           cleanup();
@@ -31,8 +31,8 @@ export class LocalPlayer implements Player {
         },
       );
 
-      resetSub = this.eventBus.on(
-        "ui:reset-requested",
+      resetSub = globalEventBus.on(
+        AppEvent.UI.ResetRequested,
         EventActor.LocalPlayer,
         () => {
           cleanup();
@@ -40,8 +40,8 @@ export class LocalPlayer implements Player {
         },
       );
 
-      settingsSub = this.eventBus.on(
-        "ui:settings-change-requested",
+      settingsSub = globalEventBus.on(
+        AppEvent.UI.SettingsChangeRequested,
         EventActor.LocalPlayer,
         () => {
           cleanup();

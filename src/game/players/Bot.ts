@@ -1,15 +1,15 @@
-import TicTacToe from "../core/TicTacToe.js";
-import { Logger } from "../services/Logger.ts";
+import TicTacToe from "@engine/TicTacToe.js";
+import { Logger } from "@shared/Logger.js";
 import {
   Difficulty,
   type PlayerSymbol,
   type Position,
-} from "../types/Common.js";
-import { EventActor } from "../types/Events.ts";
-import type { Player } from "./Player.ts";
-import type { MoveStrategy } from "./strategies/MovesStrategy.js";
-import { RandomStrategy } from "./strategies/RandomStrategy.js";
-import { ShortSightedStrategy } from "./strategies/ShortSightedStrategy.js";
+} from "@shared/Common.js";
+import { EventActor } from "@events/EventTypes.js";
+import type { Player } from "@players/Player.ts";
+import type { MoveStrategy } from "@players/strategies/MovesStrategy.js";
+import { RandomStrategy } from "@players/strategies/RandomStrategy.js";
+import { ShortSightedStrategy } from "@players/strategies/ShortSightedStrategy.js";
 
 const StrategyMap: Record<Difficulty, MoveStrategy> = {
   [Difficulty.Easy]: RandomStrategy,

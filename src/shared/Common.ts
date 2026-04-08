@@ -1,3 +1,8 @@
+export interface User {
+  username: string;
+  symbol: PlayerSymbol;
+}
+
 export interface Position {
   row: number;
   col: number;

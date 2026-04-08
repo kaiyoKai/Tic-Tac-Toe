@@ -1,4 +1,4 @@
-import type { PlayerSymbol, Position } from "../types/Common.ts";
+import type { PlayerSymbol, Position } from "@shared/Common.ts";
 
 export interface Player {
   symbol: PlayerSymbol;

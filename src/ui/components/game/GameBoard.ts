@@ -1,29 +1,20 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { WinType, type IGameResult } from "../../types/Common.js";
+import { WinType, type IGameResult } from "@shared/Common.js";
 import "./GameLogo.js";
-
+import { keyed } from "lit/directives/keyed.js";
+import { AppEvent, EventActor } from "@events/EventTypes.ts";
+import { Subscribe } from "@events/Subscribe.ts";
+import { globalEventBus } from "@events/EventBus.ts";
 @customElement("game-board")
 export class GameBoard extends LitElement {
-  static busEvents = {
-    "cell-clicked": "ui:cell-clicked",
-    "reset-requested": "ui:reset-requested",
-  };
-
-  static busSubscriptions = {
-    "game:board-state": "onBoardState",
-    "game:move-made": "onMoveMade",
-    "game:finished": "onGameFinished",
-    "game:reset": "resetBoard",
-    "game:settings-changed": "onSettingsChanged",
-  };
-
   @property({ type: Number }) boardSize = 3;
   @property({ type: String }) cellRadius = "5%";
   @property({ type: Number }) turnNumber = 1;
   @property({ type: String }) currentPlayer = "";
   @property({ type: String }) winnerMessage = "";
 
+  @state() private gameId = 0;
   @state() public cells: string[][] = [];
 
   constructor() {
@@ -43,16 +34,19 @@ export class GameBoard extends LitElement {
     );
   }
 
+  @Subscribe(AppEvent.Game.BoardState, EventActor.WebUI)
   public onBoardState(data: any) {
     this.cells = data.grid.map((row: any[]) => row.map((cell) => cell || ""));
   }
 
+  @Subscribe(AppEvent.Game.MoveMade, EventActor.WebUI)
   public onMoveMade(data: any) {
     this.turnNumber = data.turn;
     this.currentPlayer = data.nextPlayerSymbol;
     this.updateCell(data.row, data.col, data.symbol);
   }
 
+  @Subscribe(AppEvent.Game.Finished, EventActor.WebUI)
   public async onGameFinished(result: IGameResult) {
     this.winnerMessage = result.winner
       ? `${result.winner} hat gewonnen!`
@@ -60,9 +54,15 @@ export class GameBoard extends LitElement {
     await this.showWinAnimation(result);
   }
 
+  @Subscribe(AppEvent.Game.SettingsChanged, EventActor.WebUI)
   public onSettingsChanged(settings: any) {
     this.boardSize = settings.boardSize;
     this.initBoard();
+  }
+
+  @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
+  public onReset() {
+    this.resetBoard();
   }
 
   static styles = css`
@@ -113,7 +113,7 @@ export class GameBoard extends LitElement {
     .board-wrapper {
       width: 100%;
       height: 100%;
-      overflow: auto; /* Erlaubt das Scrollen, falls Logo + Board zu hoch sind */
+      overflow: auto; /* Erlaubt das Scrollen, falls Logo + Board zu hoch sind,work in progress*/
       display: flex;
       align-items: center;
       justify-content: center;
@@ -222,8 +222,8 @@ export class GameBoard extends LitElement {
   `;
 
   render() {
+    //Keine scrollbar bei klenen Boards (hoffentlich)
     const isSmallBoard = this.boardSize <= 5;
-
     return html`
       <style>
         :host {
@@ -277,24 +277,28 @@ export class GameBoard extends LitElement {
       </header>
 
       <div class="board-wrapper">
-        <div class="grid" @click="${this._handleCellClick}">
-          ${this.cells.map((row, r) =>
-            row.map(
-              (cell, c) => html`
-                <button
-                  class="cell-btn"
-                  data-row="${r}"
-                  data-col="${c}"
-                  id="btn-${r}-${c}"
-                >
-                  ${cell}
-                </button>
-              `,
-            ),
-          )}
-        </div>
+        ${keyed(
+          this.gameId,
+          html`
+            <div class="grid" @click="${this._handleCellClick}">
+              ${this.cells.map((row, r) =>
+                row.map(
+                  (cell, c) => html`
+                    <button
+                      class="cell-btn"
+                      data-row="${r}"
+                      data-col="${c}"
+                      id="btn-${r}-${c}"
+                    >
+                      ${cell}
+                    </button>
+                  `,
+                ),
+              )}
+            </div>
+          `,
+        )}
       </div>
-
       <div class="action-panel">
         <button class="reset-btn" @click="${this._handleResetClick}">
           Neu starten
@@ -307,22 +311,15 @@ export class GameBoard extends LitElement {
       "button.cell-btn",
     );
     if (!btn || btn.innerText !== "" || this.winnerMessage !== "") return;
-    this.dispatchEvent(
-      new CustomEvent("cell-clicked", {
-        detail: {
-          row: parseInt(btn.dataset.row!),
-          col: parseInt(btn.dataset.col!),
-        },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+
+    globalEventBus.emit(AppEvent.UI.CellClicked, EventActor.WebUI, {
+      row: parseInt(btn.dataset.row!),
+      col: parseInt(btn.dataset.col!),
+    });
   }
 
   private _handleResetClick() {
-    this.dispatchEvent(
-      new CustomEvent("reset-requested", { bubbles: true, composed: true }),
-    );
+    globalEventBus.emit(AppEvent.UI.ResetRequested, EventActor.WebUI);
   }
 
   public updateCell(row: number, col: number, symbol: string) {
@@ -332,6 +329,7 @@ export class GameBoard extends LitElement {
   }
 
   public resetBoard() {
+    this.gameId++;
     this.initBoard();
     this.winnerMessage = "";
     this.turnNumber = 1;
@@ -344,6 +342,8 @@ export class GameBoard extends LitElement {
   }
 
   public async showWinAnimation(result: IGameResult) {
+    const currentTicket = this.gameId;
+
     if (result.type === WinType.Draw || !result.positions) return;
 
     if (result.type === WinType.DiagonalAnti) {
@@ -365,6 +365,7 @@ export class GameBoard extends LitElement {
     });
 
     await Promise.all(spinPromises);
+    if (this.gameId !== currentTicket) return;
 
     winningButtons.forEach((btn) => {
       btn.style.setProperty("--after-width", config.width);
@@ -374,6 +375,7 @@ export class GameBoard extends LitElement {
     });
 
     await new Promise((r) => setTimeout(r, 200));
+    if (this.gameId !== currentTicket) return;
 
     for (const btn of winningButtons) {
       btn.classList.add("draw-line");

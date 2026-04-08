@@ -1,5 +1,5 @@
-import { EventActor } from "../types/Events.ts"; //
-import { Logger } from "./Logger.ts";
+import { EventActor, type GlobalEventMap } from "@events/EventTypes.ts";
+import { Logger } from "@shared/Logger.ts";
 
 export interface Subscription {
   unsubscribe(): void;
@@ -10,7 +10,7 @@ interface ListenerEntry {
   subscriberName: EventActor;
 }
 
-export default class EventBus<T> {
+export class EventBus<T> {
   private listeners: Map<keyof T, ListenerEntry[]> = new Map();
 
   on<K extends keyof T>(
@@ -89,3 +89,5 @@ export default class EventBus<T> {
     this.on(event, subscriberName, handler);
   }
 }
+
+export const globalEventBus = new EventBus<GlobalEventMap>();
