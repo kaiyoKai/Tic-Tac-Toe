@@ -6,6 +6,7 @@ import { keyed } from "lit/directives/keyed.js";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
 import { Subscribe } from "@events/Decorators.ts";
 import { globalEventBus } from "@events/EventBus.ts";
+
 @customElement("game-board")
 export class GameBoard extends LitElement {
   @property({ type: Number }) boardSize = 3;
@@ -34,19 +35,19 @@ export class GameBoard extends LitElement {
     );
   }
 
-  @Subscribe(AppEvent.Game.BoardState, EventActor.WebUI)
+  @Subscribe(AppEvent.Game.BoardState, EventActor.Controller)
   public onBoardState(data: any) {
     this.cells = data.grid.map((row: any[]) => row.map((cell) => cell || ""));
   }
 
-  @Subscribe(AppEvent.Game.MoveMade, EventActor.WebUI)
+  @Subscribe(AppEvent.Game.MoveMade, EventActor.Controller)
   public onMoveMade(data: any) {
     this.turnNumber = data.turn;
     this.currentPlayer = data.nextPlayerSymbol;
     this.updateCell(data.row, data.col, data.symbol);
   }
 
-  @Subscribe(AppEvent.Game.Finished, EventActor.WebUI)
+  @Subscribe(AppEvent.Game.Finished, EventActor.Controller)
   public async onGameFinished(result: IGameResult) {
     this.winnerMessage = result.winner
       ? `${result.winner} hat gewonnen!`
@@ -54,16 +55,17 @@ export class GameBoard extends LitElement {
     await this.showWinAnimation(result);
   }
 
-  @Subscribe(AppEvent.Game.SettingsChanged, EventActor.WebUI)
+  @Subscribe(AppEvent.Game.SettingsChanged, EventActor.Controller)
   public onSettingsChanged(settings: any) {
     this.boardSize = settings.boardSize;
     this.initBoard();
   }
 
-  @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
+  @Subscribe(AppEvent.Game.Reset, EventActor.Controller)
   public onReset() {
     this.resetBoard();
   }
+
   @Subscribe(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
   public onShapeChanged(radius: string) {
     this.cellRadius = radius;
@@ -71,37 +73,23 @@ export class GameBoard extends LitElement {
 
   static styles = css`
     :host {
-      display: grid;
-      grid-template-rows: auto 1fr auto;
+      display: flex;
+      flex-direction: column;
       width: 100%;
       height: 100%;
       overflow: hidden;
       box-sizing: border-box;
     }
-
     .game-header {
-      text-align: center;
-      padding: 1rem 0 0 0;
       flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      text-align: center;
+      padding: 1rem 0;
     }
-
-    game-logo {
-      display: block;
-      height: clamp(8rem, 20vh, 15rem);
-      width: auto;
-      margin: 0 auto;
-      filter: drop-shadow(0 0 1rem var(--glow-core));
-    }
-
     .status-container {
       display: flex;
       gap: 2rem;
       justify-content: center;
       font-size: 1.1rem;
-      margin: 0.5rem 0;
       font-weight: 600;
     }
 
@@ -111,43 +99,37 @@ export class GameBoard extends LitElement {
       color: var(--color-win);
       min-height: 2.2rem;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
-
     .board-wrapper {
-      width: 100%;
-      height: 100%;
-      overflow: auto; /* Erlaubt das Scrollen, falls Logo + Board zu hoch sind,work in progress*/
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      min-height: 0;
       padding: 1rem;
-      box-sizing: border-box;
+      container-type: inline-size;
     }
     .grid {
       display: grid;
       gap: 0.5rem;
-      container-type: inline-size;
-      perspective: 1000px;
-      margin: auto;
+      max-width: 100%;
+      max-height: 100%;
+      aspect-ratio: 1 / 1;
     }
-
     button.cell-btn {
       width: 100%;
       height: 100%;
       aspect-ratio: 1 / 1;
       background-color: var(--cell-bg);
-
       border: 0.25rem solid var(--border-color);
       color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
-      padding: 0;
-      margin: 0;
+      transition: all 0.2s ease;
+      font-family: inherit;
       overflow: hidden;
     }
 
@@ -200,79 +182,42 @@ export class GameBoard extends LitElement {
     }
 
     .action-panel {
+      flex-shrink: 0;
       padding: 1rem 0 2rem 0;
       display: flex;
       justify-content: center;
-      flex-shrink: 0;
+      gap: 1rem;
     }
-
     .reset-btn {
-      padding: 1rem 3rem;
-      font-size: 1.2rem;
+      padding: 0.8rem 2rem;
       font-weight: 700;
       background: var(--cell-bg);
       color: var(--text-main);
       border: 0.2rem solid var(--border-color);
       border-radius: 1rem;
       cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .reset-btn:hover {
-      border-color: var(--primary-accent);
-      background: var(--cell-hover);
-      box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
     }
   `;
 
   render() {
-    //Keine scrollbar bei klenen Boards (hoffentlich)
-    const isSmallBoard = this.boardSize <= 5;
     return html`
       <style>
-        :host {
-          height: 100vh;
-          display: grid;
-          grid-template-rows: auto 1fr auto;
-        }
-
-        .board-wrapper {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 0;
-          flex: 1;
-          padding: 1rem;
-          overflow: ${isSmallBoard ? "hidden" : "auto"};
-        }
-
         .grid {
           display: grid;
+          gap: 0.5rem;
           grid-template-columns: repeat(${this.boardSize}, 1fr);
           grid-template-rows: repeat(${this.boardSize}, 1fr);
+
+          width: min(100%, 60vh);
           aspect-ratio: 1 / 1;
-
-          ${isSmallBoard
-          ? `
-            height: 100%;
-            width: auto;
-            max-width: 100%;
-            max-height: 100%;
-            `
-          : `
-            width: calc(${this.boardSize} * 4.5rem);
-            height: calc(${this.boardSize} * 4.5rem);
-            `}
+          margin: 0 auto;
         }
-
         button.cell-btn {
           border-radius: ${this.cellRadius};
-          font-size: calc(60cqw / ${this.boardSize});
+          font-size: calc((60vh / ${this.boardSize}) * 0.6);
         }
       </style>
-
       <header class="game-header">
-        <game-logo></game-logo>
         <div class="status-container">
           <span>Spieler: ${this.currentPlayer}</span>
           <span>Zug: ${this.turnNumber}</span>
@@ -303,25 +248,38 @@ export class GameBoard extends LitElement {
           `,
         )}
       </div>
+
       <div class="action-panel">
         <button class="reset-btn" @click="${this._handleResetClick}">
           Neu starten
         </button>
+        <button
+          class="reset-btn end-btn"
+          @click="${this._handleEndClick}"
+          style="margin-left: 1rem; border-color: #f38ba8;"
+        >
+          Beenden
+        </button>
       </div>
     `;
   }
+  private _handleEndClick() {
+    globalEventBus.emit(AppEvent.UI.AppEndRequested, EventActor.WebUI);
+  }
+
   private _handleCellClick(e: Event) {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
       "button.cell-btn",
     );
     if (!btn || btn.innerText !== "" || this.winnerMessage !== "") return;
 
-    globalEventBus.emit(AppEvent.UI.CellClicked, EventActor.WebUI, {
+    const cell = {
       row: parseInt(btn.dataset.row!),
       col: parseInt(btn.dataset.col!),
-    });
-  }
+    };
 
+    globalEventBus.emit(AppEvent.UI.CellClicked, EventActor.WebUI, cell);
+  }
   private _handleResetClick() {
     globalEventBus.emit(AppEvent.UI.ResetRequested, EventActor.WebUI);
   }
@@ -337,12 +295,6 @@ export class GameBoard extends LitElement {
     this.initBoard();
     this.winnerMessage = "";
     this.turnNumber = 1;
-    this.shadowRoot
-      ?.querySelectorAll<HTMLButtonElement>("button.cell-btn")
-      .forEach((btn) => {
-        btn.className = "cell-btn";
-        btn.style.cssText = "";
-      });
   }
 
   public async showWinAnimation(result: IGameResult) {

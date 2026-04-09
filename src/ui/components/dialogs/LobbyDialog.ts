@@ -1,3 +1,5 @@
+import { Emit, Subscribe } from "@events/Decorators.ts";
+
 import { LitElement, html, css } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { GameSettings } from "@engine/GameSettings.ts";
@@ -18,6 +20,7 @@ export class LobbyDialog extends LitElement {
     this.baseDialog.show();
   }
 
+  @Emit(AppEvent.UI.SettingsChangeRequested, EventActor.WebUI)
   private applySettings() {
     const settings = new GameSettings(
       this.gameMode.value as GameMode,
@@ -25,13 +28,8 @@ export class LobbyDialog extends LitElement {
       parseInt(this.winCondition.value),
       this.difficulty.value as Difficulty,
     );
-
-    globalEventBus.emit(
-      AppEvent.UI.SettingsChangeRequested,
-      EventActor.WebUI,
-      settings,
-    );
     this.baseDialog.close();
+    return settings;
   }
 
   static styles = css``;

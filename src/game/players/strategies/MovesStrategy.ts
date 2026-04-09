@@ -1,10 +1,9 @@
-import TicTacToe from "@engine/TicTacToe.js";
-import type { PlayerSymbol, Position } from "@shared/Common.js";
+import { XOXOGame } from "@engine/XOXOGame.js";
+import type { Position } from "@shared/Common.js";
 
 export interface MoveStrategy {
   determineMove(
-    game: TicTacToe,
-    symbol: PlayerSymbol,
-    allSymbols?: PlayerSymbol[],
+    game: XOXOGame,
+    myUserId: number,
   ): Promise<Position | undefined>;
 }

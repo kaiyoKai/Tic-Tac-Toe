@@ -1,8 +1,10 @@
-import type { PlayerSymbol, Position } from "@shared/Common.ts";
+import type { PlayerSymbol, Position } from "@shared/Common.js";
+import { XOXOGame } from "@engine/XOXOGame.js";
 
 export interface Player {
   symbol: PlayerSymbol;
   userName: string;
   userId: number;
-  makeMove(): Promise<Position> | undefined;
+
+  makeMove(game: XOXOGame): Promise<Position | null>;
 }

@@ -1,11 +1,12 @@
 import { LitElement, html, css } from "lit";
-import { customElement, query, state } from "lit/decorators.js";
+import { customElement, property, query, state } from "lit/decorators.js";
 import { ThemeMap, type ThemeKey } from "@ui/Theme.ts";
 import { assertPlayerSymbol } from "@shared/Common.ts";
 import "emoji-picker-element";
 import "./BaseDialog.js";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
+import { Emit } from "@events/Decorators.ts";
 
 @customElement("profile-dialog")
 export class ProfileDialog extends LitElement {
@@ -60,29 +61,21 @@ export class ProfileDialog extends LitElement {
     globalEventBus.emit(AppEvent.UI.ThemeChanged, EventActor.WebUI, theme);
   }
 
+  @Emit(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
   private handleShapeChange(shape: "rounded" | "square") {
     this.buttonShape = shape;
     const radius = shape === "rounded" ? "50%" : "5%";
-
-    globalEventBus.emit(
-      AppEvent.UI.ButtonShapeChanged,
-      EventActor.WebUI,
-      radius,
-    );
+    return radius;
   }
 
+  @Emit(AppEvent.UI.ProfileChangeRequested, EventActor.WebUI)
   private saveAndClose() {
     const user = {
       username: this.username,
       symbol: assertPlayerSymbol(this.symbol),
     };
-
-    globalEventBus.emit(
-      AppEvent.UI.ProfileChangeRequested,
-      EventActor.WebUI,
-      user,
-    );
     this.baseDialog.close();
+    return user;
   }
 
   render() {
@@ -95,7 +88,6 @@ export class ProfileDialog extends LitElement {
             .value="${this.username}"
             @input="${(e: any) => (this.username = e.target.value)}"
           />
-
           <hr
             style="grid-column: 1 / -1; width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 0.5rem 0;"
           />

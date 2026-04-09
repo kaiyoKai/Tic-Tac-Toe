@@ -3,6 +3,8 @@ import type { Player } from "./Player.js";
 import { type Subscription } from "@events/EventBus.js";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
+import { XOXOGame } from "@engine/XOXOGame.js";
+
 export class LocalPlayer implements Player {
   constructor(
     public symbol: PlayerSymbol,
@@ -10,16 +12,14 @@ export class LocalPlayer implements Player {
     public userId: number,
   ) {}
 
-  async makeMove(): Promise<Position | null> {
+  async makeMove(_game: XOXOGame): Promise<Position | null> {
     return new Promise((resolve) => {
       let clickSub: Subscription;
       let resetSub: Subscription;
-      let settingsSub: Subscription;
 
       const cleanup = () => {
         clickSub.unsubscribe();
         resetSub.unsubscribe();
-        settingsSub.unsubscribe();
       };
 
       clickSub = globalEventBus.on(
@@ -36,16 +36,7 @@ export class LocalPlayer implements Player {
         EventActor.LocalPlayer,
         () => {
           cleanup();
-          resolve(null);
-        },
-      );
-
-      settingsSub = globalEventBus.on(
-        AppEvent.UI.SettingsChangeRequested,
-        EventActor.LocalPlayer,
-        () => {
-          cleanup();
-          resolve(null);
+          resolve(null); // Nur ein manueller Reset (oder "Beenden") bricht den Loop ab
         },
       );
     });

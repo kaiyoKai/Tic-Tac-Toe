@@ -18,6 +18,8 @@ export const AppEvent = {
     ButtonShapeChanged: "ui:shape-changed",
     ProfileChangeRequested: "ui:profile-change-requested",
     DialogOpenRequested: "ui:dialog-open-requested",
+    GameStartRequested: "ui:game-start-requested",
+    AppEndRequested: "ui:app-end-reqeusted",
   },
   Game: {
     BoardState: "game:board-state",
@@ -43,6 +45,8 @@ export interface UIEventMap {
   [AppEvent.UI.ButtonShapeChanged]: "50%" | "5%";
   [AppEvent.UI.ProfileChangeRequested]: User;
   [AppEvent.UI.DialogOpenRequested]: string;
+  [AppEvent.UI.GameStartRequested]: void;
+  [AppEvent.UI.AppEndRequested]: void;
 }
 
 export interface GameEventMap {
