@@ -15,6 +15,8 @@ const StrategyMap: Record<Difficulty, MoveStrategy> = {
   [Difficulty.Easy]: RandomStrategy,
   [Difficulty.Medium]: ShortSightedStrategy,
   [Difficulty.Hard]: ShortSightedStrategy, //Hier gerne weitere hinzufügen (:
+  // [Difficulty.Impossible]: MiniMaxStrategy, //Beispiel
+  //
 };
 
 export class Bot implements Player {

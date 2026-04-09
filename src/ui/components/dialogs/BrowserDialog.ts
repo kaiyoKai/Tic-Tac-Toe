@@ -77,7 +77,6 @@ export class BrowserDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-
     }
     .lobby-item {
       display: flex;
@@ -89,12 +88,11 @@ export class BrowserDialog extends LitElement {
       border-radius: 8px;
       cursor: pointer;
       transition: 0.2s;
-      filter: drop-shadow(0 0 1rem var(--glow-core));
-
     }
     .lobby-item:hover {
-      background --cell-hover:
-      border-color: --;
+      background: var(--cell-hover);
+      border-color: var(--border-color);
+      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
     .lobby-info {
       display: flex;
@@ -108,15 +106,17 @@ export class BrowserDialog extends LitElement {
       font-size: 0.8rem;
       color: var(--border-color);
     }
-.btn-primary{
+    .btn-primary {
       padding: 0.5rem 1rem;
-      background: var(--border-color);
+      background: var(--primary-accent);
       color: var(--bg-color);
-      border: none;
+      border: medium;
       border-radius: 0.25rem;
       cursor: pointer;
       font-weight: bold;
-      flex-shrink: 1;}
+      flex-shrink: 1;
+      filter: drop-shadow(0 0 1rem var(--glow-core));
+    }
   `;
   public show() {
     this.baseDialog.show();

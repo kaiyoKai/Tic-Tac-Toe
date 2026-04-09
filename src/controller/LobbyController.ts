@@ -17,7 +17,7 @@ export class LobbyController {
     const actor = EventActor.Controller;
 
     globalEventBus.on(AppEvent.UI.SettingsChangeRequested, actor, (data) => {
-      this.GameSettings = data;
+      this.settings = data;
     });
 
     globalEventBus.on(AppEvent.UI.ResetRequested, actor, () => {

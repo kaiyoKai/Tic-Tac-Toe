@@ -1,4 +1,4 @@
-import { LitElement, html, css, type PropertyValues } from "lit";
+import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { ThemeMap, type ThemeKey } from "@ui/Theme.ts";
@@ -12,12 +12,12 @@ import "@components/chat/ChatDrawer.js";
 import "@components/dialogs/ProfileDialog.js";
 import "@components/dialogs/LobbyDialog.js";
 import "@components/dialogs/BrowserDialog.js";
-import { globalEventBus } from "@events/EventBus.ts";
 
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
   @state() private currentThemeName: ThemeKey = "Catppuccin";
   @state() private isPlaying = false;
+  @state() private savedRadius: string = "5%";
 
   constructor() {
     super();
@@ -25,6 +25,7 @@ export class XoxoWebApp extends LitElement {
   }
 
   static styles = css`
+    /* Deine Styles bleiben unverändert... */
     :host {
       display: flex;
       width: 100vw;
@@ -34,7 +35,6 @@ export class XoxoWebApp extends LitElement {
       color: var(--text-main, #cdd6f4);
       font-family: sans-serif;
     }
-
     main {
       flex: 1;
       display: flex;
@@ -45,25 +45,22 @@ export class XoxoWebApp extends LitElement {
       min-width: 0;
       transition: all 0.5s ease-in-out;
     }
-
     main.is-playing {
       justify-content: flex-start;
       padding-top: 1rem;
     }
-
     game-logo {
+      filter: drop-shadow(0 0 1rem var(--glow-core));
       display: block;
       height: clamp(20rem, 18vh, 15rem);
       width: auto;
       margin-bottom: 2rem;
       transition: all 0.5s ease;
     }
-
     main.is-playing game-logo {
-      height: 80px;
+      height: 120px;
       margin-bottom: 0.5rem;
     }
-
     .board-wrapper {
       width: 100%;
       flex: 1;
@@ -72,13 +69,11 @@ export class XoxoWebApp extends LitElement {
       justify-content: center;
       align-items: stretch;
     }
-
     game-board {
       display: block;
       width: 100%;
       height: 100%;
     }
-
     .start-btn {
       padding: 1rem 2.5rem;
       font-size: 1.5rem;
@@ -89,8 +84,8 @@ export class XoxoWebApp extends LitElement {
       background: transparent;
       color: var(--primary-accent, #fab387);
       transition: 0.2s;
+      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
-
     .start-btn:hover {
       background: var(--primary-accent, #fab387);
       color: var(--bg-color);
@@ -107,6 +102,8 @@ export class XoxoWebApp extends LitElement {
 
   @Subscribe(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
   public saveButtonShape(cellRadiusPercent: string) {
+    // State aktualisieren, damit das Board beim Rendern den neuen Wert bekommt
+    this.savedRadius = cellRadiusPercent;
     localStorage.setItem("btn-shape-radius", cellRadiusPercent);
   }
 
@@ -114,7 +111,6 @@ export class XoxoWebApp extends LitElement {
   public changeTheme(themeName: ThemeKey, skipTransition = false): void {
     const theme = ThemeMap[themeName];
     if (!theme) return;
-
     const performUpdate = () => {
       Object.entries(theme).forEach(([p, v]) =>
         document.documentElement.style.setProperty(`--${p}`, v as string),
@@ -123,18 +119,17 @@ export class XoxoWebApp extends LitElement {
       this.currentThemeName = themeName;
       localStorage.setItem("user-theme", themeName);
     };
-
     if (skipTransition || !document.startViewTransition) {
       performUpdate();
       return;
     }
-
     try {
       document.startViewTransition(() => performUpdate());
     } catch (e) {
       performUpdate();
     }
   }
+
   @Emit(AppEvent.UI.GameStartRequested, EventActor.WebUI)
   requestGameStart() {
     this.isPlaying = true;
@@ -147,9 +142,12 @@ export class XoxoWebApp extends LitElement {
   }
 
   private initializeUIState(): void {
-    const saved =
+    const savedTheme =
       (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
-    this.changeTheme(saved, true);
+    this.changeTheme(savedTheme, true);
+
+    // Radius beim App-Start laden
+    this.savedRadius = localStorage.getItem("btn-shape-radius") || "5%";
   }
 
   render() {
@@ -161,7 +159,7 @@ export class XoxoWebApp extends LitElement {
         ${this.isPlaying
           ? html`
               <div class="board-wrapper">
-                <game-board></game-board>
+                <game-board .cellRadius="${this.savedRadius}"></game-board>
               </div>
             `
           : html`
@@ -171,7 +169,6 @@ export class XoxoWebApp extends LitElement {
             `}
       </main>
       <chat-drawer></chat-drawer>
-
       <profile-dialog></profile-dialog>
       <lobby-dialog></lobby-dialog>
       <browser-dialog></browser-dialog>
@@ -180,10 +177,10 @@ export class XoxoWebApp extends LitElement {
 
   @Emit(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
   private initializeButtonState() {
-    return localStorage.getItem("btn-shape-radius") || "5%";
+    return this.savedRadius;
   }
 
   protected firstUpdated() {
-    this.initializeButtonState;
+    this.initializeButtonState();
   }
 }

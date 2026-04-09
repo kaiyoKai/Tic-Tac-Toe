@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { WinType, type IGameResult } from "@shared/Common.js";
+import { GameSettings } from "@engine/GameSettings.js";
 import "./GameLogo.js";
 import { keyed } from "lit/directives/keyed.js";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
@@ -9,7 +10,8 @@ import { globalEventBus } from "@events/EventBus.ts";
 
 @customElement("game-board")
 export class GameBoard extends LitElement {
-  @property({ type: Number }) boardSize = 3;
+  @property({ type: Object }) settings = new GameSettings();
+
   @property({ type: String }) cellRadius = "5%";
   @property({ type: Number }) turnNumber = 1;
   @property({ type: String }) currentPlayer = "";
@@ -24,14 +26,17 @@ export class GameBoard extends LitElement {
   }
 
   willUpdate(changedProperties: Map<string, any>) {
-    if (changedProperties.has("boardSize")) {
-      this.initBoard();
+    if (changedProperties.has("settings")) {
+      const oldSettings = changedProperties.get("settings") as GameSettings;
+      if (!oldSettings || this.settings.boardSize !== oldSettings.boardSize) {
+        this.initBoard();
+      }
     }
   }
 
   private initBoard() {
-    this.cells = Array.from({ length: this.boardSize }, () =>
-      Array(this.boardSize).fill(""),
+    this.cells = Array.from({ length: this.settings.boardSize }, () =>
+      Array(this.settings.boardSize).fill(""),
     );
   }
 
@@ -56,19 +61,23 @@ export class GameBoard extends LitElement {
   }
 
   @Subscribe(AppEvent.Game.SettingsChanged, EventActor.Controller)
-  public onSettingsChanged(settings: any) {
-    this.boardSize = settings.boardSize;
-    this.initBoard();
+  public onSettingsChanged(newSettings: any) {
+    // Nur aktualisieren, wenn sich die Werte wirklich unterscheiden
+    if (JSON.stringify(this.settings) !== JSON.stringify(newSettings)) {
+      this.settings = Object.assign(new GameSettings(), newSettings);
+    }
   }
 
   @Subscribe(AppEvent.Game.Reset, EventActor.Controller)
-  public onReset() {
+  public onReset(data?: any) {
+    // Falls beim Reset neue Settings mitkommen, übernehmen wir diese
+    if (
+      data?.settings &&
+      JSON.stringify(this.settings) !== JSON.stringify(data.settings)
+    ) {
+      this.settings = Object.assign(new GameSettings(), data.settings);
+    }
     this.resetBoard();
-  }
-
-  @Subscribe(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
-  public onShapeChanged(radius: string) {
-    this.cellRadius = radius;
   }
 
   static styles = css`
@@ -92,7 +101,6 @@ export class GameBoard extends LitElement {
       font-size: 1.1rem;
       font-weight: 600;
     }
-
     .victory-message {
       font-size: 1.5rem;
       font-weight: 900;
@@ -132,15 +140,12 @@ export class GameBoard extends LitElement {
       font-family: inherit;
       overflow: hidden;
     }
-
     button.cell-btn:hover {
       background-color: var(--cell-hover);
       border-color: var(--primary-accent);
       z-index: 10;
       transform: scale(1.03);
     }
-
-    /* Win Animation */
     button.cell-btn::after {
       content: "";
       position: absolute;
@@ -156,7 +161,6 @@ export class GameBoard extends LitElement {
       z-index: 20;
       border-radius: 1rem;
     }
-
     button.draw-line::after {
       transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(1);
     }
@@ -165,12 +169,8 @@ export class GameBoard extends LitElement {
       border-color: var(--text-main);
       filter: drop-shadow(0 0 1rem var(--glow-core));
     }
-
     button.spin {
       animation: winRotate 0.8s forwards;
-    }
-    button.win:active {
-      animation: winRotateClick 0.8s ease;
     }
     @keyframes winRotate {
       from {
@@ -180,7 +180,6 @@ export class GameBoard extends LitElement {
         transform: rotateY(360deg);
       }
     }
-
     .action-panel {
       flex-shrink: 0;
       padding: 1rem 0 2rem 0;
@@ -205,16 +204,15 @@ export class GameBoard extends LitElement {
         .grid {
           display: grid;
           gap: 0.5rem;
-          grid-template-columns: repeat(${this.boardSize}, 1fr);
-          grid-template-rows: repeat(${this.boardSize}, 1fr);
-
+          grid-template-columns: repeat(${this.settings.boardSize}, 1fr);
+          grid-template-rows: repeat(${this.settings.boardSize}, 1fr);
           width: min(100%, 60vh);
           aspect-ratio: 1 / 1;
           margin: 0 auto;
         }
         button.cell-btn {
           border-radius: ${this.cellRadius};
-          font-size: calc((60vh / ${this.boardSize}) * 0.6);
+          font-size: calc((60vh / ${this.settings.boardSize}) * 0.6);
         }
       </style>
       <header class="game-header">
@@ -263,6 +261,7 @@ export class GameBoard extends LitElement {
       </div>
     `;
   }
+
   private _handleEndClick() {
     globalEventBus.emit(AppEvent.UI.AppEndRequested, EventActor.WebUI);
   }
@@ -277,9 +276,9 @@ export class GameBoard extends LitElement {
       row: parseInt(btn.dataset.row!),
       col: parseInt(btn.dataset.col!),
     };
-
     globalEventBus.emit(AppEvent.UI.CellClicked, EventActor.WebUI, cell);
   }
+
   private _handleResetClick() {
     globalEventBus.emit(AppEvent.UI.ResetRequested, EventActor.WebUI);
   }
@@ -299,7 +298,6 @@ export class GameBoard extends LitElement {
 
   public async showWinAnimation(result: IGameResult) {
     const currentTicket = this.gameId;
-
     if (result.type === WinType.Draw || !result.positions) return;
 
     if (result.type === WinType.DiagonalAnti) {
