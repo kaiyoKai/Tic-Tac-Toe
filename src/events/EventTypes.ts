@@ -20,6 +20,7 @@ export const AppEvent = {
     DialogOpenRequested: "ui:dialog-open-requested",
     GameStartRequested: "ui:game-start-requested",
     AppEndRequested: "ui:app-end-reqeusted",
+    ToastRequested: "ui:toast-requested",
   },
   Game: {
     BoardState: "game:board-state",
@@ -27,6 +28,7 @@ export const AppEvent = {
     Finished: "game:finished",
     Reset: "game:reset",
     SettingsChanged: "game:settings-changed",
+    Start: "game:start",
   },
   Sys: {
     Error: "sys:error",
@@ -45,8 +47,12 @@ export interface UIEventMap {
   [AppEvent.UI.ButtonShapeChanged]: "50%" | "5%";
   [AppEvent.UI.ProfileChangeRequested]: User;
   [AppEvent.UI.DialogOpenRequested]: string;
-  [AppEvent.UI.GameStartRequested]: void;
+  [AppEvent.UI.GameStartRequested]: GameSettings;
   [AppEvent.UI.AppEndRequested]: void;
+  [AppEvent.UI.ToastRequested]: {
+    message: string;
+    type?: "info" | "warning" | "success";
+  };
 }
 
 export interface GameEventMap {
@@ -60,8 +66,17 @@ export interface GameEventMap {
     grid: (string | null)[][];
   };
   [AppEvent.Game.Finished]: GameResult;
-  [AppEvent.Game.Reset]: { turn: number; nextPlayerSymbol: PlayerSymbol };
+  [AppEvent.Game.Reset]: {
+    turn: number;
+    nextPlayerSymbol: PlayerSymbol;
+    settings: GameSettings;
+  };
   [AppEvent.Game.SettingsChanged]: GameSettings;
+  [AppEvent.Game.Start]: {
+    turn: number;
+    nextPlayerSymbol: PlayerSymbol;
+    settings: GameSettings;
+  };
 }
 
 export type GlobalEventMap = UIEventMap &

@@ -73,7 +73,6 @@ export class GameController {
   private getBoardAsStrings(): string[][] {
     const size = this.game.board.size;
     const uiBoard: string[][] = [];
-
     for (let r = 0; r < size; r++) {
       const row: string[] = [];
       for (let c = 0; c < size; c++) {
@@ -95,6 +94,14 @@ export class GameController {
     globalEventBus.emit(AppEvent.Game.Reset, EventActor.Controller, {
       turn: this.game.turn,
       nextPlayerSymbol: nextPlayer.symbol,
+      settings: this.game.settings,
     });
+  }
+  public stop() {
+    if (this.game) {
+      this.game.isRunning = false;
+    }
+
+    Logger.log(EventActor.Controller, `Spiel ${this.gameId} wurde gestoppt.`);
   }
 }

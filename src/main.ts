@@ -6,4 +6,3 @@ Logger.isDebug = true;
 Logger.setScopeAll();
 
 const lobby = new LobbyController();
-lobby.startGame();

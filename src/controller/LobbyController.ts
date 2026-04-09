@@ -24,17 +24,38 @@ export class LobbyController {
       this.startGame();
     });
 
-    globalEventBus.on(AppEvent.UI.GameStartRequested, actor, () => {
+    globalEventBus.on(AppEvent.UI.GameStartRequested, actor, (data) => {
+      this.settings = Object.assign(new GameSettings(), data);
       this.startGame();
+    });
+    globalEventBus.on(AppEvent.UI.SettingsChangeRequested, actor, (data) => {
+      this.settings = data;
+
+      globalEventBus.emit(AppEvent.UI.ToastRequested, EventActor.Controller, {
+        message:
+          "Einstellungen geändert – wird ab der nächsten Runde angewendet!",
+        type: "info",
+      });
     });
   }
 
   public startGame() {
+    if (this.activeGameController) {
+      this.activeGameController.stop();
+    }
+
     const players = this.createPlayersForCurrentMode();
     this.activeGameController = new GameController(this.settings, players);
-    this.activeGameController.startGameLoop();
-  }
 
+    globalEventBus.emit(AppEvent.Game.Start, EventActor.Controller, {
+      settings: Object.assign(new GameSettings(), { ...this.settings }),
+      turn: 1,
+      nextPlayerSymbol: players[0].symbol,
+    });
+    setTimeout(() => {
+      this.activeGameController?.startGameLoop();
+    }, 50);
+  }
   public createPlayersForCurrentMode(): Player[] {
     const players: Player[] = [];
 

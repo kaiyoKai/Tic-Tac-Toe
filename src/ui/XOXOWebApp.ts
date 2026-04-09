@@ -12,9 +12,12 @@ import "@components/chat/ChatDrawer.js";
 import "@components/dialogs/ProfileDialog.js";
 import "@components/dialogs/LobbyDialog.js";
 import "@components/dialogs/BrowserDialog.js";
+import "@components/toast/ToastManager.js";
+import { GameSettings } from "@game/engine/GameSettings.ts";
 
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
+  @state() private activeSettings: GameSettings = new GameSettings();
   @state() private currentThemeName: ThemeKey = "Catppuccin";
   @state() private isPlaying = false;
   @state() private savedRadius: string = "5%";
@@ -58,7 +61,7 @@ export class XoxoWebApp extends LitElement {
       transition: all 0.5s ease;
     }
     main.is-playing game-logo {
-      height: 120px;
+      height: 90px;
       margin-bottom: 0.5rem;
     }
     .board-wrapper {
@@ -130,10 +133,9 @@ export class XoxoWebApp extends LitElement {
     }
   }
 
-  @Emit(AppEvent.UI.GameStartRequested, EventActor.WebUI)
+  @Subscribe(AppEvent.UI.GameStartRequested, EventActor.WebUI)
   requestGameStart() {
     this.isPlaying = true;
-    return {};
   }
 
   @Subscribe(AppEvent.UI.AppEndRequested, EventActor.WebUI)
@@ -148,7 +150,15 @@ export class XoxoWebApp extends LitElement {
 
     this.savedRadius = localStorage.getItem("btn-shape-radius") || "5%";
   }
+  @Subscribe(AppEvent.Game.Start, EventActor.WebUI)
+  public OnStartGame(data?: any) {
+    if (data?.settings) {
+      this.activeSettings = Object.assign(new GameSettings(), data.settings);
+      this.isPlaying = true;
 
+      this.requestUpdate();
+    }
+  }
   render() {
     return html`
       <side-bar></side-bar>
@@ -158,7 +168,10 @@ export class XoxoWebApp extends LitElement {
         ${this.isPlaying
           ? html`
               <div class="board-wrapper">
-                <game-board .cellRadius="${this.savedRadius}"></game-board>
+                <game-board
+                  .settings="${this.activeSettings}"
+                  .cellRadius="${this.savedRadius}"
+                ></game-board>
               </div>
             `
           : html`
@@ -169,6 +182,7 @@ export class XoxoWebApp extends LitElement {
       </main>
       <chat-drawer></chat-drawer>
       <profile-dialog></profile-dialog>
+      <toast-manager></toast-manager>
       <lobby-dialog></lobby-dialog>
       <browser-dialog></browser-dialog>
     `;

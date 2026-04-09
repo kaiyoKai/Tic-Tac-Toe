@@ -22,7 +22,6 @@ export class GameBoard extends LitElement {
 
   constructor() {
     super();
-    this.initBoard();
   }
 
   willUpdate(changedProperties: Map<string, any>) {
@@ -30,6 +29,9 @@ export class GameBoard extends LitElement {
       const oldSettings = changedProperties.get("settings") as GameSettings;
       if (!oldSettings || this.settings.boardSize !== oldSettings.boardSize) {
         this.initBoard();
+        this.winnerMessage = "";
+        this.turnNumber = 1;
+        this.gameId++;
       }
     }
   }
@@ -65,9 +67,10 @@ export class GameBoard extends LitElement {
     if (JSON.stringify(this.settings) !== JSON.stringify(newSettings)) {
       this.settings = Object.assign(new GameSettings(), newSettings);
     }
+    this.initBoard();
   }
 
-  @Subscribe(AppEvent.Game.Reset, EventActor.Controller)
+  @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
   public onReset(data?: any) {
     if (
       data?.settings &&
@@ -77,7 +80,6 @@ export class GameBoard extends LitElement {
     }
     this.resetBoard();
   }
-
   static styles = css`
     :host {
       display: flex;
