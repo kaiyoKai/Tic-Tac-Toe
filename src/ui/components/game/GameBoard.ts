@@ -26,8 +26,7 @@ export class GameBoard extends LitElement {
 
   willUpdate(changedProperties: Map<string, any>) {
     if (changedProperties.has("settings")) {
-      const oldSettings = changedProperties.get("settings") as GameSettings;
-      if (!oldSettings || this.settings.boardSize !== oldSettings.boardSize) {
+      {
         this.initBoard();
         this.winnerMessage = "";
         this.turnNumber = 1;

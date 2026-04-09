@@ -14,6 +14,7 @@ import "@components/dialogs/LobbyDialog.js";
 import "@components/dialogs/BrowserDialog.js";
 import "@components/toast/ToastManager.js";
 import { GameSettings } from "@game/engine/GameSettings.ts";
+import { globalEventBus } from "@events/EventBus.ts";
 
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
@@ -133,11 +134,6 @@ export class XoxoWebApp extends LitElement {
     }
   }
 
-  @Subscribe(AppEvent.UI.GameStartRequested, EventActor.WebUI)
-  requestGameStart() {
-    this.isPlaying = true;
-  }
-
   @Subscribe(AppEvent.UI.AppEndRequested, EventActor.WebUI)
   endApp() {
     this.isPlaying = false;
@@ -150,14 +146,25 @@ export class XoxoWebApp extends LitElement {
 
     this.savedRadius = localStorage.getItem("btn-shape-radius") || "5%";
   }
-  @Subscribe(AppEvent.Game.Start, EventActor.WebUI)
+  @Subscribe(AppEvent.Game.Start, EventActor.Controller)
   public OnStartGame(data?: any) {
     if (data?.settings) {
       this.activeSettings = Object.assign(new GameSettings(), data.settings);
       this.isPlaying = true;
-
       this.requestUpdate();
     }
+  }
+  @Subscribe(AppEvent.UI.SettingsChangeRequested, EventActor.WebUI)
+  public syncSettingsFromDialog(newSettings: GameSettings) {
+    this.activeSettings = Object.assign(new GameSettings(), newSettings);
+  }
+
+  public requestGameStart() {
+    globalEventBus.emit(
+      AppEvent.UI.GameStartRequested,
+      EventActor.WebUI,
+      this.activeSettings,
+    );
   }
   render() {
     return html`
