@@ -62,7 +62,6 @@ export class GameBoard extends LitElement {
 
   @Subscribe(AppEvent.Game.SettingsChanged, EventActor.Controller)
   public onSettingsChanged(newSettings: any) {
-    // Nur aktualisieren, wenn sich die Werte wirklich unterscheiden
     if (JSON.stringify(this.settings) !== JSON.stringify(newSettings)) {
       this.settings = Object.assign(new GameSettings(), newSettings);
     }
@@ -70,7 +69,6 @@ export class GameBoard extends LitElement {
 
   @Subscribe(AppEvent.Game.Reset, EventActor.Controller)
   public onReset(data?: any) {
-    // Falls beim Reset neue Settings mitkommen, übernehmen wir diese
     if (
       data?.settings &&
       JSON.stringify(this.settings) !== JSON.stringify(data.settings)

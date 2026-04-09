@@ -146,7 +146,6 @@ export class XoxoWebApp extends LitElement {
       (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
     this.changeTheme(savedTheme, true);
 
-    // Radius beim App-Start laden
     this.savedRadius = localStorage.getItem("btn-shape-radius") || "5%";
   }
 

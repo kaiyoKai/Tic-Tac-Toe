@@ -213,7 +213,7 @@ export class SideBar extends LitElement {
         top: auto;
         position: fixed;
         border-right: none;
-        border-top: 1px solid var(--border-color);
+        border-top: 0.5px solid var(--border-color);
         padding: 0;
         flex-direction: row;
         z-index: 1000;
@@ -240,7 +240,7 @@ export class SideBar extends LitElement {
         align-items: center;
         flex: 1;
         min-width: 0;
-        height: 100%;
+        height: 70%;
       }
       .icon {
         width: 1.1rem;
