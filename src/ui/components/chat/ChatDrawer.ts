@@ -1,14 +1,18 @@
+import { repeat } from "lit/directives/repeat.js";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
 import { Subscribe } from "@events/Decorators.ts";
-import { LitElement, html, css } from "lit";
-import { customElement, state, query } from "lit/decorators.js";
+import { LitElement, html, css, type PropertyValues } from "lit";
+import { customElement, state, query, property } from "lit/decorators.js";
+import type { ChatMessage } from "@shared/Common.ts";
 
 @customElement("chat-drawer")
 export class ChatDrawer extends LitElement {
-  @state() private isOpen = false;
+  @property({ type: Boolean, reflect: true }) open = false;
+  @state() private messages: ChatMessage[] = [];
   @query(".chat-content") private container!: HTMLElement;
   @query("#chat-input") private input!: HTMLInputElement;
+
   static styles = css`
     :host {
       width: 0;
@@ -60,7 +64,6 @@ export class ChatDrawer extends LitElement {
       transform: scale(1.1) rotate(-3deg);
       box-shadow: 0 0.375rem 1.25rem var(--glow-core);
     }
-
     .chat-toggle-btn:active {
       transform: scale(0.9);
     }
@@ -106,6 +109,7 @@ export class ChatDrawer extends LitElement {
       flex-shrink: 0;
     }
 
+    textarea,
     input {
       flex-grow: 1;
       padding: 0.5rem;
@@ -114,6 +118,14 @@ export class ChatDrawer extends LitElement {
       font-family: inherit;
       background: var(--cell-bg);
       color: var(--text-main);
+    }
+
+    textarea {
+      field-sizing: content;
+      resize: none;
+      min-height: 1.5em;
+      max-height: 150px;
+      overflow-y: auto;
     }
 
     button.send-btn {
@@ -131,8 +143,27 @@ export class ChatDrawer extends LitElement {
       background-color: var(--bg-color);
       padding: 0.5rem;
       border-radius: 0.5rem;
-      border: 1px solid var(--border-color);
+      border: 1.5px solid var(--border-color);
       word-break: break-word;
+    }
+    .time {
+      float: right;
+      color: var(--primary-accent);
+    }
+    .message .time {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .message:hover .time {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .message:hover {
+      border: 2px solid var(--border-color);
+      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
 
     @media (max-width: 37.5rem) {
@@ -161,64 +192,87 @@ export class ChatDrawer extends LitElement {
     }
   `;
 
-  public toggle() {
-    this.isOpen = !this.isOpen;
-    if (this.isOpen) {
-      this.setAttribute("open", "");
-    } else {
-      this.removeAttribute("open");
+  private handleKeyDown(e: KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      this.sendMessage();
+    }
+  }
+  protected updated(_changedProperties: PropertyValues) {
+    if (_changedProperties.has("messages")) {
+      this.container.scrollTop = this.container.scrollHeight;
     }
   }
 
+  public toggle() {
+    this.open = !this.open;
+  }
+
   private sendMessage() {
-    const msg = this.input.value.trim();
-    if (!msg) return;
+    const messageContent = this.input.value.trim();
+    if (!messageContent) return;
 
     globalEventBus.emit(AppEvent.Chat.MessageSent, EventActor.WebUI, {
-      message: msg,
+      content: messageContent,
+      sender: "Du",
+      timestamp: Date.now(),
     });
 
     this.input.value = "";
+    this.input.style.height = "auto";
   }
 
   @Subscribe(AppEvent.Chat.MessageSent, EventActor.WebUI)
-  public onChatMessage(data: { message: string; sender?: string }) {
-    const senderName = data.sender || "Du";
-    this.addMessage(senderName, data.message);
-  }
-
-  public addMessage(sender: string, text: string) {
-    const msgEl = document.createElement("div");
-    msgEl.className = "message";
-    msgEl.innerHTML = `<strong>${sender}:</strong> ${text}`;
-    this.container.appendChild(msgEl);
-    setTimeout(() => {
-      this.container.scrollTop = this.container.scrollHeight;
-    }, 10);
+  public onChatMessage(message: ChatMessage) {
+    this.messages = [
+      ...this.messages,
+      {
+        content: message.content,
+        sender: message.sender,
+        timestamp: message.timestamp,
+      },
+    ];
   }
 
   render() {
     return html`
-      <button
-        class="chat-toggle-btn"
-        title="Chat öffnen"
-        @click="${this.toggle}"
-      >
-        💬
-      </button>
+      <button class="chat-toggle-btn" @click="${this.toggle}">💬</button>
 
       <div class="drawer-header">
         <span>Global Chat</span>
         <button class="close-btn" @click="${this.toggle}">x</button>
       </div>
-      <div class="chat-content"></div>
+
+      <div class="chat-content">
+        ${repeat(
+          this.messages,
+          (m) => m.timestamp,
+          (m) => html`
+            <div class="message">
+              <strong>${m.sender}:</strong> ${m.content}
+              <span class="time">
+                ${new Date(m.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          `,
+        )}
+      </div>
+
       <div class="chat-input-area">
-        <input
+        <textarea
           id="chat-input"
-          @keypress="${(e: KeyboardEvent) =>
-            e.key === "Enter" && this.sendMessage()}"
           placeholder="Nachricht..."
-        />
+          rows="1"
+          @keydown="${this.handleKeyDown}"
+          @input="${(e: Event) => {
+            const el = e.target as HTMLTextAreaElement;
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
+          }}"
+        ></textarea>
         <button class="send-btn" @click="${this.sendMessage}">Senden</button>
       </div>
     `;

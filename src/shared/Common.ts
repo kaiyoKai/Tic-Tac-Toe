@@ -85,3 +85,9 @@ export interface IGameResult {
   type: WinType;
   positions: Position[];
 }
+
+export interface ChatMessage {
+  content: string;
+  sender: string;
+  timestamp: number;
+}

@@ -101,7 +101,6 @@ export class GameController {
     if (this.game) {
       this.game.isRunning = false;
     }
-
     Logger.log(EventActor.Controller, `Spiel ${this.gameId} wurde gestoppt.`);
   }
 }

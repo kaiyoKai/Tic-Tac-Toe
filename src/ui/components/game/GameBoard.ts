@@ -163,11 +163,12 @@ export class GameBoard extends LitElement {
     button.draw-line::after {
       transform: translate(0, -50%) rotate(var(--angle, 0deg)) scaleX(1);
     }
-    button.win {
+    button.cell-btn.win {
       background-color: var(--color-win) !important;
       border-color: var(--text-main);
       filter: drop-shadow(0 0 1rem var(--glow-core));
     }
+
     button.spin {
       animation: winRotate 0.8s forwards;
     }
@@ -269,12 +270,24 @@ export class GameBoard extends LitElement {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
       "button.cell-btn",
     );
-    if (!btn || btn.innerText !== "" || this.winnerMessage !== "") return;
+    if (!btn) return;
 
+    if (btn.classList.contains("spin")) {
+      btn.classList.remove("spin");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          btn.classList.add("spin");
+        });
+      });
+    }
     const cell = {
       row: parseInt(btn.dataset.row!),
       col: parseInt(btn.dataset.col!),
     };
+    if (this.cells[cell.row][cell.col] !== "") return;
+
+    if (this.winnerMessage !== "") return;
+
     globalEventBus.emit(AppEvent.UI.CellClicked, EventActor.WebUI, cell);
   }
 

@@ -7,6 +7,7 @@ import type {
   User,
 } from "@shared/Common.js";
 import type { ThemeKey } from "@ui/Theme.ts";
+import type { ChatMessage } from "@shared/Common.ts";
 
 export const AppEvent = {
   UI: {
@@ -82,7 +83,7 @@ export interface GameEventMap {
 export type GlobalEventMap = UIEventMap &
   GameEventMap & {
     [AppEvent.Sys.Error]: { message: string; code?: number };
-    [AppEvent.Chat.MessageSent]: { message: string };
+    [AppEvent.Chat.MessageSent]: ChatMessage;
   };
 
 export const EventActor = {
