@@ -62,7 +62,7 @@ export class BrowserDialog extends LitElement {
     this.lobbys = [...this.lobbys, newLobby];
   }
 
-  private joinlobby(id: string) {
+  private joinLobby(id: string) {
     this.dispatchEvent(
       new CustomEvent("join-lobby", {
         detail: { lobbyId: id },
@@ -118,7 +118,7 @@ export class BrowserDialog extends LitElement {
         <div class="lobby-list">
           ${this.lobbys.map(
             (l) => html`
-              <div class="lobby-item" @click="${() => this.joinlobby(l.id)}">
+              <div class="lobby-item" @click="${() => this.joinLobby(l.id)}">
                 <div class="lobby-info">
                   <span class="lobby-name">${l.name}</span>
                   <span class="lobby-stats">
@@ -130,7 +130,7 @@ export class BrowserDialog extends LitElement {
                   variant="primary"
                   @click="${(e: Event) => {
                     e.stopPropagation();
-                    this.joinlobby(l.id);
+                    this.joinLobby(l.id);
                   }}"
                 >
                   Beitreten
