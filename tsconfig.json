@@ -43,6 +43,9 @@
       ],
       "@server/*": [
         "src/server/*"
+      ],
+      "@controller/*": [
+        "src/controller/*"
       ]
     },
     "sourceMap": true,
@@ -64,5 +67,8 @@
         "name": "ts-lit-plugin"
       }
     ]
-  }
+  },
+  "exclude": [
+    "src/__tests__"
+  ]
 }
