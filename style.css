@@ -3,6 +3,16 @@
 :root {
   interpolate-size: allow-keywords;
   --cell-radius: 5%;
+  --ui-space-xs: 0.25rem;
+  --ui-space-sm: 0.5rem;
+  --ui-space-md: 1rem;
+  --ui-space-lg: 1.5rem;
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 12px;
+  --ui-font-size-sm: 0.875rem;
+  --ui-font-size-md: 1rem;
+  --ui-font-size-lg: 1.5rem;
+  --ui-transition-fast: 0.2s ease;
 }
 
 * {

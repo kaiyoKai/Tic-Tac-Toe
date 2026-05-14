@@ -14,7 +14,7 @@ export class BaseDialog extends LitElement {
 
     dialog {
       border: none;
-      border-radius: 12px;
+      border-radius: var(--ui-radius-md);
       padding: 0;
       background: var(--bg-color);
       color: var(--text-main);
@@ -33,7 +33,7 @@ export class BaseDialog extends LitElement {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 1.5rem;
+      padding: var(--ui-space-md) var(--ui-space-lg);
       border-bottom: 1px solid var(--border-color);
       background: var(--cell-bg);
     }
@@ -48,14 +48,14 @@ export class BaseDialog extends LitElement {
     }
 
     .dialog-content {
-      padding: 1.5rem;
+      padding: var(--ui-space-lg);
     }
 
     .dialog-footer {
-      padding: 1rem 1.5rem;
+      padding: var(--ui-space-md) var(--ui-space-lg);
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
+      gap: var(--ui-space-sm);
       border-top: 1px solid var(--border-color);
     }
   `;

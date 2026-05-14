@@ -9,6 +9,7 @@ import "@components/layout/Sidebar.js";
 import "@components/game/GameBoard.js";
 import "@components/game/GameLogo.js";
 import "@components/chat/ChatDrawer.js";
+import "@components/primitives/AppButton.js";
 import "@components/dialogs/ProfileDialog.js";
 import "@components/dialogs/LobbyDialog.js";
 import "@components/dialogs/BrowserDialog.js";
@@ -79,20 +80,7 @@ export class XoxoWebApp extends LitElement {
       height: 100%;
     }
     .start-btn {
-      padding: 1rem 2.5rem;
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 12px;
-      border: 2px solid var(--primary-accent, #fab387);
-      background: transparent;
-      color: var(--primary-accent, #fab387);
-      transition: 0.2s;
       filter: drop-shadow(0 0 1rem var(--glow-core));
-    }
-    .start-btn:hover {
-      background: var(--primary-accent, #fab387);
-      color: var(--bg-color);
     }
   `;
 
@@ -182,9 +170,9 @@ export class XoxoWebApp extends LitElement {
               </div>
             `
           : html`
-              <button class="start-btn" @click="${this.requestGameStart}">
+              <app-button class="start-btn" @click="${this.requestGameStart}">
                 SPIEL STARTEN
-              </button>
+              </app-button>
             `}
       </main>
       <chat-drawer></chat-drawer>

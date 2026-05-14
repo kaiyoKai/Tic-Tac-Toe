@@ -5,6 +5,7 @@ import { customElement, query } from "lit/decorators.js";
 import { GameSettings } from "@engine/GameSettings.ts";
 import { GameMode, Difficulty } from "@shared/Common.ts";
 import "./BaseDialog.js";
+import "@components/primitives/AppButton.js";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
 
@@ -64,10 +65,10 @@ export class LobbyDialog extends LitElement {
           </label>
         </div>
         <div slot="footer">
-          <button @click="${() => this.baseDialog.close()}">Abbrechen</button>
-          <button class="btn primary" @click="${this.applySettings}">
+          <app-button @click="${() => this.baseDialog.close()}">Abbrechen</app-button>
+          <app-button variant="primary" @click="${this.applySettings}">
             Speichern
-          </button>
+          </app-button>
         </div>
       </base-dialog>
     `;

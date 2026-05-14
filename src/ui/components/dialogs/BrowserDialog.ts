@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
+import "@components/primitives/AppButton.js";
 
 interface Lobby {
   id: string;
@@ -76,18 +77,18 @@ export class BrowserDialog extends LitElement {
     .lobby-list {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: var(--ui-space-sm);
     }
     .lobby-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.8rem;
+      padding: var(--ui-space-md);
       background: var(--cell-bg);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: var(--ui-radius-sm);
       cursor: pointer;
-      transition: 0.2s;
+      transition: var(--ui-transition-fast);
     }
     .lobby-item:hover {
       background: var(--cell-hover);
@@ -103,19 +104,8 @@ export class BrowserDialog extends LitElement {
       color: var(--text-main);
     }
     .lobby-stats {
-      font-size: 0.8rem;
+      font-size: var(--ui-font-size-sm);
       color: var(--border-color);
-    }
-    .btn-primary {
-      padding: 0.5rem 1rem;
-      background: var(--primary-accent);
-      color: var(--bg-color);
-      border: medium;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-weight: bold;
-      flex-shrink: 1;
-      filter: drop-shadow(0 0 1rem var(--glow-core));
     }
   `;
   public show() {
@@ -136,7 +126,7 @@ export class BrowserDialog extends LitElement {
                     ${l.ping}ms ${l.isPrivate ? "🔒" : "🔓"}
                   </span>
                 </div>
-                <button class="btn-primary">Beitreten</button>
+                <app-button variant="primary">Beitreten</app-button>
               </div>
             `,
           )}
