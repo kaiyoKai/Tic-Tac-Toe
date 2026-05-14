@@ -9,7 +9,15 @@ const httpServer = createServer(app);
 const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter((origin) => {
+    if (!origin) return false;
+    try {
+      new URL(origin);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 
 const io = new Server(httpServer, {
   cors: {

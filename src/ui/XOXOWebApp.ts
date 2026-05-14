@@ -170,7 +170,7 @@ export class XoxoWebApp extends LitElement {
               </div>
             `
           : html`
-              <app-button @click="${this.requestGameStart}">
+              <app-button variant="primary" @click="${this.requestGameStart}">
                 SPIEL STARTEN
               </app-button>
             `}

@@ -1,11 +1,13 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 
 @customElement("app-button")
 export class AppButton extends LitElement {
   @property() variant: "primary" | "ghost" = "ghost";
   @property({ type: Boolean, reflect: true }) disabled = false;
+  @property({ attribute: "aria-label" }) buttonAriaLabel?: string;
 
   static styles = css`
     :host {
@@ -55,6 +57,7 @@ export class AppButton extends LitElement {
       <button
         type="button"
         ?disabled=${this.disabled}
+        aria-label=${ifDefined(this.buttonAriaLabel)}
         class=${classMap({
           primary: this.variant === "primary",
           ghost: this.variant === "ghost",
