@@ -1,15 +1,22 @@
 {
   "name": "tictactoe",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/client",
+    "apps/server"
+  ],
   "scripts": {
-    "dev": "vite",
-    "host": "vite --host",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "server:dev": "tsx src/server/index.ts"
+    "dev": "npm run dev -w @tictactoe/client",
+    "host": "npm run dev -w @tictactoe/client -- --host",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "npm run build -w @tictactoe/client",
+    "build:server": "npm run typecheck -w @tictactoe/server",
+    "preview": "npm run preview -w @tictactoe/client",
+    "test": "npm run test -w @tictactoe/client",
+    "test:run": "npm run test:run -w @tictactoe/client",
+    "server:dev": "npm run dev -w @tictactoe/server"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

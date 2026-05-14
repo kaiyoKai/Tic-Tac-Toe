@@ -5,4 +5,4 @@ import { LobbyController } from "@client/controllers/LobbyController.js";
 Logger.isDebug = true;
 Logger.setScopeAll();
 
-new LobbyController();
+export const lobbyController = new LobbyController();

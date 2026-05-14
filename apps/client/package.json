@@ -1,0 +1,12 @@
+{
+  "name": "@tictactoe/client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config ./vite.config.ts",
+    "build": "tsc -p ../../tsconfig.json && vite build --config ./vite.config.ts",
+    "preview": "vite preview --config ./vite.config.ts",
+    "test": "vitest --root ../../",
+    "test:run": "vitest run --root ../../"
+  }
+}

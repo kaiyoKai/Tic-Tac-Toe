@@ -45,6 +45,11 @@ Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engin
 npm run server:dev
 ```
 
+## 📦 Monorepo-Workspaces (Client/Server getrennt)
+- `apps/client` (`@tictactoe/client`) für UI/Web-App.
+- `apps/server` (`@tictactoe/server`) für Socket.IO-Backend.
+- Root-Skripte delegieren automatisch in die passenden Workspaces.
+
 Events und Payloads sind zentral in:
 - `src/shared/contracts/RealtimeContracts.ts`
 
