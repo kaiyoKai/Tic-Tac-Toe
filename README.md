@@ -34,9 +34,23 @@ Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engin
 * **Design Patterns:** Der Bot nutzt das Strategy Pattern, um Logik und Schwierigkeitsgrade Clean zu trennen.
 * **Architektur:** Aufteilung in Core-Logik, Controller und UI (Basic M-V-C struktur).
 
+## 🧱 Struktur (ab jetzt)
+- `src/core` – Spiellogik und Game-Domain.
+- `src/shared` – gemeinsame Typen, Contracts, Validierungsregeln.
+- `src/client` – App-Start und Client-Orchestrierung.
+- `src/server` – Socket.IO Multiplayer-Backend (Lobby-Lifecycle).
+
+## 🌐 Multiplayer Server (Node + Socket.IO MVP)
+```bash
+npm run server:dev
+```
+
+Events und Payloads sind zentral in:
+- `src/shared/contracts/RealtimeContracts.ts`
+
 ## 🚧 Roadmap / In Arbeit
 * **Optionale Terminal-UI Version:** Einfach nur, weil Cool.
-* **Online Multiplayer:** Ein Lobby-System über WebSockets ist geplant, aber aktuell noch nicht funktionsfähig (kommt sicher bestimmt sehr sehr bald...).
+* **Online Multiplayer:** Node + Socket.IO Lobby-MVP ist vorhanden (Create/List/Join/Leave/Ready/Start), Match-Runtime folgt.
 * **Minimax Algorithmus:** Damit der "Schwer"-Modus seinen Namen auch verdient.
 * **Refactoring:** UI und Logik noch strikter trennen.
 * **Mit Custom Emojis Spielen:** Ihr wolltet sicher schon immer mal "🥸 vs 💣" spielen oder so.
