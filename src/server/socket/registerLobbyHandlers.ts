@@ -29,7 +29,7 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
     socket.on(RealtimeClientEvent.CreateLobby, (payload: unknown) => {
       if (!isCreateLobbyRequest(payload)) {
         emitError(socket, {
-          message: "Ungültige Lobby-Creation Payload",
+          message: "Ungültige Lobby-Erstellung Payload",
           code: "INVALID_PAYLOAD",
         });
         return;

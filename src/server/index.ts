@@ -15,6 +15,7 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
       new URL(origin);
       return true;
     } catch {
+      console.warn(`[multiplayer-server] ignoring invalid ALLOWED_ORIGINS entry: ${origin}`);
       return false;
     }
   });

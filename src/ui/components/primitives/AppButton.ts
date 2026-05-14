@@ -7,7 +7,7 @@ import { ifDefined } from "lit/directives/if-defined.js";
 export class AppButton extends LitElement {
   @property() variant: "primary" | "ghost" = "ghost";
   @property({ type: Boolean, reflect: true }) disabled = false;
-  @property({ attribute: "aria-label" }) buttonAriaLabel?: string;
+  @property({ attribute: "aria-label" }) ariaLabel = "";
 
   static styles = css`
     :host {
@@ -57,7 +57,7 @@ export class AppButton extends LitElement {
       <button
         type="button"
         ?disabled=${this.disabled}
-        aria-label=${ifDefined(this.buttonAriaLabel)}
+        aria-label=${ifDefined(this.ariaLabel || undefined)}
         class=${classMap({
           primary: this.variant === "primary",
           ghost: this.variant === "ghost",
