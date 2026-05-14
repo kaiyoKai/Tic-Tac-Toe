@@ -12,6 +12,7 @@
     "server:dev": "tsx src/server/index.ts"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "ts-lit-plugin": "^2.0.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

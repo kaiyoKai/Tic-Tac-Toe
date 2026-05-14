@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Request, type Response } from "express";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { LobbyService } from "@server/domain/LobbyService.js";
@@ -16,7 +16,7 @@ const io = new Server(httpServer, {
 const lobbyService = new LobbyService();
 registerLobbyHandlers(io, lobbyService);
 
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({ ok: true });
 });
 
