@@ -5,7 +5,10 @@
     "noEmit": true,
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    "types": [
+      "node"
+    ],
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@events/*": [
@@ -31,6 +34,15 @@
       ],
       "@lobby/*": [
         "src/lobby/*"
+      ],
+      "@client/*": [
+        "src/client/*"
+      ],
+      "@core/*": [
+        "src/core/*"
+      ],
+      "@server/*": [
+        "src/server/*"
       ]
     },
     "sourceMap": true,
