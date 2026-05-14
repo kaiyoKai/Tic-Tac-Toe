@@ -10,6 +10,10 @@ import type { UserProfile } from "@shared/contracts/ProfileContracts.js";
 import type {
   CreateLobbyRequest,
   JoinLobbyRequest,
+  LobbyPreset,
+  LobbySettingDecisionRequest,
+  LobbySettingRequest,
+  HostTransferRequest,
   LobbySettings,
   LobbySnapshot,
   SetReadyRequest,
@@ -23,6 +27,7 @@ import type {
 import type {
   BoardSnapshot,
   MoveRequest,
+  RotateBoardRequest,
   MoveResponse,
 } from "@shared/contracts/GameContracts.js";
 
@@ -34,6 +39,7 @@ export const AppEvent = {
     DifficultyChanged: "ui:difficulty-changed",
     ThemeChanged: "ui:theme-changed",
     ButtonShapeChanged: "ui:shape-changed",
+    RotateRequested: "ui:rotate-requested",
     ProfileChangeRequested: "ui:profile-change-requested",
     DialogOpenRequested: "ui:dialog-open-requested",
     GameStartRequested: "ui:game-start-requested",
@@ -44,11 +50,17 @@ export const AppEvent = {
     LobbyListRefreshRequested: "ui:lobby-list-refresh-requested",
     LobbiesUpdated: "ui:lobbies-updated",
     LobbySettingsChanged: "ui:lobby-settings-changed",
+    LobbyPresetSelected: "ui:lobby-preset-selected",
+    LobbyPresetSaved: "ui:lobby-preset-saved",
+    LobbySettingRequestSubmitted: "ui:lobby-setting-request-submitted",
+    LobbySettingRequestDecided: "ui:lobby-setting-request-decided",
+    LobbyHostTransferRequested: "ui:lobby-host-transfer-requested",
   },
   Game: {
     BoardState: "game:board-state",
     MoveMade: "game:move-made",
     MoveRequested: "game:move-requested",
+    RotateRequested: "game:rotate-requested",
     MoveApplied: "game:move-applied",
     MoveRejected: "game:move-rejected",
     Finished: "game:finished",
@@ -75,6 +87,7 @@ export interface UIEventMap {
   [AppEvent.UI.DifficultyChanged]: Difficulty;
   [AppEvent.UI.ThemeChanged]: ThemeKey;
   [AppEvent.UI.ButtonShapeChanged]: "50%" | "5%";
+  [AppEvent.UI.RotateRequested]: 90 | 180 | 270;
   [AppEvent.UI.ProfileChangeRequested]: UserProfile;
   [AppEvent.UI.DialogOpenRequested]: string;
   [AppEvent.UI.GameStartRequested]: GameSettings;
@@ -88,19 +101,27 @@ export interface UIEventMap {
   [AppEvent.UI.LobbyListRefreshRequested]: void;
   [AppEvent.UI.LobbiesUpdated]: LobbySnapshot[];
   [AppEvent.UI.LobbySettingsChanged]: Partial<LobbySettings>;
+  [AppEvent.UI.LobbyPresetSelected]: LobbyPreset;
+  [AppEvent.UI.LobbyPresetSaved]: LobbyPreset;
+  [AppEvent.UI.LobbySettingRequestSubmitted]: LobbySettingRequest;
+  [AppEvent.UI.LobbySettingRequestDecided]: LobbySettingDecisionRequest;
+  [AppEvent.UI.LobbyHostTransferRequested]: HostTransferRequest;
 }
 
 export interface GameEventMap {
   [AppEvent.Game.BoardState]: { grid: (string | null)[][] };
   [AppEvent.Game.MoveMade]: {
+    action?: "place" | "rotate";
     row: number;
     col: number;
     symbol: PlayerSymbol;
     turn: number;
     nextPlayerSymbol: PlayerSymbol;
     grid: (string | null)[][];
+    rotation?: 90 | 180 | 270;
   };
   [AppEvent.Game.MoveRequested]: MoveRequest;
+  [AppEvent.Game.RotateRequested]: RotateBoardRequest;
   [AppEvent.Game.MoveApplied]: MoveResponse;
   [AppEvent.Game.MoveRejected]: MoveResponse;
   [AppEvent.Game.Finished]: GameResult;

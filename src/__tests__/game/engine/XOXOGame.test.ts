@@ -313,4 +313,56 @@ describe("XOXOGame", () => {
       expect(game.turn).toBe(1);
     });
   });
+
+  describe("gravity and rotation", () => {
+    it("should apply gravity after moves when enabled", () => {
+      const gravityGame = new XOXOGame(
+        Object.assign(new GameSettings(), {
+          gravityEnabled: true,
+        }),
+      );
+
+      gravityGame.makeMove(0, 0, 1, playerX);
+      expect(gravityGame.board.getCell(2, 0)).toBe(1);
+      expect(gravityGame.board.getCell(0, 0)).toBe(0);
+    });
+
+    it("should stack moves in gravity mode", () => {
+      const gravityGame = new XOXOGame(
+        Object.assign(new GameSettings(), {
+          gravityEnabled: true,
+        }),
+      );
+
+      gravityGame.makeMove(0, 0, 1, playerX);
+      gravityGame.makeMove(0, 1, 2, playerO);
+      const status = gravityGame.makeMove(0, 2, 1, playerX);
+
+      expect(status).toBe(MoveStatus.SUCCESS);
+      expect(gravityGame.board.getCell(2, 0)).toBe(1);
+      expect(gravityGame.board.getCell(2, 1)).toBe(2);
+      expect(gravityGame.board.getCell(2, 2)).toBe(1);
+    });
+
+    it("should rotate and reapply gravity", () => {
+      const transformGame = new XOXOGame(
+        Object.assign(new GameSettings(undefined, 3, 3), {
+          gravityEnabled: true,
+          rotationEnabled: true,
+        }),
+      );
+
+      transformGame.board.setCell(0, 0, 1);
+      transformGame.board.setCell(1, 1, 2);
+      transformGame.board.setCell(2, 0, 1);
+
+      const status = transformGame.rotateBoard(90);
+
+      expect(status).toBe(MoveStatus.SUCCESS);
+      expect(transformGame.turn).toBe(1);
+      expect(transformGame.board.getCell(2, 1)).toBe(2);
+      expect(transformGame.board.getCell(2, 0)).toBe(1);
+      expect(transformGame.board.getCell(2, 2)).toBe(1);
+    });
+  });
 });

@@ -2,10 +2,10 @@ import { Logger } from "@shared/Logger.js";
 import {
   Difficulty,
   type PlayerSymbol,
-  type Position,
 } from "@shared/Common.js";
 import { EventActor } from "@events/EventTypes.js";
 import type { Player } from "@players/Player.ts";
+import type { PlayerAction } from "@players/Player.ts";
 import type { MoveStrategy } from "@players/strategies/MovesStrategy.js";
 import { RandomStrategy } from "@players/strategies/RandomStrategy.js";
 import { ShortSightedStrategy } from "@players/strategies/ShortSightedStrategy.js";
@@ -42,8 +42,8 @@ export class Bot implements Player {
     return this.strategy.determineMove(game, this.userId);
   }
 
-  async makeMove(game: XOXOGame): Promise<Position | null> {
+  async makeMove(game: XOXOGame): Promise<PlayerAction | null> {
     const move = await this.getMove(game);
-    return move ? move : null;
+    return move ? { kind: "place", position: move } : null;
   }
 }

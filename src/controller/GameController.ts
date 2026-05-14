@@ -35,12 +35,15 @@ export class GameController {
 
       if (!move || !this.game.isRunning) break;
 
-      const moveStatus = this.game.makeMove(
-        move.row,
-        move.col,
-        currentPlayer.userId,
-        currentPlayer.symbol,
-      );
+      const moveStatus =
+        move.kind === "rotate"
+          ? this.game.rotateBoard(move.degrees)
+          : this.game.makeMove(
+              move.position.row,
+              move.position.col,
+              currentPlayer.userId,
+              currentPlayer.symbol,
+            );
 
       if (
         moveStatus === MoveStatus.SUCCESS ||
@@ -50,12 +53,14 @@ export class GameController {
         const nextPlayer = this.players[nextIdx];
 
         globalEventBus.emit(AppEvent.Game.MoveMade, EventActor.Controller, {
-          row: move.row,
-          col: move.col,
+          action: move.kind,
+          row: move.kind === "place" ? move.position.row : -1,
+          col: move.kind === "place" ? move.position.col : -1,
           symbol: currentPlayer.symbol,
           turn: this.game.turn,
           nextPlayerSymbol: nextPlayer.symbol,
           grid: this.getBoardAsStrings(),
+          rotation: move.kind === "rotate" ? move.degrees : undefined,
         });
 
         if (moveStatus === MoveStatus.GAME_OVER) {

@@ -1,11 +1,15 @@
 import type { Server, Socket } from "socket.io";
 import {
   isCreateLobbyRequest,
+  isHostTransferRequest,
   isJoinLobbyRequest,
   isLeaveLobbyRequest,
   isMoveRequest,
   isReactionRequest,
   isProfileDraft,
+  isLobbySettingDecisionRequest,
+  isLobbySettingRequest,
+  isRotateBoardRequest,
   isReadyStateRequest,
   isSendMessageRequest,
   isUpdateLobbyRequest,
@@ -112,6 +116,80 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
         return;
       }
 
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbyUpdated, result.lobby);
+      broadcastLobbyList(io, service);
+    });
+
+    socket.on(RealtimeClientEvent.TransferHost, (payload: unknown) => {
+      if (!isHostTransferRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Host-Transfer Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.transferHost(socket.id, payload);
+      if (result.error) {
+        emitError(socket, {
+          message:
+            result.error === "PLAYER_NOT_FOUND"
+              ? "Der neue Host wurde nicht gefunden"
+              : "Nur der aktuelle Host kann den Host wechseln",
+          code: result.error,
+        });
+        return;
+      }
+
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.HostTransferred, result.transferred);
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbyUpdated, result.lobby);
+      broadcastLobbyList(io, service);
+    });
+
+    socket.on(RealtimeClientEvent.RequestLobbySettingChange, (payload: unknown) => {
+      if (!isLobbySettingRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Lobby-Setting Request Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.requestSettingChange(socket.id, payload);
+      if (result.error) {
+        emitError(socket, {
+          message: "Lobby-Setting Anfrage konnte nicht erstellt werden",
+          code: result.error,
+        });
+        return;
+      }
+
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbySettingRequested, result.request);
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbyUpdated, result.lobby);
+    });
+
+    socket.on(RealtimeClientEvent.DecideLobbySettingChange, (payload: unknown) => {
+      if (!isLobbySettingDecisionRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Lobby-Setting Entscheidungs Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.resolveSettingRequest(socket.id, payload);
+      if (result.error) {
+        emitError(socket, {
+          message:
+            result.error === "SETTING_REQUEST_NOT_FOUND"
+              ? "Die Anfrage wurde nicht gefunden"
+              : "Nur der Host darf die Anfrage entscheiden",
+          code: result.error,
+        });
+        return;
+      }
+
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbySettingDecided, result.request);
       io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbyUpdated, result.lobby);
       broadcastLobbyList(io, service);
     });
@@ -261,6 +339,30 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
       socket.to(payload.lobbyId).emit(RealtimeServerEvent.MoveAccepted, result);
       socket.emit(RealtimeServerEvent.MoveAccepted, result);
 
+      emitLobbySnapshot(io, payload.lobbyId, service);
+    });
+
+    socket.on(RealtimeClientEvent.RotateBoard, (payload: unknown) => {
+      if (!isRotateBoardRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Rotation-Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.rotateBoard(socket.id, payload);
+
+      if ("error" in result) {
+        emitError(socket, {
+          message: "Rotation konnte nicht ausgeführt werden",
+          code: result.error as LobbyErrorPayload["code"],
+        });
+        return;
+      }
+
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.BoardRotated, result);
+      socket.emit(RealtimeServerEvent.BoardRotated, result);
       emitLobbySnapshot(io, payload.lobbyId, service);
     });
 

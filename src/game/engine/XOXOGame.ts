@@ -20,6 +20,7 @@ export class XOXOGame {
   public turn: number = 0;
   public isRunning: boolean = true;
   public result: GameResult | null = null;
+  private readonly playerSymbols = new Map<number, string>();
 
   constructor(settings: GameSettings) {
     this.settings = settings;
@@ -42,9 +43,14 @@ export class XOXOGame {
     }
 
     this.board.setCell(row, col, playerId);
+    this.playerSymbols.set(playerId, playerSymbol);
     this.turn++;
 
-    this.result = this.checkWinOrDraw(row, col, playerId, playerSymbol);
+    if (this.settings.gravityEnabled) {
+      this.board.applyGravity();
+    }
+
+    this.result = this.checkWinOrDraw();
 
     if (this.result !== null) {
       this.isRunning = false;
@@ -55,20 +61,29 @@ export class XOXOGame {
   }
 
   private checkWinOrDraw(
-    row: number,
-    col: number,
-    playerId: number,
-    playerSymbol: string,
   ): GameResult | null {
-    for (const type in DIRECTIONS) {
-      const result = this.checkDirection(
-        row,
-        col,
-        type as DirectionType,
-        playerId,
-        playerSymbol,
-      );
-      if (result) return result;
+    for (let row = 0; row < this.board.size; row++) {
+      for (let col = 0; col < this.board.size; col++) {
+        const playerId = this.board.getCell(row, col);
+        if (!playerId) continue;
+
+        for (const type in DIRECTIONS) {
+          const direction = type as DirectionType;
+          const { dRow, dCol } = DIRECTIONS[direction];
+          const prevRow = row - dRow;
+          const prevCol = col - dCol;
+
+          if (
+            this.board.isInsideBounds(prevRow, prevCol) &&
+            this.board.getCell(prevRow, prevCol) === playerId
+          ) {
+            continue;
+          }
+
+          const result = this.checkDirection(row, col, direction, playerId);
+          if (result) return result;
+        }
+      }
     }
 
     if (this.board.isFull()) {
@@ -83,7 +98,6 @@ export class XOXOGame {
     col: number,
     type: DirectionType,
     playerId: number,
-    playerSymbol: string,
   ): GameResult | null {
     const { dRow, dCol } = DIRECTIONS[type];
     const line: Position[] = [{ row, col }];
@@ -112,7 +126,11 @@ export class XOXOGame {
 
     if (line.length >= this.settings.winCon) {
       Logger.log(EventActor.Game, `Win detected for player ${playerId}`);
-      return GameResult.createWin(playerSymbol, type as WinType, line);
+      return GameResult.createWin(
+        this.playerSymbols.get(playerId) ?? String(playerId),
+        type as WinType,
+        line,
+      );
     }
 
     return null;
@@ -173,5 +191,29 @@ export class XOXOGame {
       }
     }
     return Array.from(opponents);
+  }
+
+  public rotateBoard(degrees: 90 | 180 | 270 = 90): MoveStatus {
+    if (!this.isRunning) return MoveStatus.GAME_OVER;
+
+    const turnsMap: Record<90 | 180 | 270, number> = {
+      90: 1,
+      180: 2,
+      270: 3,
+    };
+    const turns = turnsMap[degrees];
+    this.board.rotateClockwise(turns);
+    if (this.settings.gravityEnabled || this.settings.rotationEnabled) {
+      this.board.applyGravity();
+    }
+
+    this.turn++;
+    this.result = this.checkWinOrDraw();
+    if (this.result !== null) {
+      this.isRunning = false;
+      return MoveStatus.GAME_OVER;
+    }
+
+    return MoveStatus.SUCCESS;
   }
 }

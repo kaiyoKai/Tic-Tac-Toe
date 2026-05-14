@@ -133,6 +133,11 @@ export class BrowserDialog extends LitElement {
                           <span class="badge">${l.settings.visibility}</span>
                           <span class="badge">${l.settings.allowedLocalPlayers} lokal</span>
                           <span class="badge">${l.settings.maxBots} bots</span>
+                          <span class="badge">${l.settings.boardSize}x${l.settings.boardSize}</span>
+                          <span class="badge">Win: ${l.settings.winCon}</span>
+                          <span class="badge">${l.settings.gravityEnabled ? "Gravity" : "No Gravity"}</span>
+                          <span class="badge">${l.settings.rotationEnabled ? "Rotate" : "Static"}</span>
+                          <span class="badge">${l.pendingSettingRequests.length} requests</span>
                         </div>
                       </div>
                       <app-button

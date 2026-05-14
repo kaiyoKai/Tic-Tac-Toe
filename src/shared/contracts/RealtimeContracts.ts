@@ -10,15 +10,27 @@ import type {
 } from "./GameContracts.js";
 import type {
   CreateLobbyRequest,
+  HostTransferRequest,
   JoinLobbyRequest,
   LobbyErrorPayload,
+  LobbyPreset,
+  LobbySettingDecisionRequest,
+  LobbySettingRequest,
+  LobbySettingRequestStatus,
   LobbySnapshot,
   SetReadyRequest,
   UpdateLobbyRequest,
+  RequestLobbySettingChange,
 } from "./LobbyContracts.js";
 import type { ProfileDraft, UserProfile } from "./ProfileContracts.js";
-import { isLobbySettings } from "./LobbyContracts.js";
+import {
+  isHostTransferRequest,
+  isLobbySettingDecisionRequest,
+  isLobbySettingRequest,
+  isLobbySettings,
+} from "./LobbyContracts.js";
 import { isProfileDraft } from "./ProfileContracts.js";
+import type { RotateBoardRequest } from "./GameContracts.js";
 
 export const RealtimeClientEvent = {
   ListLobbies: "lobby:list",
@@ -31,6 +43,10 @@ export const RealtimeClientEvent = {
   SendMessage: "chat:message",
   ReactToMessage: "chat:reaction",
   SubmitMove: "game:move",
+  RotateBoard: "game:rotate",
+  TransferHost: "lobby:transfer-host",
+  RequestLobbySettingChange: "lobby:setting-request",
+  DecideLobbySettingChange: "lobby:setting-request-decision",
 } as const;
 
 export const RealtimeServerEvent = {
@@ -42,8 +58,12 @@ export const RealtimeServerEvent = {
   ChatReaction: "chat:reaction",
   MoveAccepted: "game:move-accepted",
   MoveRejected: "game:move-rejected",
+  BoardRotated: "game:board-rotated",
   Error: "lobby:error",
   ProfileUpdated: "profile:updated",
+  HostTransferred: "lobby:host-transferred",
+  LobbySettingRequested: "lobby:setting-requested",
+  LobbySettingDecided: "lobby:setting-decided",
 } as const;
 
 export type RealtimeClientEvent =
@@ -63,9 +83,19 @@ export {
   type ChatReactionRequest,
   type BoardSnapshot,
   type MoveRequest,
+  type RotateBoardRequest,
   type MoveResponse,
   type ProfileDraft,
   type UserProfile,
+  type LobbyPreset,
+  type LobbySettingRequest,
+  type LobbySettingDecisionRequest,
+  type HostTransferRequest,
+  type RequestLobbySettingChange,
+  type LobbySettingRequestStatus,
+  isHostTransferRequest,
+  isLobbySettingDecisionRequest,
+  isLobbySettingRequest,
 };
 
 export { isProfileDraft };
@@ -159,6 +189,25 @@ export function isMoveRequest(payload: unknown): payload is MoveRequest {
     data.playerId.trim().length > 0 &&
     Number.isInteger(data.row) &&
     Number.isInteger(data.col) &&
+    !!data.board &&
+    typeof data.board === "object" &&
+    Number.isInteger(data.board.size) &&
+    Array.isArray(data.board.state)
+  );
+}
+
+export function isRotateBoardRequest(
+  payload: unknown,
+): payload is RotateBoardRequest {
+  if (!payload || typeof payload !== "object") return false;
+  const data = payload as Partial<RotateBoardRequest>;
+  return (
+    typeof data.lobbyId === "string" &&
+    data.lobbyId.trim().length > 0 &&
+    typeof data.playerId === "string" &&
+    data.playerId.trim().length > 0 &&
+    data.action === "rotate" &&
+    (data.degrees === 90 || data.degrees === 180 || data.degrees === 270) &&
     !!data.board &&
     typeof data.board === "object" &&
     Number.isInteger(data.board.size) &&

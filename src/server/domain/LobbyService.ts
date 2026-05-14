@@ -10,12 +10,17 @@ import type {
 } from "@shared/contracts/ChatContracts.js";
 import type {
   CreateLobbyRequest,
+  HostTransferRequest,
   JoinLobbyRequest,
   LobbyMemberSnapshot,
   LobbySettings,
   LobbySnapshot,
+  LobbySettingDecisionRequest,
+  LobbySettingRequest,
+  RequestLobbySettingChange,
   UpdateLobbyRequest,
 } from "@shared/contracts/LobbyContracts.js";
+import type { RotateBoardRequest } from "@shared/contracts/GameContracts.js";
 import type { ProfileDraft, UserProfile } from "@shared/contracts/ProfileContracts.js";
 
 interface LobbyMemberEntity extends LobbyMemberSnapshot {
@@ -38,6 +43,7 @@ interface LobbyEntity {
   members: Map<string, LobbyMemberEntity>;
   messages: Map<string, ChatMessageSnapshot>;
   gameState: GameState | null;
+  settingRequests: LobbySettingRequest[];
 }
 
 const DEFAULT_SETTINGS: LobbySettings = {
@@ -46,6 +52,13 @@ const DEFAULT_SETTINGS: LobbySettings = {
   maxBots: 0,
   visibility: "public",
   autoStart: false,
+  boardSize: 3,
+  winCon: 3,
+  gravityEnabled: false,
+  rotationEnabled: false,
+  moveTimeoutMs: 0,
+  penaltyMode: "warning",
+  presetId: "tic-tac-toe",
 };
 
 export class LobbyService {
@@ -56,16 +69,21 @@ export class LobbyService {
   }
 
   createLobby(ownerSocketId: string, request: CreateLobbyRequest) {
+    const settings = this.normalizeSettings({
+      ...DEFAULT_SETTINGS,
+      ...request.settings,
+    });
     const lobby: LobbyEntity = {
       id: randomUUID(),
       name: request.name.trim(),
       hostId: ownerSocketId,
       createdAt: Date.now(),
       status: "waiting",
-      settings: this.normalizeSettings(request.settings),
+      settings,
       members: new Map(),
       messages: new Map(),
       gameState: null,
+      settingRequests: [],
     };
 
     lobby.members.set(
@@ -103,6 +121,9 @@ export class LobbyService {
     const lobby = this.lobbies.get(request.lobbyId);
     if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
     if (lobby.hostId !== socketId) return { error: "NOT_HOST" as const };
+    if (lobby.status === "in-game") {
+      return { error: "GAME_ALREADY_RUNNING" as const };
+    }
 
     lobby.settings = this.normalizeSettings({
       ...lobby.settings,
@@ -139,6 +160,95 @@ export class LobbyService {
     }
 
     return { lobby: this.toSnapshot(lobby) };
+  }
+
+  transferHost(socketId: string, request: HostTransferRequest) {
+    const lobby = this.lobbies.get(request.lobbyId);
+    if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
+    if (lobby.hostId !== socketId) return { error: "NOT_HOST" as const };
+    if (!lobby.members.has(request.nextHostId)) {
+      return { error: "PLAYER_NOT_FOUND" as const };
+    }
+
+    const previousHost = lobby.members.get(lobby.hostId);
+    if (previousHost) {
+      previousHost.role = "player";
+    }
+
+    const nextHost = lobby.members.get(request.nextHostId)!;
+    nextHost.role = "host";
+    lobby.hostId = request.nextHostId;
+
+    return {
+      lobby: this.toSnapshot(lobby),
+      transferred: {
+        lobbyId: lobby.id,
+        previousHostId: socketId,
+        nextHostId: request.nextHostId,
+        transferredAt: Date.now(),
+      },
+    };
+  }
+
+  requestSettingChange(
+    socketId: string,
+    request: RequestLobbySettingChange,
+  ) {
+    const lobby = this.lobbies.get(request.lobbyId);
+    if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
+    const member = lobby.members.get(socketId);
+    if (!member) return { error: "PLAYER_NOT_FOUND" as const };
+
+    const settingRequest: LobbySettingRequest = {
+      id: randomUUID(),
+      lobbyId: lobby.id,
+      requesterId: request.requesterId,
+      requesterName: request.requesterName.trim(),
+      targetSetting: request.targetSetting,
+      proposedValue: request.proposedValue,
+      reason: request.reason?.trim() || "Ohne Begründung",
+      status: "pending",
+      createdAt: Date.now(),
+    };
+
+    lobby.settingRequests.push(settingRequest);
+
+    return {
+      lobby: this.toSnapshot(lobby),
+      request: settingRequest,
+    };
+  }
+
+  resolveSettingRequest(
+    socketId: string,
+    request: LobbySettingDecisionRequest,
+  ) {
+    const lobby = this.lobbies.get(request.lobbyId);
+    if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
+    if (lobby.hostId !== socketId) return { error: "NOT_HOST" as const };
+
+    const settingRequest = lobby.settingRequests.find(
+      (entry) => entry.id === request.requestId,
+    );
+    if (!settingRequest) {
+      return { error: "SETTING_REQUEST_NOT_FOUND" as const };
+    }
+
+    settingRequest.status =
+      request.decision === "accept" ? "accepted" : "rejected";
+
+    if (request.decision === "accept") {
+      lobby.settings = this.applySettingUpdate(
+        lobby.settings,
+        settingRequest.targetSetting,
+        settingRequest.proposedValue,
+      );
+    }
+
+    return {
+      lobby: this.toSnapshot(lobby),
+      request: settingRequest,
+    };
   }
 
   setReadyState(socketId: string, lobbyId: string, isReady: boolean) {
@@ -295,6 +405,43 @@ export class LobbyService {
     };
   }
 
+  rotateBoard(socketId: string, request: RotateBoardRequest): MoveResponse | { error: string } {
+    const lobby = this.lobbies.get(request.lobbyId);
+    if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
+    if (!lobby.gameState) return { error: "GAME_NOT_STARTED" as const };
+
+    const member = lobby.members.get(socketId);
+    if (!member) return { error: "PLAYER_NOT_FOUND" as const };
+
+    const { game, playerOrder } = lobby.gameState;
+    const activePlayerId = playerOrder[game.turn % playerOrder.length];
+    if (activePlayerId !== socketId) {
+      return { error: "NOT_YOUR_TURN" as const };
+    }
+
+    if (request.board.state.length !== game.board.state.length) {
+      return { error: "BOARD_OUT_OF_SYNC" as const };
+    }
+
+    const moveStatus = game.rotateBoard(request.degrees);
+    const board = this.toBoardSnapshot(game);
+
+    if (moveStatus === MoveStatus.GAME_OVER) {
+      lobby.status = "waiting";
+      lobby.gameState = null;
+    }
+
+    return {
+      accepted: true,
+      row: -1,
+      col: -1,
+      symbol: member.symbol,
+      board,
+      turn: game.turn,
+      winner: game.result?.winner ?? null,
+    };
+  }
+
   removeSocketFromAllLobbies(socketId: string): LobbySnapshot[] {
     const updated: LobbySnapshot[] = [];
 
@@ -326,7 +473,12 @@ export class LobbyService {
     return updated;
   }
 
-  private tryStartGame(lobby: LobbyEntity): { lobbyId: string; startedAt: number; playerOrder: string[] } | null {
+  private tryStartGame(lobby: LobbyEntity): {
+    lobbyId: string;
+    startedAt: number;
+    playerOrder: string[];
+    settings: GameSettings;
+  } | null {
     const everyoneJoined = lobby.members.size >= 2;
     const everyoneReady = [...lobby.members.values()].every((member) => member.isReady);
 
@@ -341,9 +493,12 @@ export class LobbyService {
     if (!lobby.gameState) {
       const settings = new GameSettings(
         GameMode.Online,
-        3,
-        3,
+        lobby.settings.boardSize,
+        lobby.settings.winCon,
         Difficulty.Medium,
+        lobby.settings.gravityEnabled,
+        lobby.settings.rotationEnabled,
+        lobby.settings.moveTimeoutMs,
       );
       lobby.gameState = {
         game: new XOXOGame(settings),
@@ -358,6 +513,7 @@ export class LobbyService {
       lobbyId: lobby.id,
       startedAt: lobby.gameState.startedAt,
       playerOrder: lobby.gameState.playerOrder,
+      settings: lobby.gameState.game.settings,
     };
   }
 
@@ -377,6 +533,7 @@ export class LobbyService {
         isReady: member.isReady,
         seatIndex: member.seatIndex,
       })),
+      pendingSettingRequests: [...lobby.settingRequests],
     };
   }
 
@@ -412,15 +569,27 @@ export class LobbyService {
   }
 
   private normalizeSettings(settings: LobbySettings): LobbySettings {
+    const maxPlayers = Math.min(Math.max(settings.maxPlayers, 2), 8);
+    const boardSize = Math.min(Math.max(settings.boardSize, 2), 10);
     return {
-      maxPlayers: Math.min(Math.max(settings.maxPlayers, 2), 8),
+      maxPlayers,
       allowedLocalPlayers: Math.min(
         Math.max(settings.allowedLocalPlayers, 0),
-        Math.max(2, settings.maxPlayers),
+        Math.max(0, maxPlayers - 1),
       ),
       maxBots: Math.min(Math.max(settings.maxBots, 0), 4),
       visibility: settings.visibility,
       autoStart: settings.autoStart,
+      boardSize,
+      winCon: Math.min(
+        Math.max(settings.winCon, 2),
+        boardSize,
+      ),
+      gravityEnabled: settings.gravityEnabled,
+      rotationEnabled: settings.rotationEnabled,
+      moveTimeoutMs: Math.max(settings.moveTimeoutMs ?? 0, 0),
+      penaltyMode: settings.penaltyMode,
+      presetId: settings.presetId ?? null,
     };
   }
 
@@ -430,5 +599,37 @@ export class LobbyService {
       state: Array.from(game.board.state),
       updatedAt: Date.now(),
     };
+  }
+
+  private applySettingUpdate(
+    settings: LobbySettings,
+    targetSetting: keyof LobbySettings,
+    proposedValue: string | number | boolean | null,
+  ): LobbySettings {
+    const nextSettings = { ...settings };
+    switch (targetSetting) {
+      case "maxPlayers":
+      case "allowedLocalPlayers":
+      case "maxBots":
+      case "boardSize":
+      case "winCon":
+      case "moveTimeoutMs":
+        nextSettings[targetSetting] = Number(proposedValue);
+        break;
+      case "visibility":
+      case "penaltyMode":
+      case "presetId":
+        nextSettings[targetSetting] = proposedValue as never;
+        break;
+      case "autoStart":
+      case "gravityEnabled":
+      case "rotationEnabled":
+        nextSettings[targetSetting] = Boolean(proposedValue) as never;
+        break;
+      default:
+        break;
+    }
+
+    return this.normalizeSettings(nextSettings);
   }
 }

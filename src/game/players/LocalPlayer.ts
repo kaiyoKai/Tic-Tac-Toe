@@ -1,5 +1,5 @@
 import type { PlayerSymbol, Position } from "@shared/Common.js";
-import type { Player } from "./Player.js";
+import type { Player, PlayerAction } from "./Player.js";
 import { type Subscription } from "@events/EventBus.js";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
@@ -12,14 +12,16 @@ export class LocalPlayer implements Player {
     public userId: number,
   ) {}
 
-  async makeMove(_game: XOXOGame): Promise<Position | null> {
+  async makeMove(_game: XOXOGame): Promise<PlayerAction | null> {
     return new Promise((resolve) => {
       let clickSub: Subscription;
       let resetSub: Subscription;
+      let rotateSub: Subscription;
 
       const cleanup = () => {
         clickSub.unsubscribe();
         resetSub.unsubscribe();
+        rotateSub.unsubscribe();
       };
 
       clickSub = globalEventBus.on(
@@ -27,7 +29,16 @@ export class LocalPlayer implements Player {
         EventActor.LocalPlayer,
         (data) => {
           cleanup();
-          resolve(data);
+          resolve({ kind: "place", position: data });
+        },
+      );
+
+      rotateSub = globalEventBus.on(
+        AppEvent.UI.RotateRequested,
+        EventActor.LocalPlayer,
+        (degrees) => {
+          cleanup();
+          resolve({ kind: "rotate", degrees });
         },
       );
 

@@ -18,6 +18,8 @@ import { GameSettings } from "@game/engine/GameSettings.ts";
 import { globalEventBus } from "@events/EventBus.ts";
 import { profileStore } from "@client/profile/ProfileStore.js";
 
+const BUTTON_SHAPE_STORAGE_KEY = "btn-shape";
+
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
   @state() private activeSettings: GameSettings = new GameSettings();
@@ -96,7 +98,10 @@ export class XoxoWebApp extends LitElement {
   public saveButtonShape(cellRadiusPercent: string) {
     // State aktualisieren, damit das Board beim Rendern den neuen Wert bekommt
     this.savedRadius = cellRadiusPercent;
-    localStorage.setItem("btn-shape-radius", cellRadiusPercent);
+    localStorage.setItem(
+      BUTTON_SHAPE_STORAGE_KEY,
+      cellRadiusPercent === "50%" ? "rounded" : "square",
+    );
   }
 
   @Subscribe(AppEvent.UI.ThemeChanged, EventActor.WebUI)
@@ -130,7 +135,12 @@ export class XoxoWebApp extends LitElement {
   private initializeUIState(): void {
     const profile = profileStore.load();
     const theme = profile?.preferences.themeName || "Catppuccin";
-    const buttonRadius = profile?.preferences.buttonRadius || "5%";
+    const legacyButtonRadius = localStorage.getItem("btn-shape-radius");
+    const storedShape =
+      localStorage.getItem(BUTTON_SHAPE_STORAGE_KEY) ??
+      (legacyButtonRadius === "50%" ? "rounded" : "square");
+    const buttonRadius =
+      storedShape === "rounded" ? "50%" : profile?.preferences.buttonRadius || "5%";
 
     this.changeTheme(theme as ThemeKey, true);
     this.savedRadius = buttonRadius;

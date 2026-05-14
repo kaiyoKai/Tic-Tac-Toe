@@ -49,6 +49,11 @@ npm run server:dev
 - `apps/client` (`@tictactoe/client`) für UI/Web-App.
 - `apps/server` (`@tictactoe/server`) für Socket.IO-Backend.
 - Root-Skripte delegieren automatisch in die passenden Workspaces.
+- Häufige Befehle:
+  - `npm run dev` → Client lokal starten
+  - `npm run server:dev` → Socket.IO-Server starten
+  - `npm run test:run` → Vitest-Suite ausführen
+  - `npm run build` → Client + Server validieren
 
 Events und Payloads sind zentral in:
 - `src/shared/contracts/RealtimeContracts.ts`

@@ -14,13 +14,21 @@ import {
 } from "@shared/contracts/ProfileContracts.js";
 import { profileStore } from "@client/profile/ProfileStore.js";
 
+const BUTTON_SHAPE_STORAGE_KEY = "btn-shape";
+
 @customElement("profile-dialog")
 export class ProfileDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
   @state() public selectedThemeName: ThemeKey =
     (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
   @state() private buttonShape: "rounded" | "square" =
-    localStorage.getItem("btn-shape-radius") === "50%" ? "rounded" : "square";
+    localStorage.getItem(BUTTON_SHAPE_STORAGE_KEY) === "rounded"
+      ? "rounded"
+      : localStorage.getItem(BUTTON_SHAPE_STORAGE_KEY) === "square"
+        ? "square"
+        : localStorage.getItem("btn-shape-radius") === "50%"
+          ? "rounded"
+          : "square";
 
   @state() private username = "";
   @state() private symbol = "X";

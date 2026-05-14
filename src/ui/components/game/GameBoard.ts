@@ -50,13 +50,30 @@ export class GameBoard extends LitElement {
   public onMoveMade(data: any) {
     this.turnNumber = data.turn;
     this.currentPlayer = data.nextPlayerSymbol;
-    this.updateCell(data.row, data.col, data.symbol);
+    if (data?.grid) {
+      this.cells = data.grid.map((row: string[]) => [...row]);
+      return;
+    }
+
+    if (typeof data.row === "number" && typeof data.col === "number") {
+      this.updateCell(data.row, data.col, data.symbol);
+    }
   }
 
   @Subscribe(AppEvent.Game.MoveApplied, EventActor.Controller)
   public onMoveApplied(data: any) {
     this.turnNumber = data.turn;
-    if (typeof data.row === "number" && typeof data.col === "number") {
+    if (data?.board && (data.action === "rotate" || data.row < 0 || data.col < 0)) {
+      this.applyBoardSnapshot(data.board);
+      return;
+    }
+
+    if (
+      typeof data.row === "number" &&
+      typeof data.col === "number" &&
+      data.row >= 0 &&
+      data.col >= 0
+    ) {
       this.updateCell(data.row, data.col, data.symbol ?? "");
     }
   }
@@ -79,9 +96,8 @@ export class GameBoard extends LitElement {
 
   @Subscribe(AppEvent.Game.BoardSnapshotUpdated, EventActor.Controller)
   public onBoardSnapshotUpdated(snapshot: any) {
-    if (snapshot?.size && snapshot.size !== this.cells.length) {
-      this.initBoard();
-    }
+    if (!snapshot?.size || !Array.isArray(snapshot.state)) return;
+    this.applyBoardSnapshot(snapshot);
   }
 
   @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
@@ -201,6 +217,7 @@ export class GameBoard extends LitElement {
       display: flex;
       justify-content: center;
       gap: 1rem;
+      flex-wrap: wrap;
     }
     .reset-btn {
       padding: 0.8rem 2rem;
@@ -266,6 +283,22 @@ export class GameBoard extends LitElement {
         <button class="reset-btn" @click="${this._handleResetClick}">
           Neu starten
         </button>
+        ${this.settings.rotationEnabled
+          ? html`
+              <button
+                class="reset-btn"
+                @click="${() => this._handleRotateClick(90)}"
+              >
+                ↻ 90°
+              </button>
+              <button
+                class="reset-btn"
+                @click="${() => this._handleRotateClick(180)}"
+              >
+                ↻ 180°
+              </button>
+            `
+          : null}
         <button
           class="reset-btn end-btn"
           @click="${this._handleEndClick}"
@@ -308,6 +341,10 @@ export class GameBoard extends LitElement {
 
   private _handleResetClick() {
     globalEventBus.emit(AppEvent.UI.ResetRequested, EventActor.WebUI);
+  }
+
+  private _handleRotateClick(degrees: 90 | 180 | 270) {
+    globalEventBus.emit(AppEvent.UI.RotateRequested, EventActor.WebUI, degrees);
   }
 
   public updateCell(row: number, col: number, symbol: string) {

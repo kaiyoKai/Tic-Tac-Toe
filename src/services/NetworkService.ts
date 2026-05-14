@@ -1,6 +1,7 @@
 import { io, type Socket } from "socket.io-client";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
+import { GameSettings } from "@engine/GameSettings.js";
 import {
   RealtimeClientEvent,
   RealtimeServerEvent,
@@ -13,6 +14,7 @@ import {
   type MoveRequest,
   type MoveResponse,
   type ProfileDraft,
+  type RotateBoardRequest,
   type UpdateLobbyRequest,
 } from "@shared/contracts/RealtimeContracts.js";
 import type { LobbySettings } from "@shared/contracts/LobbyContracts.js";
@@ -21,6 +23,7 @@ import { profileStore } from "@client/profile/ProfileStore.js";
 
 export class NetworkService {
   private socket: Socket;
+  private currentLobby: LobbySnapshot | null = null;
 
   constructor() {
     this.socket = io("http://localhost:3001");
@@ -36,12 +39,28 @@ export class NetworkService {
 
     this.socket.on(RealtimeServerEvent.LobbyUpdated, (lobby: LobbySnapshot) => {
       lobbySessionStore.setCurrentLobbyId(lobby.id);
+      this.currentLobby = lobby;
       globalEventBus.emit(AppEvent.UI.LobbiesUpdated, actor, [lobby]);
     });
 
     this.socket.on(RealtimeServerEvent.LobbyJoined, (lobby: LobbySnapshot) => {
       lobbySessionStore.setCurrentLobbyId(lobby.id);
+      this.currentLobby = lobby;
       globalEventBus.emit(AppEvent.UI.LobbiesUpdated, actor, [lobby]);
+    });
+
+    this.socket.on(RealtimeServerEvent.GameStart, (payload: any) => {
+      const settings = Object.assign(new GameSettings(), payload.settings ?? {});
+      const nextPlayerSymbol = (this.currentLobby?.members[0]?.symbol ?? "") as any;
+      globalEventBus.emit(AppEvent.Game.Start, actor, {
+        turn: 0,
+        nextPlayerSymbol,
+        settings,
+      });
+      globalEventBus.emit(AppEvent.UI.ToastRequested, actor, {
+        message: "Match gestartet.",
+        type: "success",
+      });
     });
 
     this.socket.on(
@@ -60,7 +79,10 @@ export class NetworkService {
 
     this.socket.on(RealtimeServerEvent.MoveAccepted, (response: MoveResponse) => {
       globalEventBus.emit(AppEvent.Game.MoveApplied, actor, response);
-      globalEventBus.emit(AppEvent.Game.BoardSnapshotUpdated, actor, response.board);
+    });
+
+    this.socket.on(RealtimeServerEvent.BoardRotated, (response: MoveResponse) => {
+      globalEventBus.emit(AppEvent.Game.MoveApplied, actor, response);
     });
 
     this.socket.on(RealtimeServerEvent.MoveRejected, (response: MoveResponse) => {
@@ -69,6 +91,30 @@ export class NetworkService {
 
     this.socket.on(RealtimeServerEvent.Error, (error) => {
       globalEventBus.emit(AppEvent.Sys.Error, actor, error);
+    });
+
+    this.socket.on(RealtimeServerEvent.HostTransferred, (payload: any) => {
+      globalEventBus.emit(AppEvent.UI.ToastRequested, actor, {
+        message: `Host gewechselt an ${payload.nextHostId}.`,
+        type: "info",
+      });
+    });
+
+    this.socket.on(RealtimeServerEvent.LobbySettingRequested, (request: any) => {
+      globalEventBus.emit(AppEvent.UI.ToastRequested, actor, {
+        message: `${request.requesterName} möchte ${request.targetSetting} ändern.`,
+        type: "warning",
+      });
+    });
+
+    this.socket.on(RealtimeServerEvent.LobbySettingDecided, (request: any) => {
+      globalEventBus.emit(AppEvent.UI.ToastRequested, actor, {
+        message:
+          request.status === "accepted"
+            ? `Lobby-Änderung für ${request.targetSetting} übernommen.`
+            : `Lobby-Änderung für ${request.targetSetting} abgelehnt.`,
+        type: request.status === "accepted" ? "success" : "info",
+      });
     });
 
     globalEventBus.on(AppEvent.UI.LobbyCreateRequested, actor, (data: CreateLobbyRequest) => {
@@ -144,5 +190,13 @@ export class NetworkService {
     globalEventBus.on(AppEvent.Game.MoveRequested, actor, (move: MoveRequest) => {
       this.socket.emit(RealtimeClientEvent.SubmitMove, move);
     });
+
+    globalEventBus.on(
+      AppEvent.Game.RotateRequested,
+      actor,
+      (payload: RotateBoardRequest) => {
+        this.socket.emit(RealtimeClientEvent.RotateBoard, payload);
+      },
+    );
   }
 }

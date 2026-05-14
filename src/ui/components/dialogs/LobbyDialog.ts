@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit";
-import { customElement, query } from "lit/decorators.js";
+import { customElement, query, state } from "lit/decorators.js";
 import { Emit } from "@events/Decorators.js";
 import { AppEvent, EventActor } from "@events/EventTypes.js";
 import "./BaseDialog.js";
@@ -17,6 +17,13 @@ export class LobbyDialog extends LitElement {
   @query("#bots") private bots!: HTMLInputElement;
   @query("#visibility") private visibility!: HTMLSelectElement;
   @query("#auto-start") private autoStart!: HTMLInputElement;
+  @query("#board-size") private boardSize!: HTMLInputElement;
+  @query("#win-con") private winCon!: HTMLInputElement;
+  @query("#gravity-enabled") private gravityEnabled!: HTMLInputElement;
+  @query("#rotation-enabled") private rotationEnabled!: HTMLInputElement;
+  @query("#move-timeout") private moveTimeout!: HTMLInputElement;
+  @query("#penalty-mode") private penaltyMode!: HTMLSelectElement;
+  @state() private boardSizeLimit = 3;
 
   public show() {
     this.baseDialog.show();
@@ -30,6 +37,13 @@ export class LobbyDialog extends LitElement {
       maxBots: parseInt(this.bots.value),
       visibility: this.visibility.value as LobbySettings["visibility"],
       autoStart: this.autoStart.checked,
+      boardSize: parseInt(this.boardSize.value),
+      winCon: parseInt(this.winCon.value),
+      gravityEnabled: this.gravityEnabled.checked,
+      rotationEnabled: this.rotationEnabled.checked,
+      moveTimeoutMs: parseInt(this.moveTimeout.value || "0"),
+      penaltyMode: this.penaltyMode.value as LobbySettings["penaltyMode"],
+      presetId: null,
     };
 
     this.baseDialog.close();
@@ -60,7 +74,7 @@ export class LobbyDialog extends LitElement {
   render() {
     return html`
       <base-dialog title="Lobby & Host">
-        <div class="lobby-grid">
+      <div class="lobby-grid">
           <label>
             Maximale Spieler
             <input id="max-players" type="number" value="4" min="2" max="8" />
@@ -74,10 +88,58 @@ export class LobbyDialog extends LitElement {
             <input id="bots" type="number" value="0" min="0" max="4" />
           </label>
           <label>
+            Spielfeldgröße
+            <input
+              id="board-size"
+              type="number"
+              value="3"
+              min="2"
+              max="10"
+              @input="${(event: Event) => {
+                const value = parseInt((event.target as HTMLInputElement).value || "3");
+                this.boardSizeLimit = value;
+                if (this.winCon && parseInt(this.winCon.value || "3") > value) {
+                  this.winCon.value = String(value);
+                }
+              }}"
+            />
+          </label>
+          <label>
+            Gewinnbedingung
+            <input
+              id="win-con"
+              type="number"
+              value="3"
+              min="2"
+              max="${this.boardSizeLimit}"
+            />
+          </label>
+          <label>
+            Zugzeitlimit (ms)
+            <input id="move-timeout" type="number" value="0" min="0" />
+          </label>
+          <label>
+            Strafmodus
+            <select id="penalty-mode">
+              <option value="warning">Verwarnung</option>
+              <option value="random-move">Zufallszug</option>
+              <option value="kick">Kick</option>
+            </select>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input id="gravity-enabled" type="checkbox" />
+            Gravitation
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input id="rotation-enabled" type="checkbox" />
+            Rotation erlauben
+          </label>
+          <label>
             Sichtbarkeit
             <select id="visibility">
               <option value="${LobbyVisibility.Public}">Öffentlich</option>
               <option value="${LobbyVisibility.Private}">Privat</option>
+              <option value="${LobbyVisibility.Local}">Lokal</option>
             </select>
           </label>
           <label style="display: flex; align-items: center; gap: 0.5rem;">
