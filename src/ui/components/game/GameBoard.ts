@@ -53,6 +53,14 @@ export class GameBoard extends LitElement {
     this.updateCell(data.row, data.col, data.symbol);
   }
 
+  @Subscribe(AppEvent.Game.MoveApplied, EventActor.Controller)
+  public onMoveApplied(data: any) {
+    this.turnNumber = data.turn;
+    if (typeof data.row === "number" && typeof data.col === "number") {
+      this.updateCell(data.row, data.col, data.symbol ?? "");
+    }
+  }
+
   @Subscribe(AppEvent.Game.Finished, EventActor.Controller)
   public async onGameFinished(result: IGameResult) {
     this.winnerMessage = result.winner
@@ -67,6 +75,13 @@ export class GameBoard extends LitElement {
       this.settings = Object.assign(new GameSettings(), newSettings);
     }
     this.initBoard();
+  }
+
+  @Subscribe(AppEvent.Game.BoardSnapshotUpdated, EventActor.Controller)
+  public onBoardSnapshotUpdated(snapshot: any) {
+    if (snapshot?.size && snapshot.size !== this.cells.length) {
+      this.initBoard();
+    }
   }
 
   @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
@@ -299,6 +314,23 @@ export class GameBoard extends LitElement {
     const newCells = [...this.cells];
     newCells[row][col] = symbol;
     this.cells = newCells;
+  }
+
+  public applyBoardSnapshot(
+    snapshot: { size: number; state: number[] },
+    fallbackSymbol = "",
+  ) {
+    const nextCells = Array.from({ length: snapshot.size }, () =>
+      Array(snapshot.size).fill(""),
+    );
+
+    snapshot.state.forEach((value, index) => {
+      const row = Math.floor(index / snapshot.size);
+      const col = index % snapshot.size;
+      nextCells[row][col] = value ? fallbackSymbol || String(value) : "";
+    });
+
+    this.cells = nextCells;
   }
 
   public resetBoard() {

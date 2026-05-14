@@ -16,6 +16,7 @@ import "@components/dialogs/BrowserDialog.js";
 import "@components/toast/ToastManager.js";
 import { GameSettings } from "@game/engine/GameSettings.ts";
 import { globalEventBus } from "@events/EventBus.ts";
+import { profileStore } from "@client/profile/ProfileStore.js";
 
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
@@ -127,11 +128,12 @@ export class XoxoWebApp extends LitElement {
   }
 
   private initializeUIState(): void {
-    const savedTheme =
-      (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
-    this.changeTheme(savedTheme, true);
+    const profile = profileStore.load();
+    const theme = profile?.preferences.themeName || "Catppuccin";
+    const buttonRadius = profile?.preferences.buttonRadius || "5%";
 
-    this.savedRadius = localStorage.getItem("btn-shape-radius") || "5%";
+    this.changeTheme(theme as ThemeKey, true);
+    this.savedRadius = buttonRadius;
   }
   @Subscribe(AppEvent.Game.Start, EventActor.Controller)
   public OnStartGame(data?: any) {
@@ -189,5 +191,12 @@ export class XoxoWebApp extends LitElement {
 
   protected firstUpdated() {
     this.initializeButtonState();
+    if (!profileStore.isComplete()) {
+      globalEventBus.emit(
+        AppEvent.UI.DialogOpenRequested,
+        EventActor.WebUI,
+        "profile-dialog",
+      );
+    }
   }
 }

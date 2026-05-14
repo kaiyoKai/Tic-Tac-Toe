@@ -4,10 +4,27 @@ import type {
   Difficulty,
   PlayerSymbol,
   Position,
-  User,
 } from "@shared/Common.js";
 import type { ThemeKey } from "@ui/Theme.ts";
-import type { ChatMessage } from "@shared/Common.ts";
+import type { UserProfile } from "@shared/contracts/ProfileContracts.js";
+import type {
+  CreateLobbyRequest,
+  JoinLobbyRequest,
+  LobbySettings,
+  LobbySnapshot,
+  SetReadyRequest,
+  UpdateLobbyRequest,
+} from "@shared/contracts/LobbyContracts.js";
+import type {
+  ChatMessageRequest,
+  ChatMessageSnapshot,
+  ChatReactionRequest,
+} from "@shared/contracts/ChatContracts.js";
+import type {
+  BoardSnapshot,
+  MoveRequest,
+  MoveResponse,
+} from "@shared/contracts/GameContracts.js";
 
 export const AppEvent = {
   UI: {
@@ -26,20 +43,28 @@ export const AppEvent = {
     LobbyJoinRequested: "ui:lobby-join-requested",
     LobbyListRefreshRequested: "ui:lobby-list-refresh-requested",
     LobbiesUpdated: "ui:lobbies-updated",
+    LobbySettingsChanged: "ui:lobby-settings-changed",
   },
   Game: {
     BoardState: "game:board-state",
     MoveMade: "game:move-made",
+    MoveRequested: "game:move-requested",
+    MoveApplied: "game:move-applied",
+    MoveRejected: "game:move-rejected",
     Finished: "game:finished",
     Reset: "game:reset",
     SettingsChanged: "game:settings-changed",
     Start: "game:start",
+    BoardSnapshotUpdated: "game:board-snapshot-updated",
   },
   Sys: {
     Error: "sys:error",
   },
   Chat: {
     MessageSent: "chat:message-sent",
+    MessageReceived: "chat:message-received",
+    MessageReactionRequested: "chat:reaction-requested",
+    MessageReactionReceived: "chat:reaction-received",
   },
 } as const;
 
@@ -50,7 +75,7 @@ export interface UIEventMap {
   [AppEvent.UI.DifficultyChanged]: Difficulty;
   [AppEvent.UI.ThemeChanged]: ThemeKey;
   [AppEvent.UI.ButtonShapeChanged]: "50%" | "5%";
-  [AppEvent.UI.ProfileChangeRequested]: User;
+  [AppEvent.UI.ProfileChangeRequested]: UserProfile;
   [AppEvent.UI.DialogOpenRequested]: string;
   [AppEvent.UI.GameStartRequested]: GameSettings;
   [AppEvent.UI.AppEndRequested]: void;
@@ -58,10 +83,11 @@ export interface UIEventMap {
     message: string;
     type?: "info" | "warning" | "success";
   };
-  [AppEvent.UI.LobbyCreateRequested]: { name: string; username: string };
-  [AppEvent.UI.LobbyJoinRequested]: { lobbyId: string; username: string };
+  [AppEvent.UI.LobbyCreateRequested]: CreateLobbyRequest;
+  [AppEvent.UI.LobbyJoinRequested]: JoinLobbyRequest;
   [AppEvent.UI.LobbyListRefreshRequested]: void;
-  [AppEvent.UI.LobbiesUpdated]: any[]; // Später hier Lobby object Type nutzen
+  [AppEvent.UI.LobbiesUpdated]: LobbySnapshot[];
+  [AppEvent.UI.LobbySettingsChanged]: Partial<LobbySettings>;
 }
 
 export interface GameEventMap {
@@ -74,6 +100,9 @@ export interface GameEventMap {
     nextPlayerSymbol: PlayerSymbol;
     grid: (string | null)[][];
   };
+  [AppEvent.Game.MoveRequested]: MoveRequest;
+  [AppEvent.Game.MoveApplied]: MoveResponse;
+  [AppEvent.Game.MoveRejected]: MoveResponse;
   [AppEvent.Game.Finished]: GameResult;
   [AppEvent.Game.Reset]: {
     turn: number;
@@ -86,12 +115,16 @@ export interface GameEventMap {
     nextPlayerSymbol: PlayerSymbol;
     settings: GameSettings;
   };
+  [AppEvent.Game.BoardSnapshotUpdated]: BoardSnapshot;
 }
 
 export type GlobalEventMap = UIEventMap &
   GameEventMap & {
     [AppEvent.Sys.Error]: { message: string; code?: number };
-    [AppEvent.Chat.MessageSent]: ChatMessage;
+    [AppEvent.Chat.MessageSent]: ChatMessageSnapshot;
+    [AppEvent.Chat.MessageReceived]: ChatMessageSnapshot;
+    [AppEvent.Chat.MessageReactionRequested]: ChatReactionRequest;
+    [AppEvent.Chat.MessageReactionReceived]: ChatMessageSnapshot;
   };
 
 export const EventActor = {

@@ -3,10 +3,16 @@ import {
   isCreateLobbyRequest,
   isJoinLobbyRequest,
   isLeaveLobbyRequest,
+  isMoveRequest,
+  isReactionRequest,
+  isProfileDraft,
   isReadyStateRequest,
-  type LobbyErrorPayload,
+  isSendMessageRequest,
+  isUpdateLobbyRequest,
   RealtimeClientEvent,
   RealtimeServerEvent,
+  type LobbyErrorPayload,
+  type ProfileDraft,
 } from "@shared/contracts/RealtimeContracts.js";
 import { LobbyService } from "@server/domain/LobbyService.js";
 
@@ -16,6 +22,13 @@ function emitError(socket: Socket, payload: LobbyErrorPayload): void {
 
 function broadcastLobbyList(io: Server, service: LobbyService): void {
   io.emit(RealtimeServerEvent.LobbyList, service.listLobbies());
+}
+
+function emitLobbySnapshot(io: Server, lobbyId: string, service: LobbyService) {
+  const lobby = service.listLobbies().find((entry) => entry.id === lobbyId);
+  if (!lobby) return;
+
+  io.to(lobbyId).emit(RealtimeServerEvent.LobbyUpdated, lobby);
 }
 
 export function registerLobbyHandlers(io: Server, service: LobbyService): void {
@@ -35,12 +48,7 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
         return;
       }
 
-      const { lobby, startedGame } = service.createLobby(
-        socket.id,
-        payload.name,
-        payload.username,
-        payload.maxPlayers,
-      );
+      const { lobby, startedGame } = service.createLobby(socket.id, payload);
 
       socket.join(lobby.id);
       socket.emit(RealtimeServerEvent.LobbyJoined, lobby);
@@ -61,7 +69,7 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
         return;
       }
 
-      const result = service.joinLobby(socket.id, payload.lobbyId, payload.username);
+      const result = service.joinLobby(socket.id, payload);
       if (result.error) {
         emitError(socket, {
           message:
@@ -80,6 +88,49 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
 
       if (result.startedGame) {
         io.to(payload.lobbyId).emit(RealtimeServerEvent.GameStart, result.startedGame);
+      }
+    });
+
+    socket.on(RealtimeClientEvent.UpdateLobby, (payload: unknown) => {
+      if (!isUpdateLobbyRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Lobby-Update Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.updateLobby(socket.id, payload);
+      if (result.error) {
+        emitError(socket, {
+          message:
+            result.error === "NOT_HOST"
+              ? "Nur der Host darf die Lobby ändern"
+              : "Lobby wurde nicht gefunden",
+          code: result.error,
+        });
+        return;
+      }
+
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.LobbyUpdated, result.lobby);
+      broadcastLobbyList(io, service);
+    });
+
+    socket.on(RealtimeClientEvent.UpdateProfile, (payload: unknown) => {
+      if (!isProfileDraft(payload)) {
+        emitError(socket, {
+          message: "Ungültige Profil-Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const updatedLobbies = service.updateProfile(socket.id, payload as ProfileDraft);
+      for (const lobby of updatedLobbies) {
+        io.to(lobby.id).emit(RealtimeServerEvent.LobbyUpdated, lobby);
+      }
+      if (updatedLobbies.length) {
+        socket.emit(RealtimeServerEvent.ProfileUpdated, payload);
       }
     });
 
@@ -135,6 +186,82 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
       if (result.startedGame) {
         io.to(payload.lobbyId).emit(RealtimeServerEvent.GameStart, result.startedGame);
       }
+    });
+
+    socket.on(RealtimeClientEvent.SendMessage, (payload: unknown) => {
+      if (!isSendMessageRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Chat Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.sendMessage(socket.id, payload);
+      if (result.error) {
+        emitError(socket, {
+          message: "Lobby oder Spieler wurde nicht gefunden",
+          code: result.error,
+        });
+        return;
+      }
+
+      socket.to(payload.lobbyId).emit(RealtimeServerEvent.ChatMessage, result.message);
+    });
+
+    socket.on(RealtimeClientEvent.ReactToMessage, (payload: unknown) => {
+      if (!isReactionRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Reaktions-Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.reactToMessage(socket.id, payload);
+      if (result.error) {
+        emitError(socket, {
+          message: "Reaktion konnte nicht verarbeitet werden",
+          code: result.error,
+        });
+        return;
+      }
+
+      io.to(payload.lobbyId).emit(RealtimeServerEvent.ChatReaction, result.message);
+    });
+
+    socket.on(RealtimeClientEvent.SubmitMove, (payload: unknown) => {
+      if (!isMoveRequest(payload)) {
+        emitError(socket, {
+          message: "Ungültige Move-Payload",
+          code: "INVALID_PAYLOAD",
+        });
+        return;
+      }
+
+      const result = service.submitMove(socket.id, payload);
+      if ("error" in result) {
+        emitError(socket, {
+          message: "Move konnte nicht validiert werden",
+          code: result.error as LobbyErrorPayload["code"],
+        });
+        socket.emit(RealtimeServerEvent.MoveRejected, {
+          accepted: false,
+          reason: result.error,
+          row: payload.row,
+          col: payload.col,
+          symbol: "",
+          board: payload.board,
+          turn: 0,
+          winner: null,
+        });
+        return;
+      }
+
+      socket.to(payload.lobbyId).emit(RealtimeServerEvent.MoveAccepted, result);
+      socket.emit(RealtimeServerEvent.MoveAccepted, result);
+
+      emitLobbySnapshot(io, payload.lobbyId, service);
     });
 
     socket.on("disconnect", () => {

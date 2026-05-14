@@ -1,26 +1,24 @@
 import { LitElement, html, css } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { globalEventBus } from "@events/EventBus.js";
-import { EventActor, AppEvent } from "@events/EventTypes.js";
+import { AppEvent, EventActor } from "@events/EventTypes.js";
 import "@components/primitives/AppButton.js";
 import "./CreateLobbyDialog.js";
+import { profileStore } from "@client/profile/ProfileStore.js";
+import type { LobbySnapshot } from "@shared/contracts/LobbyContracts.js";
 
 @customElement("browser-dialog")
 export class BrowserDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
   @query("create-lobby-dialog") private createDialog!: any;
 
-  @state() private lobbies: any[] = [];
+  @state() private lobbies: LobbySnapshot[] = [];
 
   constructor() {
     super();
-    globalEventBus.on(
-      "ui:lobbies-updated" as any,
-      EventActor.WebUI,
-      (data: any[]) => {
-        this.lobbies = data;
-      },
-    );
+    globalEventBus.on(AppEvent.UI.LobbiesUpdated, EventActor.WebUI, (data) => {
+      this.lobbies = data;
+    });
   }
 
   public show() {
@@ -29,10 +27,7 @@ export class BrowserDialog extends LitElement {
   }
 
   private refresh() {
-    globalEventBus.emit(
-      "ui:lobby-list-refresh-requested" as any,
-      EventActor.WebUI,
-    );
+    globalEventBus.emit(AppEvent.UI.LobbyListRefreshRequested, EventActor.WebUI);
   }
 
   private openCreateModal() {
@@ -40,9 +35,22 @@ export class BrowserDialog extends LitElement {
   }
 
   private joinLobby(id: string) {
-    globalEventBus.emit("ui:lobby-join-requested" as any, EventActor.WebUI, {
+    const profile = profileStore.load();
+    if (!profile) {
+      globalEventBus.emit(
+        AppEvent.UI.DialogOpenRequested,
+        EventActor.WebUI,
+        "profile-dialog",
+      );
+      return;
+    }
+    globalEventBus.emit(AppEvent.UI.LobbyJoinRequested, EventActor.WebUI, {
       lobbyId: id,
-      username: "Kai",
+      profile: {
+        username: profile.username,
+        symbol: profile.symbol,
+        preferences: profile.preferences,
+      },
     });
     this.baseDialog.close();
   }
@@ -82,6 +90,19 @@ export class BrowserDialog extends LitElement {
       font-size: 0.8rem;
       color: #888;
     }
+    .lobby-badges {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.35rem;
+    }
+    .badge {
+      padding: 0.2rem 0.45rem;
+      border-radius: 999px;
+      background: var(--bg-color, #181825);
+      border: 1px solid var(--border-color, #444);
+      font-size: 0.75rem;
+    }
   `;
 
   render() {
@@ -106,7 +127,12 @@ export class BrowserDialog extends LitElement {
                       <div>
                         <div class="lobby-name">${l.name}</div>
                         <div class="lobby-meta">
-                          Spieler: ${l.players?.length || 0}/${l.maxPlayers}
+                          Mitglieder: ${l.members.length}/${l.settings.maxPlayers}
+                        </div>
+                        <div class="lobby-badges">
+                          <span class="badge">${l.settings.visibility}</span>
+                          <span class="badge">${l.settings.allowedLocalPlayers} lokal</span>
+                          <span class="badge">${l.settings.maxBots} bots</span>
                         </div>
                       </div>
                       <app-button

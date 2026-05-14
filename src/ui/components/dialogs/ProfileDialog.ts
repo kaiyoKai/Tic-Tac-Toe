@@ -7,17 +7,23 @@ import "./BaseDialog.js";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
 import { Emit } from "@events/Decorators.ts";
+import {
+  ProfileButtonRadius,
+  type ProfileDraft,
+  type UserProfile,
+} from "@shared/contracts/ProfileContracts.js";
+import { profileStore } from "@client/profile/ProfileStore.js";
 
 @customElement("profile-dialog")
 export class ProfileDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
   @state() public selectedThemeName: ThemeKey =
     (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
-  @state() private buttonShape: string =
-    localStorage.getItem("btn-shape") || "square";
+  @state() private buttonShape: "rounded" | "square" =
+    localStorage.getItem("btn-shape-radius") === "50%" ? "rounded" : "square";
 
-  @state() private username: string = "Kai";
-  @state() private symbol: string = "X";
+  @state() private username = "";
+  @state() private symbol = "X";
   @state() private symbolError: string = "";
   @state() private showEmojiPicker: boolean = false;
 
@@ -27,6 +33,14 @@ export class ProfileDialog extends LitElement {
       grid-template-columns: 1fr 1.5fr;
       gap: 1.5rem;
       align-items: center;
+    }
+    .emoji-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .emoji-picker-wrap {
+      position: relative;
     }
     .radio-group {
       display: flex;
@@ -47,7 +61,29 @@ export class ProfileDialog extends LitElement {
       border: 1px solid var(--border-color);
       width: 100%;
     }
+    emoji-picker {
+      position: absolute;
+      inset-inline-start: 0;
+      top: 2.75rem;
+      z-index: 20;
+    }
   `;
+
+  constructor() {
+    super();
+    const stored = profileStore.load();
+    const draft = stored ?? profileStore.getDefaultDraft();
+    this.username = draft.username;
+    this.symbol = draft.symbol;
+    this.selectedThemeName =
+      (draft.preferences?.themeName as ThemeKey) ||
+      (localStorage.getItem("user-theme") as ThemeKey) ||
+      "Catppuccin";
+    this.buttonShape =
+      draft.preferences?.buttonRadius === ProfileButtonRadius.Rounded
+        ? "rounded"
+        : "square";
+  }
 
   public show() {
     this.baseDialog.show();
@@ -64,18 +100,43 @@ export class ProfileDialog extends LitElement {
   @Emit(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
   private handleShapeChange(shape: "rounded" | "square") {
     this.buttonShape = shape;
-    const radius = shape === "rounded" ? "50%" : "5%";
+    const radius =
+      shape === "rounded"
+        ? ProfileButtonRadius.Rounded
+        : ProfileButtonRadius.Square;
     return radius;
   }
 
   @Emit(AppEvent.UI.ProfileChangeRequested, EventActor.WebUI)
-  private saveAndClose() {
-    const user = {
-      username: this.username,
-      symbol: assertPlayerSymbol(this.symbol),
-    };
-    this.baseDialog.close();
-    return user;
+  private saveAndClose(): UserProfile {
+    try {
+      const profile: ProfileDraft = {
+        username: this.username,
+        symbol: assertPlayerSymbol(this.symbol),
+        preferences: {
+          themeName: this.selectedThemeName,
+          buttonRadius:
+            this.buttonShape === "rounded"
+              ? ProfileButtonRadius.Rounded
+              : ProfileButtonRadius.Square,
+        },
+      };
+
+      const saved = profileStore.save(profile);
+      this.symbolError = "";
+      this.baseDialog.close();
+      return saved;
+    } catch (error) {
+      this.symbolError =
+        error instanceof Error ? error.message : "Ungültiges Symbol";
+      throw error;
+    }
+  }
+
+  private onEmojiClick(event: CustomEvent<any>) {
+    this.symbol = assertPlayerSymbol(event.detail?.unicode ?? "😀");
+    this.symbolError = "";
+    this.showEmojiPicker = false;
   }
 
   render() {
@@ -86,7 +147,10 @@ export class ProfileDialog extends LitElement {
           <input
             type="text"
             .value="${this.username}"
-            @input="${(e: any) => (this.username = e.target.value)}"
+            @input="${(e: any) => {
+              this.username = e.target.value;
+              this.symbolError = "";
+            }}"
           />
           <hr
             style="grid-column: 1 / -1; width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 0.5rem 0;"
@@ -125,7 +189,32 @@ export class ProfileDialog extends LitElement {
                 @change="${() => this.handleShapeChange("square")}"
               />
               Eckig
-            </label>
+              </label>
+            </div>
+
+          <label>Symbol:</label>
+          <div class="emoji-row">
+            <input
+              type="text"
+              .value="${this.symbol}"
+              maxlength="2"
+              @input="${(e: Event) => {
+                this.symbol = (e.target as HTMLInputElement).value;
+                this.symbolError = "";
+              }}"
+            />
+            <div class="emoji-picker-wrap">
+              <button
+                class="btn"
+                @click="${() => (this.showEmojiPicker = !this.showEmojiPicker)}"
+                type="button"
+              >
+                😀
+              </button>
+              ${this.showEmojiPicker
+                ? html`<emoji-picker @emoji-click="${this.onEmojiClick}"></emoji-picker>`
+                : null}
+            </div>
           </div>
         </div>
 
