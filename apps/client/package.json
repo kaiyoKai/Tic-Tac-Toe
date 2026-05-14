@@ -8,5 +8,8 @@
     "preview": "vite preview --config ./vite.config.ts",
     "test": "vitest --root ../../",
     "test:run": "vitest run --root ../../"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.3"
   }
 }

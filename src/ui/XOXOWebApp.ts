@@ -30,7 +30,6 @@ export class XoxoWebApp extends LitElement {
   }
 
   static styles = css`
-    /* Deine Styles bleiben unverändert... */
     :host {
       display: flex;
       width: 100vw;

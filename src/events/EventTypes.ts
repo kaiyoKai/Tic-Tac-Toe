@@ -22,6 +22,10 @@ export const AppEvent = {
     GameStartRequested: "ui:game-start-requested",
     AppEndRequested: "ui:app-end-reqeusted",
     ToastRequested: "ui:toast-requested",
+    LobbyCreateRequested: "ui:lobby-create-requested",
+    LobbyJoinRequested: "ui:lobby-join-requested",
+    LobbyListRefreshRequested: "ui:lobby-list-refresh-requested",
+    LobbiesUpdated: "ui:lobbies-updated",
   },
   Game: {
     BoardState: "game:board-state",
@@ -54,6 +58,10 @@ export interface UIEventMap {
     message: string;
     type?: "info" | "warning" | "success";
   };
+  [AppEvent.UI.LobbyCreateRequested]: { name: string; username: string };
+  [AppEvent.UI.LobbyJoinRequested]: { lobbyId: string; username: string };
+  [AppEvent.UI.LobbyListRefreshRequested]: void;
+  [AppEvent.UI.LobbiesUpdated]: any[]; // Später hier Lobby object Type nutzen
 }
 
 export interface GameEventMap {

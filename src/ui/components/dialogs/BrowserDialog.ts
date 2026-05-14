@@ -1,145 +1,127 @@
 import { LitElement, html, css } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
+import { globalEventBus } from "@events/EventBus.js";
+import { EventActor, AppEvent } from "@events/EventTypes.js";
 import "@components/primitives/AppButton.js";
+import "./CreateLobbyDialog.js";
 
-interface Lobby {
-  id: string;
-  name: string;
-  currentPlayers: number;
-  maxPlayers: number;
-  ping: number;
-  status: string;
-  isPrivate: boolean;
-}
 @customElement("browser-dialog")
 export class BrowserDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
+  @query("create-lobby-dialog") private createDialog!: any;
 
-  static busEvents = {
-    "join-lobby": "ui:join-lobby-requested",
-  };
+  @state() private lobbies: any[] = [];
 
-  @state() private lobbys: Lobby[] = [
-    {
-      id: "1",
-      name: "Pro Gamers Only",
-      currentPlayers: 1,
-      maxPlayers: 2,
-      ping: 24,
-      status: "online",
-      isPrivate: true,
-    },
-    {
-      id: "2",
-      name: "Wer das liest ist cool",
-      currentPlayers: 0,
-      maxPlayers: 2,
-      ping: 42,
-      status: "online",
-      isPrivate: false,
-    },
-  ];
-
-  private createlobby(
-    name: string,
-    maxPlayers: number = 2,
-    ping: number = 0,
-    isPrivate: boolean = false,
-  ): Lobby {
-    return {
-      id: crypto.randomUUID(),
-      name,
-      currentPlayers: 0,
-      maxPlayers,
-      ping,
-      status: "online",
-      isPrivate,
-    };
+  constructor() {
+    super();
+    globalEventBus.on(
+      "ui:lobbies-updated" as any,
+      EventActor.WebUI,
+      (data: any[]) => {
+        this.lobbies = data;
+      },
+    );
   }
 
-  addlobby(name: string, size: number = 2) {
-    const newLobby = this.createlobby(name, size);
-    this.lobbys = [...this.lobbys, newLobby];
+  public show() {
+    this.baseDialog.show();
+    this.refresh();
+  }
+
+  private refresh() {
+    globalEventBus.emit(
+      "ui:lobby-list-refresh-requested" as any,
+      EventActor.WebUI,
+    );
+  }
+
+  private openCreateModal() {
+    this.createDialog.show();
   }
 
   private joinLobby(id: string) {
-    this.dispatchEvent(
-      new CustomEvent("join-lobby", {
-        detail: { lobbyId: id },
-        bubbles: true,
-        composed: true,
-      }),
-    );
-    this.baseDialog?.close();
+    globalEventBus.emit("ui:lobby-join-requested" as any, EventActor.WebUI, {
+      lobbyId: id,
+      username: "Kai",
+    });
+    this.baseDialog.close();
   }
 
   static styles = css`
+    .browser-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     .lobby-list {
       display: flex;
       flex-direction: column;
-      gap: var(--ui-space-sm);
+      gap: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
     }
     .lobby-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--ui-space-md);
-      background: var(--cell-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--ui-radius-sm);
-      cursor: pointer;
-      transition: var(--ui-transition-fast);
-    }
-    .lobby-item:hover {
-      background: var(--cell-hover);
-      border-color: var(--border-color);
-      filter: drop-shadow(0 0 1rem var(--glow-core));
-    }
-    .lobby-info {
-      display: flex;
-      flex-direction: column;
+      padding: 1rem;
+      background: var(--cell-bg, #2a2a3a);
+      border: 1px solid var(--border-color, #444);
+      border-radius: 8px;
     }
     .lobby-name {
       font-weight: bold;
       color: var(--text-main);
     }
-    .lobby-stats {
-      font-size: var(--ui-font-size-sm);
-      color: var(--border-color);
+    .lobby-meta {
+      font-size: 0.8rem;
+      color: #888;
     }
   `;
-  public show() {
-    this.baseDialog.show();
-  }
 
   render() {
     return html`
       <base-dialog title="Lobby Browser">
-        <div class="lobby-list">
-          ${this.lobbys.map(
-            (l) => html`
-              <div class="lobby-item" @click="${() => this.joinLobby(l.id)}">
-                <div class="lobby-info">
-                  <span class="lobby-name">${l.name}</span>
-                  <span class="lobby-stats">
-                    Spieler: ${l.currentPlayers}/${l.maxPlayers} | Ping:
-                    ${l.ping}ms ${l.isPrivate ? "🔒" : "🔓"}
-                  </span>
-                </div>
-                <app-button
-                  variant="primary"
-                  @click="${(e: Event) => {
-                    e.stopPropagation();
-                    this.joinLobby(l.id);
-                  }}"
-                >
-                  Beitreten
-                </app-button>
-              </div>
-            `,
-          )}
+        <div class="browser-layout">
+          <div class="toolbar">
+            <app-button @click="${this.refresh}">🔄 Aktualisieren</app-button>
+            <app-button variant="primary" @click="${this.openCreateModal}"
+              >+ Neue Lobby</app-button
+            >
+          </div>
+
+          <div class="lobby-list">
+            ${this.lobbies.length === 0
+              ? html`<p style="text-align: center; color: #666; margin: 2rem;">
+                  Keine offenen Lobbys gefunden...
+                </p>`
+              : this.lobbies.map(
+                  (l) => html`
+                    <div class="lobby-item">
+                      <div>
+                        <div class="lobby-name">${l.name}</div>
+                        <div class="lobby-meta">
+                          Spieler: ${l.players?.length || 0}/${l.maxPlayers}
+                        </div>
+                      </div>
+                      <app-button
+                        variant="primary"
+                        @click="${() => this.joinLobby(l.id)}"
+                        >Beitreten</app-button
+                      >
+                    </div>
+                  `,
+                )}
+          </div>
         </div>
       </base-dialog>
+
+      <create-lobby-dialog></create-lobby-dialog>
     `;
   }
 }
