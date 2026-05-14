@@ -126,7 +126,15 @@ export class BrowserDialog extends LitElement {
                     ${l.ping}ms ${l.isPrivate ? "🔒" : "🔓"}
                   </span>
                 </div>
-                <app-button variant="primary">Beitreten</app-button>
+                <app-button
+                  variant="primary"
+                  @click="${(e: Event) => {
+                    e.stopPropagation();
+                    this.joinlobby(l.id);
+                  }}"
+                >
+                  Beitreten
+                </app-button>
               </div>
             `,
           )}

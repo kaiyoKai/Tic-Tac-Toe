@@ -79,7 +79,7 @@ export class XoxoWebApp extends LitElement {
       width: 100%;
       height: 100%;
     }
-    .start-btn {
+    app-button {
       filter: drop-shadow(0 0 1rem var(--glow-core));
     }
   `;
@@ -170,7 +170,7 @@ export class XoxoWebApp extends LitElement {
               </div>
             `
           : html`
-              <app-button class="start-btn" @click="${this.requestGameStart}">
+              <app-button @click="${this.requestGameStart}">
                 SPIEL STARTEN
               </app-button>
             `}

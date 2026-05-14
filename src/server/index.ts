@@ -6,10 +6,14 @@ import { registerLobbyHandlers } from "@server/socket/registerLobbyHandlers.js";
 
 const app = express();
 const httpServer = createServer(app);
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
   },
 });
 

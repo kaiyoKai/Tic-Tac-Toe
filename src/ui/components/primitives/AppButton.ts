@@ -5,6 +5,7 @@ import { classMap } from "lit/directives/class-map.js";
 @customElement("app-button")
 export class AppButton extends LitElement {
   @property() variant: "primary" | "ghost" = "ghost";
+  @property({ type: Boolean, reflect: true }) disabled = false;
 
   static styles = css`
     :host {
@@ -53,6 +54,7 @@ export class AppButton extends LitElement {
     return html`
       <button
         type="button"
+        ?disabled=${this.disabled}
         class=${classMap({
           primary: this.variant === "primary",
           ghost: this.variant === "ghost",
