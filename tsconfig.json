@@ -31,6 +31,9 @@
       ],
       "@lobby/*": [
         "src/lobby/*"
+      ],
+      "@controller/*": [
+        "src/controller/*"
       ]
     },
     "sourceMap": true,
