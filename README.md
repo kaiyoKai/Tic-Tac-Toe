@@ -45,6 +45,13 @@ Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engin
 npm run server:dev
 ```
 
+Falls Port `3001` schon belegt ist:
+
+```bash
+PORT=3002 npm run server:dev
+VITE_SERVER_URL=http://localhost:3002 npm run dev
+```
+
 ## 📦 Monorepo-Workspaces (Client/Server getrennt)
 - `apps/client` (`@tictactoe/client`) für UI/Web-App.
 - `apps/server` (`@tictactoe/server`) für Socket.IO-Backend.

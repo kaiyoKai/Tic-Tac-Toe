@@ -2,6 +2,7 @@ import { io, type Socket } from "socket.io-client";
 import { globalEventBus } from "@events/EventBus.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
 import { GameSettings } from "@engine/GameSettings.js";
+import { mapLobbySettingsToGameSettings } from "@client/lobby/LobbySettingsAdapter.js";
 import {
   RealtimeClientEvent,
   RealtimeServerEvent,
@@ -19,6 +20,7 @@ import {
 } from "@shared/contracts/RealtimeContracts.js";
 import type { LobbySettings } from "@shared/contracts/LobbyContracts.js";
 import { lobbySessionStore } from "@client/lobby/LobbySessionStore.js";
+import { resolveRealtimeServerUrl } from "@client/network/RealtimeConnectionConfig.js";
 import { profileStore } from "@client/profile/ProfileStore.js";
 
 export class NetworkService {
@@ -26,7 +28,7 @@ export class NetworkService {
   private currentLobby: LobbySnapshot | null = null;
 
   constructor() {
-    this.socket = io("http://localhost:3001");
+    this.socket = io(resolveRealtimeServerUrl());
     this.setupListeners();
   }
 
@@ -134,7 +136,14 @@ export class NetworkService {
       actor,
       (data: Partial<LobbySettings>) => {
         const lobbyId = lobbySessionStore.getCurrentLobbyId();
-        if (!lobbyId) return;
+        if (!lobbyId) {
+          globalEventBus.emit(
+            AppEvent.UI.SettingsChangeRequested,
+            actor,
+            mapLobbySettingsToGameSettings(data),
+          );
+          return;
+        }
 
         const payload: UpdateLobbyRequest = {
           lobbyId,

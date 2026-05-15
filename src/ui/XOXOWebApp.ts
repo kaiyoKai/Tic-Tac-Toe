@@ -23,6 +23,7 @@ const BUTTON_SHAPE_STORAGE_KEY = "btn-shape";
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
   @state() private activeSettings: GameSettings = new GameSettings();
+  @state() private pendingSettings: GameSettings | null = null;
   @state() private currentThemeName: ThemeKey = "Catppuccin";
   @state() private isPlaying = false;
   @state() private savedRadius: string = "5%";
@@ -130,6 +131,10 @@ export class XoxoWebApp extends LitElement {
   @Subscribe(AppEvent.UI.AppEndRequested, EventActor.WebUI)
   endApp() {
     this.isPlaying = false;
+    if (this.pendingSettings) {
+      this.activeSettings = Object.assign(new GameSettings(), this.pendingSettings);
+      this.pendingSettings = null;
+    }
   }
 
   private initializeUIState(): void {
@@ -149,20 +154,28 @@ export class XoxoWebApp extends LitElement {
   public OnStartGame(data?: any) {
     if (data?.settings) {
       this.activeSettings = Object.assign(new GameSettings(), data.settings);
+      this.pendingSettings = null;
       this.isPlaying = true;
       this.requestUpdate();
     }
   }
   @Subscribe(AppEvent.UI.SettingsChangeRequested, EventActor.WebUI)
   public syncSettingsFromDialog(newSettings: GameSettings) {
-    this.activeSettings = Object.assign(new GameSettings(), newSettings);
+    const nextSettings = Object.assign(new GameSettings(), newSettings);
+    if (this.isPlaying) {
+      this.pendingSettings = nextSettings;
+      return;
+    }
+
+    this.activeSettings = nextSettings;
+    this.pendingSettings = null;
   }
 
   public requestGameStart() {
     globalEventBus.emit(
       AppEvent.UI.GameStartRequested,
       EventActor.WebUI,
-      this.activeSettings,
+      this.pendingSettings ?? this.activeSettings,
     );
   }
   render() {
