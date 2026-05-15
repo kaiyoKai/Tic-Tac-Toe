@@ -52,6 +52,23 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
         return;
       }
 
+      const existingLobby = service.findLobbyByMemberId(socket.id);
+      if (existingLobby && !payload.replaceCurrentLobby) {
+        emitError(socket, {
+          message: "Bitte zuerst die aktuelle Lobby verlassen oder bestätigen.",
+          code: "ALREADY_IN_LOBBY",
+        });
+        return;
+      }
+
+      if (existingLobby) {
+        const leaveResult = service.leaveLobby(socket.id, existingLobby.id);
+        socket.leave(existingLobby.id);
+        if (leaveResult.lobby) {
+          io.to(existingLobby.id).emit(RealtimeServerEvent.LobbyUpdated, leaveResult.lobby);
+        }
+      }
+
       const { lobby, startedGame } = service.createLobby(socket.id, payload);
 
       socket.join(lobby.id);
@@ -73,12 +90,35 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
         return;
       }
 
+      const existingLobby = service.findLobbyByMemberId(socket.id);
+      if (
+        existingLobby &&
+        existingLobby.id !== payload.lobbyId &&
+        !payload.replaceCurrentLobby
+      ) {
+        emitError(socket, {
+          message: "Bitte zuerst die aktuelle Lobby verlassen oder bestätigen.",
+          code: "ALREADY_IN_LOBBY",
+        });
+        return;
+      }
+
+      if (existingLobby && existingLobby.id !== payload.lobbyId) {
+        const leaveResult = service.leaveLobby(socket.id, existingLobby.id);
+        socket.leave(existingLobby.id);
+        if (leaveResult.lobby) {
+          io.to(existingLobby.id).emit(RealtimeServerEvent.LobbyUpdated, leaveResult.lobby);
+        }
+      }
+
       const result = service.joinLobby(socket.id, payload);
       if (result.error) {
         emitError(socket, {
           message:
             result.error === "LOBBY_FULL"
               ? "Lobby ist voll"
+              : result.error === "ALREADY_IN_LOBBY"
+                ? "Du bist bereits in einer Lobby"
               : "Lobby wurde nicht gefunden",
           code: result.error,
         });
@@ -284,7 +324,11 @@ export function registerLobbyHandlers(io: Server, service: LobbyService): void {
         return;
       }
 
-      socket.to(payload.lobbyId).emit(RealtimeServerEvent.ChatMessage, result.message);
+      if (payload.lobbyId === "global") {
+        socket.broadcast.emit(RealtimeServerEvent.ChatMessage, result.message);
+      } else {
+        socket.to(payload.lobbyId).emit(RealtimeServerEvent.ChatMessage, result.message);
+      }
     });
 
     socket.on(RealtimeClientEvent.ReactToMessage, (payload: unknown) => {

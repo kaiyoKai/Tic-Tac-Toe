@@ -63,12 +63,14 @@ const DEFAULT_SETTINGS: LobbySettings = {
 
 export class LobbyService {
   private readonly lobbies = new Map<string, LobbyEntity>();
+  private readonly profiles = new Map<string, UserProfile>();
 
   listLobbies(): LobbySnapshot[] {
     return [...this.lobbies.values()].map((lobby) => this.toSnapshot(lobby));
   }
 
   createLobby(ownerSocketId: string, request: CreateLobbyRequest) {
+    this.rememberProfile(ownerSocketId, request.profile);
     const settings = this.normalizeSettings({
       ...DEFAULT_SETTINGS,
       ...request.settings,
@@ -99,6 +101,7 @@ export class LobbyService {
   }
 
   joinLobby(socketId: string, request: JoinLobbyRequest) {
+    this.rememberProfile(socketId, request.profile);
     const lobby = this.lobbies.get(request.lobbyId);
     if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
 
@@ -108,7 +111,12 @@ export class LobbyService {
 
     lobby.members.set(
       socketId,
-      this.createMember(socketId, request.profile, "player", lobby.members.size),
+      this.createMember(
+        socketId,
+        request.profile,
+        request.role === "spectator" ? "spectator" : "player",
+        lobby.members.size,
+      ),
     );
 
     return {
@@ -267,6 +275,7 @@ export class LobbyService {
   }
 
   updateProfile(socketId: string, profile: ProfileDraft) {
+    this.rememberProfile(socketId, profile);
     const updated: LobbySnapshot[] = [];
 
     for (const lobby of this.lobbies.values()) {
@@ -292,6 +301,23 @@ export class LobbyService {
   }
 
   sendMessage(socketId: string, request: ChatMessageRequest) {
+    if (request.lobbyId === "global") {
+      const profile = this.profiles.get(socketId);
+      if (!profile) return { error: "PLAYER_NOT_FOUND" as const };
+
+      return {
+        message: {
+          id: request.id ?? randomUUID(),
+          lobbyId: "global",
+          senderId: socketId,
+          senderName: profile.username,
+          content: request.content.trim(),
+          createdAt: request.createdAt ?? Date.now(),
+          reactions: [],
+        },
+      };
+    }
+
     const lobby = this.lobbies.get(request.lobbyId);
     if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
 
@@ -313,6 +339,10 @@ export class LobbyService {
   }
 
   reactToMessage(socketId: string, request: ChatReactionRequest) {
+    if (request.lobbyId === "global") {
+      return { error: "MESSAGE_NOT_FOUND" as const };
+    }
+
     const lobby = this.lobbies.get(request.lobbyId);
     if (!lobby) return { error: "LOBBY_NOT_FOUND" as const };
 
@@ -444,6 +474,7 @@ export class LobbyService {
 
   removeSocketFromAllLobbies(socketId: string): LobbySnapshot[] {
     const updated: LobbySnapshot[] = [];
+    this.profiles.delete(socketId);
 
     for (const [lobbyId, lobby] of this.lobbies.entries()) {
       if (!lobby.members.has(socketId)) continue;
@@ -479,8 +510,11 @@ export class LobbyService {
     playerOrder: string[];
     settings: GameSettings;
   } | null {
-    const everyoneJoined = lobby.members.size >= 2;
-    const everyoneReady = [...lobby.members.values()].every((member) => member.isReady);
+    const playableMembers = [...lobby.members.entries()].filter(
+      ([, member]) => member.role !== "spectator",
+    );
+    const everyoneJoined = playableMembers.length >= 2;
+    const everyoneReady = playableMembers.every(([, member]) => member.isReady);
 
     if (!everyoneJoined || !everyoneReady) {
       if (lobby.status === "in-game") {
@@ -502,7 +536,7 @@ export class LobbyService {
       );
       lobby.gameState = {
         game: new XOXOGame(settings),
-        playerOrder: [...lobby.members.keys()],
+        playerOrder: playableMembers.map(([memberId]) => memberId),
         startedAt: Date.now(),
       };
     }
@@ -543,9 +577,38 @@ export class LobbyService {
     role: LobbyMemberSnapshot["role"],
     seatIndex: number,
   ): LobbyMemberEntity {
+    const userProfile = this.toUserProfile(profile);
+
+    return {
+      id,
+      username: userProfile.username,
+      symbol: userProfile.symbol,
+      role,
+      isReady: false,
+      seatIndex,
+      profile: userProfile,
+    };
+  }
+
+  findLobbyByMemberId(socketId: string): LobbySnapshot | null {
+    for (const lobby of this.lobbies.values()) {
+      if (lobby.members.has(socketId)) {
+        return this.toSnapshot(lobby);
+      }
+    }
+
+    return null;
+  }
+
+  private rememberProfile(socketId: string, profile: ProfileDraft): void {
+    this.profiles.set(socketId, this.toUserProfile(profile));
+  }
+
+  private toUserProfile(profile: ProfileDraft): UserProfile {
     const username = profile.username.trim();
     const symbol = profile.symbol;
-    const userProfile: UserProfile = {
+
+    return {
       id: randomUUID(),
       username,
       symbol,
@@ -555,16 +618,6 @@ export class LobbyService {
         chatOpenByDefault: profile.preferences?.chatOpenByDefault ?? false,
       },
       updatedAt: Date.now(),
-    };
-
-    return {
-      id,
-      username,
-      symbol,
-      role,
-      isReady: false,
-      seatIndex,
-      profile: userProfile,
     };
   }
 

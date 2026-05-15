@@ -116,7 +116,15 @@ export function isCreateLobbyRequest(
 export function isJoinLobbyRequest(payload: unknown): payload is JoinLobbyRequest {
   if (!payload || typeof payload !== "object") return false;
   const data = payload as Partial<JoinLobbyRequest>;
-  return typeof data.lobbyId === "string" && isProfileDraft(data.profile);
+  return (
+    typeof data.lobbyId === "string" &&
+    isProfileDraft(data.profile) &&
+    (data.role === undefined ||
+      data.role === "player" ||
+      data.role === "spectator") &&
+    (data.replaceCurrentLobby === undefined ||
+      typeof data.replaceCurrentLobby === "boolean")
+  );
 }
 
 export function isLeaveLobbyRequest(

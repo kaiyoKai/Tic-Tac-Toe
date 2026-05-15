@@ -15,6 +15,7 @@ export const LobbyMemberRole = {
   Player: "player",
   Local: "local",
   Bot: "bot",
+  Spectator: "spectator",
 } as const;
 
 export type LobbyMemberRole =
@@ -113,11 +114,14 @@ export interface CreateLobbyRequest {
   name: string;
   profile: ProfileDraft;
   settings: LobbySettings;
+  replaceCurrentLobby?: boolean;
 }
 
 export interface JoinLobbyRequest {
   lobbyId: string;
   profile: ProfileDraft;
+  role?: "player" | "spectator";
+  replaceCurrentLobby?: boolean;
 }
 
 export interface UpdateLobbyRequest {
@@ -153,7 +157,8 @@ export interface LobbyErrorPayload {
     | "GAME_NOT_STARTED"
     | "NOT_YOUR_TURN"
     | "BOARD_OUT_OF_SYNC"
-    | "SETTING_REQUEST_NOT_FOUND";
+    | "SETTING_REQUEST_NOT_FOUND"
+    | "ALREADY_IN_LOBBY";
 }
 
 export interface PresencePermissions {

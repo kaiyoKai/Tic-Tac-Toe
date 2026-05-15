@@ -108,4 +108,46 @@ describe("LobbyService", () => {
     expect(decision.request.status).toBe("accepted");
     expect(decision.lobby.settings.boardSize).toBe(6);
   });
+
+  it("starts online games without spectators in the player order", () => {
+    const service = new LobbyService();
+    const created = service.createLobby("socket-1", {
+      name: "Spectator Lobby",
+      profile: createProfile("Host", "X"),
+      settings: baseSettings,
+    });
+
+    service.joinLobby("socket-2", {
+      lobbyId: created.lobby.id,
+      profile: createProfile("Player", "O"),
+      role: "player",
+    });
+    service.joinLobby("socket-3", {
+      lobbyId: created.lobby.id,
+      profile: createProfile("Watcher", "👀"),
+      role: "spectator",
+    });
+
+    service.setReadyState("socket-1", created.lobby.id, true);
+    const ready = service.setReadyState("socket-2", created.lobby.id, true);
+
+    expect(ready.startedGame?.playerOrder).toEqual(["socket-1", "socket-2"]);
+  });
+
+  it("can find the currently active lobby for a member", () => {
+    const service = new LobbyService();
+    const created = service.createLobby("socket-1", {
+      name: "Lookup Lobby",
+      profile: createProfile("Host", "X"),
+      settings: baseSettings,
+    });
+
+    service.joinLobby("socket-2", {
+      lobbyId: created.lobby.id,
+      profile: createProfile("Guest", "O"),
+    });
+
+    expect(service.findLobbyByMemberId("socket-2")?.id).toBe(created.lobby.id);
+    expect(service.findLobbyByMemberId("missing")).toBeNull();
+  });
 });
