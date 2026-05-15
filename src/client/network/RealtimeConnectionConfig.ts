@@ -6,11 +6,12 @@ interface RealtimeConnectionConfigOptions {
 export function resolveRealtimeServerUrl(
   options: RealtimeConnectionConfigOptions = {},
 ): string {
+  const importMetaEnv = (import.meta as ImportMeta & {
+    env?: Record<string, string | undefined>;
+  }).env;
   const env =
     options.env ??
-    ((typeof import.meta !== "undefined" ? import.meta.env : undefined) as
-      | Record<string, string | undefined>
-      | undefined) ??
+    importMetaEnv ??
     {};
 
   const explicitUrl = env.VITE_SERVER_URL?.trim();
