@@ -6,31 +6,30 @@
     "module": "nodenext",
     "target": "esnext",
     "types": [],
-    "baseUrl": ".",
     "paths": {
       "@events/*": [
-        "src/events/*"
+        "./src/events/*"
       ],
       "@game/*": [
-        "src/game/*"
+        "./src/game/*"
       ],
       "@engine/*": [
-        "src/game/engine/*"
+        "./src/game/engine/*"
       ],
       "@players/*": [
-        "src/game/players/*"
+        "./src/game/players/*"
       ],
       "@shared/*": [
-        "src/shared/*"
+        "./src/shared/*"
       ],
       "@ui/*": [
-        "src/ui/*"
+        "./src/ui/*"
       ],
       "@components/*": [
-        "src/ui/components/*"
+        "./src/ui/components/*"
       ],
       "@lobby/*": [
-        "src/lobby/*"
+        "./src/lobby/*"
       ]
     },
     "sourceMap": true,

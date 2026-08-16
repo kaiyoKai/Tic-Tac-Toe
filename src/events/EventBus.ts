@@ -1,3 +1,4 @@
+//TODO: Komplett entfernen
 import { EventActor, type GlobalEventMap } from "@events/EventTypes.ts";
 import { Logger } from "@shared/Logger.ts";
 

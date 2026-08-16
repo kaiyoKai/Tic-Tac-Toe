@@ -1,11 +1,17 @@
 # TicTacToe 👣 (weil Toe checkt ihr?)
 
-Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engineering enthält als notwendig. Ursprünglich als kleines JS-Skript gestartet, ist es jetzt ein TypeScript-Projekt mit Architektur-Patterns, weil... warum nicht?
+Ein nicht mehr ganz so simples TicTacToe-Spiel,
+das mittlerweile mehr Over-Engineering enthält als notwendig.
+
+Ursprünglich als kleines JS-Skript gestartet, ist es jetzt ein
+TypeScript-Projekt mit Architektur-Patterns, weil... warum nicht?
 
 ## Features
 
 ### 🎮 Gameplay
-* **Flexibles Spiel:** Anpassbare Spielfeldgröße (z.B. 3x3 bis 10x10) und Gewinnbedingung (3-in-a-row, 4-in-a-row, etc.).
+
+* **Flexibles Spiel:** Anpassbare Spielfeldgröße (z.B. 3x3 bis 10x10) und
+Gewinnbedingung (3-in-a-row, 4-in-a-row, etc.).
 * **Bot-Gegner:** Es gibt einen Singleplayer-Modus gegen einen Bot mit verschiedenen Schwierigkeitsgraden:
     * *Einfach:* Macht zufällige Züge (dumm wie Brot).
     * *Mittel/Schwer:* Nutzt eine "ShortSighted"-Strategie (sieht Gewinnzüge und blockiert, plant aber nicht weit voraus).
@@ -13,6 +19,7 @@ Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engin
 * **Lokaler Multiplayer:** 2 Spieler können klassisch an einem Gerät spielen (Innovativ xD).
 
 ### 🎨 UI & Design
+
 * **Theme-Support:** Komplett dynamisches Farbschema via CSS-Variablen. Wähle zwischen Catppuccin, Dracula, Gruvbox, Nord, Sakura und mehr.
 * **Dynamische UI:** Das Board wird basierend auf den Einstellungen per TypeScript generiert.
 
@@ -26,7 +33,7 @@ Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engin
 <br>
 
 **Flexible Spielfeldgrößen:**
-<img src="./screenshotsForReadMe/sizes.gif" width="100%" alt="Vorschau der Spielfeldgrößen" /> 
+<img src="./screenshotsForReadMe/sizes.gif" width="100%" alt="Vorschau der Spielfeldgrößen" />
 </details>
 
 ### ⛷️ Technik (Das ist mein lieblings Emoji)

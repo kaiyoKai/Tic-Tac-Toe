@@ -1,3 +1,5 @@
+//TODO: Komplett entfernen
+
 import type { GameResult } from "@engine/GameResult.ts";
 import type { GameSettings } from "@engine/GameSettings.ts";
 import type {

@@ -3,8 +3,8 @@ import { GameSettings } from "./GameSettings.js";
 import { GameResult } from "./GameResult.js";
 import { MoveStatus, WinType, type Position } from "@shared/Common.js";
 import { Logger } from "@shared/Logger.js";
-import { EventActor } from "@events/EventTypes.js";
-
+import { LogScope } from "@shared/LogScope.ts";
+import { signal } from "signal-utils";
 export const DIRECTIONS = {
   [WinType.Horizontal]: { dRow: 0, dCol: 1 },
   [WinType.Vertical]: { dRow: 1, dCol: 0 },
@@ -15,11 +15,12 @@ export const DIRECTIONS = {
 export type DirectionType = Exclude<WinType, typeof WinType.Draw>;
 
 export class XOXOGame {
-  public board: XOXOBoard;
+  public accessor board: XOXOBoard;
   public settings: GameSettings;
   public turn: number = 0;
   public isRunning: boolean = true;
   public result: GameResult | null = null;
+  @signal accessor test: string;
 
   constructor(settings: GameSettings) {
     this.settings = settings;
@@ -62,8 +63,8 @@ export class XOXOGame {
   ): GameResult | null {
     for (const type in DIRECTIONS) {
       const result = this.checkDirection(
-        row,
         col,
+        row,
         type as DirectionType,
         playerId,
         playerSymbol,
@@ -111,7 +112,7 @@ export class XOXOGame {
     }
 
     if (line.length >= this.settings.winCon) {
-      Logger.log(EventActor.Game, `Win detected for player ${playerId}`);
+      Logger.log(LogScope.Game, `Win detected for player ${playerId}`);
       return GameResult.createWin(playerSymbol, type as WinType, line);
     }
 

@@ -5,7 +5,7 @@ import { Icons } from "@components/icons/Icons.js";
 import { Emit } from "@events/Decorators.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
 
-interface NavItem {
+export interface NavItem {
   id: string;
   label: string;
   icon: any;

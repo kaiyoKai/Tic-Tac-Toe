@@ -1,3 +1,5 @@
+//TODO: Komplett entfernen
+
 import { EventActor, type GlobalEventMap } from "@events/EventTypes.ts";
 import { globalEventBus } from "@events/EventBus.ts";
 
