@@ -14,7 +14,9 @@ export class LocalPlayer implements Player {
 
   async makeMove(_game: XOXOGame): Promise<Position | null> {
     return new Promise((resolve) => {
+      // eslint-disable-next-line prefer-const
       let clickSub: Subscription;
+      // eslint-disable-next-line prefer-const
       let resetSub: Subscription;
 
       const cleanup = () => {

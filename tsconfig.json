@@ -3,7 +3,8 @@
     "noImplicitAny": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "module": "nodenext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "target": "esnext",
     "types": [],
     "paths": {

@@ -7,7 +7,7 @@ export interface Subscription {
 }
 
 interface ListenerEntry {
-  callBack: Function;
+  callBack: (...args: any[]) => void;
   subscriberName: EventActor;
 }
 
@@ -36,7 +36,7 @@ export class EventBus<T> {
     };
   }
 
-  off<K extends keyof T>(event: K, callBack: Function): void {
+  off<K extends keyof T>(event: K, callBack: (...args: any[]) => void): void {
     const eventFnList = this.listeners.get(event);
     if (!eventFnList) return;
 

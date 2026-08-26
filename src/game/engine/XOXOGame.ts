@@ -3,8 +3,7 @@ import { GameSettings } from "./GameSettings.js";
 import { GameResult } from "./GameResult.js";
 import { MoveStatus, WinType, type Position } from "@shared/Common.js";
 import { Logger } from "@shared/Logger.js";
-import { LogScope } from "@shared/LogScope.ts";
-import { signal } from "signal-utils";
+import { EventActor } from "@events/EventTypes.js";
 export const DIRECTIONS = {
   [WinType.Horizontal]: { dRow: 0, dCol: 1 },
   [WinType.Vertical]: { dRow: 1, dCol: 0 },
@@ -20,7 +19,6 @@ export class XOXOGame {
   public turn: number = 0;
   public isRunning: boolean = true;
   public result: GameResult | null = null;
-  @signal accessor test: string;
 
   constructor(settings: GameSettings) {
     this.settings = settings;
@@ -112,7 +110,7 @@ export class XOXOGame {
     }
 
     if (line.length >= this.settings.winCon) {
-      Logger.log(LogScope.Game, `Win detected for player ${playerId}`);
+      Logger.log(EventActor.Game, `Win detected for player ${playerId}`);
       return GameResult.createWin(playerSymbol, type as WinType, line);
     }
 

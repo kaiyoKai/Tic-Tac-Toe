@@ -80,7 +80,7 @@ export class ProfileDialog extends LitElement {
 
   render() {
     return html`
-      <base-dialog title="Profil & Design">
+      <base-dialog title="Profil &amp; Design">
         <div class="settings-grid">
           <label>Benutzername:</label>
           <input

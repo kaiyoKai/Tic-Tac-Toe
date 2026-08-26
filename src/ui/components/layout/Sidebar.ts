@@ -4,11 +4,16 @@ import { map } from "lit/directives/map.js";
 import { Icons } from "@components/icons/Icons.js";
 import { Emit } from "@events/Decorators.ts";
 import { AppEvent, EventActor } from "@events/EventTypes.ts";
+import type { DirectiveResult } from "lit/directive.js";
+import type { UnsafeSVGDirective } from "lit/directives/unsafe-svg.js";
+
+export type NavIcon =
+  TemplateResult | DirectiveResult<typeof UnsafeSVGDirective> | string;
 
 export interface NavItem {
   id: string;
   label: string;
-  icon: any;
+  icon: NavIcon;
   dialog?: string;
   children?: NavItem[];
 }
@@ -309,26 +314,30 @@ export class SideBar extends LitElement {
 
     return html`
       <div
-        class="menu-item ${isSubItem ? "sub-item" : ""} ${isActive
-          ? "active"
-          : ""}"
+        class="menu-item ${isSubItem ? "sub-item" : ""} ${
+          isActive ? "active" : ""
+        }"
         @click="${() => this.handleNav(item)}"
       >
         ${item.icon ? html`<span class="icon">${item.icon}</span>` : ""}
         <span class="label">${item.label}</span>
-        ${hasChildren
-          ? html`<span class="chevron ${isOpen ? "open" : ""}"
-              >${Icons.Chevron}</span
-            >`
-          : ""}
+        ${
+          hasChildren
+            ? html`<span class="chevron ${isOpen ? "open" : ""}"
+                >${Icons.Chevron}</span
+              >`
+            : ""
+        }
       </div>
-      ${hasChildren
-        ? html`<div class="sub-menu ${isOpen ? "show" : ""}">
-            <div class="sub-menu-inner">
-              ${item.children!.map((child) => this.renderMenuItem(child, true))}
-            </div>
-          </div>`
-        : ""}
+      ${
+        hasChildren
+          ? html`<div class="sub-menu ${isOpen ? "show" : ""}">
+              <div class="sub-menu-inner">
+                ${item.children!.map((child) => this.renderMenuItem(child, true))}
+              </div>
+            </div>`
+          : ""
+      }
     `;
   }
 
