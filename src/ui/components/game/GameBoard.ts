@@ -4,9 +4,6 @@ import { WinType, type IGameResult } from "@shared/Common.js";
 import { GameSettings } from "@engine/GameSettings.js";
 import "./GameLogo.js";
 import { keyed } from "lit/directives/keyed.js";
-import { AppEvent, EventActor } from "@events/EventTypes.ts";
-import { Subscribe } from "@events/Decorators.ts";
-import { globalEventBus } from "@events/EventBus.ts";
 
 @customElement("game-board")
 export class GameBoard extends LitElement {
@@ -19,6 +16,7 @@ export class GameBoard extends LitElement {
 
   @state() private gameId = 0;
   @state() public cells: string[][] = [];
+  _handleCellClick: unknown;
 
   constructor() {
     super();
@@ -41,40 +39,27 @@ export class GameBoard extends LitElement {
     );
   }
 
-  @Subscribe(AppEvent.Game.BoardState, EventActor.Controller)
   public onBoardState(data: any) {
     this.cells = data.grid.map((row: any[]) => row.map((cell) => cell || ""));
   }
 
-  @Subscribe(AppEvent.Game.MoveMade, EventActor.Controller)
   public onMoveMade(data: any) {
     this.turnNumber = data.turn;
     this.currentPlayer = data.nextPlayerSymbol;
     this.updateCell(data.row, data.col, data.symbol);
   }
-
-  @Subscribe(AppEvent.Game.Finished, EventActor.Controller)
   public async onGameFinished(result: IGameResult) {
-    this.winnerMessage = result.winner
-      ? `${result.winner} hat gewonnen!`
-      : "Unentschieden!";
+    this.winnerMessage = result.winner ? `${result.winner} hat gewonnen!` : "Unentschieden!";
     await this.showWinAnimation(result);
   }
-
-  @Subscribe(AppEvent.Game.SettingsChanged, EventActor.Controller)
   public onSettingsChanged(newSettings: any) {
     if (JSON.stringify(this.settings) !== JSON.stringify(newSettings)) {
       this.settings = Object.assign(new GameSettings(), newSettings);
     }
     this.initBoard();
   }
-
-  @Subscribe(AppEvent.Game.Reset, EventActor.WebUI)
   public onReset(data?: any) {
-    if (
-      data?.settings &&
-      JSON.stringify(this.settings) !== JSON.stringify(data.settings)
-    ) {
+    if (data?.settings && JSON.stringify(this.settings) !== JSON.stringify(data.settings)) {
       this.settings = Object.assign(new GameSettings(), data.settings);
     }
     this.resetBoard();
@@ -82,6 +67,7 @@ export class GameBoard extends LitElement {
   static styles = css`
     :host {
       display: flex;
+
       flex-direction: column;
       width: 100%;
       height: 100%;
@@ -231,12 +217,7 @@ export class GameBoard extends LitElement {
               ${this.cells.map((row, r) =>
                 row.map(
                   (cell, c) => html`
-                    <button
-                      class="cell-btn"
-                      data-row="${r}"
-                      data-col="${c}"
-                      id="btn-${r}-${c}"
-                    >
+                    <button class="cell-btn" data-row="${r}" data-col="${c}" id="btn-${r}-${c}">
                       ${cell}
                     </button>
                   `,
@@ -248,9 +229,7 @@ export class GameBoard extends LitElement {
       </div>
 
       <div class="action-panel">
-        <button class="reset-btn" @click="${this._handleResetClick}">
-          Neu starten
-        </button>
+        <button class="reset-btn" @click="${this._handleResetClick}">Neu starten</button>
         <button
           class="reset-btn end-btn"
           @click="${this._handleEndClick}"
@@ -263,13 +242,11 @@ export class GameBoard extends LitElement {
   }
 
   private _handleEndClick() {
-    globalEventBus.emit(AppEvent.UI.AppEndRequested, EventActor.WebUI);
-  }
-
-  private _handleCellClick(e: Event) {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
-      "button.cell-btn",
-    );
+    const e = new Error("TODO");
+    //const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
+    // "button.cell-btn",
+    //);
+    const btn = new HTMLButtonElement();
     if (!btn) return;
 
     if (btn.classList.contains("spin")) {
@@ -287,14 +264,9 @@ export class GameBoard extends LitElement {
     if (this.cells[cell.row][cell.col] !== "") return;
 
     if (this.winnerMessage !== "") return;
-
-    globalEventBus.emit(AppEvent.UI.CellClicked, EventActor.WebUI, cell);
   }
 
-  private _handleResetClick() {
-    globalEventBus.emit(AppEvent.UI.ResetRequested, EventActor.WebUI);
-  }
-
+  private _handleResetClick() {}
   public updateCell(row: number, col: number, symbol: string) {
     const newCells = [...this.cells];
     newCells[row][col] = symbol;
@@ -318,9 +290,7 @@ export class GameBoard extends LitElement {
 
     const config = this.getLineConfig(result.type as WinType);
     const winningButtons = result.positions
-      .map((pos) =>
-        this.shadowRoot?.getElementById(`btn-${pos.row}-${pos.col}`),
-      )
+      .map((pos) => this.shadowRoot?.getElementById(`btn-${pos.row}-${pos.col}`))
       .filter((btn): btn is HTMLButtonElement => !!btn);
 
     const spinPromises = winningButtons.map((btn) => {

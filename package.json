@@ -1,31 +1,33 @@
 {
   "name": "tictactoe",
   "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "host": "vite --host",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
-  },
-  "devDependencies": {
-    "eslint": "^10.8.1",
-    "eslint-plugin-lit": "^2.3.1",
-    "ts-lit-plugin": "^2.0.2",
-    "tsx": "^4.23.9",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0",
-    "vite": "^8.2.1",
-    "vitest": "^4.1.10"
-  },
   "description": "Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engineering enthält als notwendig. Ursprünglich als kleines JS-Skript gestartet, ist es jetzt ein TypeScript-Projekt mit Architektur-Patterns, weil... warum nicht?",
-  "main": "index.js",
+  "keywords": [],
+  "homepage": "https://github.com/kaiyoKai/Tic-Tac-Toe#readme",
+  "bugs": {
+    "url": "https://github.com/kaiyoKai/Tic-Tac-Toe/issues"
+  },
+  "license": "ISC",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaiyoKai/Tic-Tac-Toe.git"
+  },
   "directories": {
     "test": "tests"
+  },
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vp dev",
+    "host": "vp dev --host",
+    "build": "tsc && vp build",
+    "preview": "vp preview",
+    "test": "vp test",
+    "test:run": "vp test run",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "vp config"
   },
   "dependencies": {
     "@lit-labs/signals": "^0.3.0",
@@ -63,15 +65,21 @@
     "tinyrainbow": "^3.1.1",
     "why-is-node-running": "^3.2.2"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kaiyoKai/Tic-Tac-Toe.git"
+  "devDependencies": {
+    "eslint": "^10.8.1",
+    "eslint-plugin-lit": "^2.3.1",
+    "ts-lit-plugin": "^2.0.2",
+    "tsx": "^4.23.9",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kaiyoKai/Tic-Tac-Toe/issues"
-  },
-  "homepage": "https://github.com/kaiyoKai/Tic-Tac-Toe#readme"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.11.2",
+      "onFail": "download"
+    }
+  }
 }

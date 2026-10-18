@@ -8,30 +8,14 @@
     "target": "esnext",
     "types": [],
     "paths": {
-      "@events/*": [
-        "./src/events/*"
-      ],
-      "@game/*": [
-        "./src/game/*"
-      ],
-      "@engine/*": [
-        "./src/game/engine/*"
-      ],
-      "@players/*": [
-        "./src/game/players/*"
-      ],
-      "@shared/*": [
-        "./src/shared/*"
-      ],
-      "@ui/*": [
-        "./src/ui/*"
-      ],
-      "@components/*": [
-        "./src/ui/components/*"
-      ],
-      "@lobby/*": [
-        "./src/lobby/*"
-      ]
+      "@events/*": ["./src/events/*"],
+      "@game/*": ["./src/game/*"],
+      "@engine/*": ["./src/game/engine/*"],
+      "@players/*": ["./src/game/players/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@ui/*": ["./src/ui/*"],
+      "@components/*": ["./src/ui/components/*"],
+      "@lobby/*": ["./src/lobby/*"]
     },
     "sourceMap": true,
     "declaration": true,

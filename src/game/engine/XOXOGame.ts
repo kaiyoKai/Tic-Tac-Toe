@@ -2,8 +2,6 @@ import { XOXOBoard } from "./XOXOBoard.js";
 import { GameSettings } from "./GameSettings.js";
 import { GameResult } from "./GameResult.js";
 import { MoveStatus, WinType, type Position } from "@shared/Common.js";
-import { Logger } from "@shared/Logger.js";
-import { EventActor } from "@events/EventTypes.js";
 export const DIRECTIONS = {
   [WinType.Horizontal]: { dRow: 0, dCol: 1 },
   [WinType.Vertical]: { dRow: 1, dCol: 0 },
@@ -25,18 +23,10 @@ export class XOXOGame {
     this.board = new XOXOBoard(settings.boardSize);
   }
 
-  public makeMove(
-    row: number,
-    col: number,
-    playerId: number,
-    playerSymbol: string,
-  ): MoveStatus {
+  public makeMove(row: number, col: number, playerId: number, playerSymbol: string): MoveStatus {
     if (!this.isRunning) return MoveStatus.GAME_OVER;
 
-    if (
-      !this.board.isInsideBounds(row, col) ||
-      this.board.getCell(row, col) !== 0
-    ) {
+    if (!this.board.isInsideBounds(row, col) || this.board.getCell(row, col) !== 0) {
       return MoveStatus.OCCUPIED;
     }
 
@@ -60,13 +50,7 @@ export class XOXOGame {
     playerSymbol: string,
   ): GameResult | null {
     for (const type in DIRECTIONS) {
-      const result = this.checkDirection(
-        col,
-        row,
-        type as DirectionType,
-        playerId,
-        playerSymbol,
-      );
+      const result = this.checkDirection(col, row, type as DirectionType, playerId, playerSymbol);
       if (result) return result;
     }
 
@@ -89,10 +73,7 @@ export class XOXOGame {
 
     let r = row + dRow;
     let c = col + dCol;
-    while (
-      this.board.isInsideBounds(r, c) &&
-      this.board.getCell(r, c) === playerId
-    ) {
+    while (this.board.isInsideBounds(r, c) && this.board.getCell(r, c) === playerId) {
       line.push({ row: r, col: c });
       r += dRow;
       c += dCol;
@@ -100,23 +81,16 @@ export class XOXOGame {
 
     r = row - dRow;
     c = col - dCol;
-    while (
-      this.board.isInsideBounds(r, c) &&
-      this.board.getCell(r, c) === playerId
-    ) {
+    while (this.board.isInsideBounds(r, c) && this.board.getCell(r, c) === playerId) {
       line.unshift({ row: r, col: c });
       r -= dRow;
       c -= dCol;
     }
 
     if (line.length >= this.settings.winCon) {
-      Logger.log(EventActor.Game, `Win detected for player ${playerId}`);
-      return GameResult.createWin(playerSymbol, type as WinType, line);
+      return null;
     }
-
-    return null;
   }
-
   public getValidMoves(): { row: number; col: number }[] {
     const moves = [];
     for (let row = 0; row < this.board.size; row++) {
@@ -143,10 +117,7 @@ export class XOXOGame {
       for (const factor of [1, -1]) {
         let r = row + dRow * factor;
         let c = col + dCol * factor;
-        while (
-          this.board.isInsideBounds(r, c) &&
-          this.board.getCell(r, c) === playerId
-        ) {
+        while (this.board.isInsideBounds(r, c) && this.board.getCell(r, c) === playerId) {
           count++;
           r += dRow * factor;
           c += dCol * factor;

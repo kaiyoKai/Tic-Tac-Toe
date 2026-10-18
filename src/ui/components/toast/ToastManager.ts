@@ -1,14 +1,10 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { AppEvent, EventActor } from "@events/EventTypes.js";
-import { Subscribe } from "@events/Decorators.js";
 
 @customElement("toast-manager")
 export class ToastManager extends LitElement {
   @state() private messages: { id: number; text: string; type: string }[] = [];
   private counter = 0;
-
-  @Subscribe(AppEvent.UI.ToastRequested, EventActor.WebUI)
   onToast(data: { message: string; type?: string }) {
     const id = this.counter++;
     const type = data.type || "info";
@@ -89,9 +85,7 @@ export class ToastManager extends LitElement {
 
   render() {
     return html`
-      ${this.messages.map(
-        (m) => html` <div class="toast ${m.type}">${m.text}</div> `,
-      )}
+      ${this.messages.map((m) => html` <div class="toast ${m.type}">${m.text}</div> `)}
     `;
   }
 }

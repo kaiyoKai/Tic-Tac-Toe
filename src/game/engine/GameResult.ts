@@ -12,11 +12,7 @@ export class GameResult {
     Object.freeze(this);
   }
 
-  static createWin(
-    winner: string,
-    type: WinType,
-    positions: Position[],
-  ): GameResult {
+  static createWin(winner: string, type: WinType, positions: Position[]): GameResult {
     return new GameResult(winner, type, positions);
   }
 

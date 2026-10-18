@@ -1,10 +1,4 @@
-import { Logger } from "@shared/Logger.js";
-import {
-  Difficulty,
-  type PlayerSymbol,
-  type Position,
-} from "@shared/Common.js";
-import { EventActor } from "@events/EventTypes.js";
+import { Difficulty, type PlayerSymbol, type Position } from "@shared/Common.js";
 import type { Player } from "@players/Player.ts";
 import type { MoveStrategy } from "@players/strategies/MovesStrategy.js";
 import { RandomStrategy } from "@players/strategies/RandomStrategy.js";
@@ -35,7 +29,6 @@ export class Bot implements Player {
     if (this.difficulty === difficulty) return;
     this.difficulty = difficulty;
     this.strategy = StrategyMap[difficulty];
-    Logger.log(EventActor.Bot, `Bot Strategy changed to: ${difficulty}`);
   }
 
   public getMove(game: XOXOGame) {

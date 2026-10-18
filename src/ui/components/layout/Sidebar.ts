@@ -2,13 +2,10 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { map } from "lit/directives/map.js";
 import { Icons } from "@components/icons/Icons.js";
-import { Emit } from "@events/Decorators.ts";
-import { AppEvent, EventActor } from "@events/EventTypes.ts";
 import type { DirectiveResult } from "lit/directive.js";
 import type { UnsafeSVGDirective } from "lit/directives/unsafe-svg.js";
 
-export type NavIcon =
-  TemplateResult | DirectiveResult<typeof UnsafeSVGDirective> | string;
+export type NavIcon = TemplateResult | DirectiveResult<typeof UnsafeSVGDirective> | string;
 
 export interface NavItem {
   id: string;
@@ -124,11 +121,7 @@ export class SideBar extends LitElement {
     }
     .menu-item.active {
       color: var(--primary-accent, #007bff);
-      background-color: color-mix(
-        in srgb,
-        var(--primary-accent) 15%,
-        transparent
-      );
+      background-color: color-mix(in srgb, var(--primary-accent) 15%, transparent);
     }
     .menu-item.active .icon {
       fill: var(--primary-accent, #007bff);
@@ -285,10 +278,6 @@ export class SideBar extends LitElement {
     }
   `;
 
-  @Emit(AppEvent.UI.DialogOpenRequested, EventActor.WebUI)
-  private requestDialog(dialogId: string) {
-    return dialogId;
-  }
   private handleNav(item: NavItem) {
     if (this.collapsed) this.toggleCollapse(false);
     if (item.children) {
@@ -296,7 +285,8 @@ export class SideBar extends LitElement {
     } else {
       this.activeTab = item.id;
       if (item.dialog) {
-        this.requestDialog(item.dialog);
+        throw Error("TODO: STUFF");
+        //this.requestDialog(item.dialog);
       }
     }
   }
@@ -314,18 +304,14 @@ export class SideBar extends LitElement {
 
     return html`
       <div
-        class="menu-item ${isSubItem ? "sub-item" : ""} ${
-          isActive ? "active" : ""
-        }"
+        class="menu-item ${isSubItem ? "sub-item" : ""} ${isActive ? "active" : ""}"
         @click="${() => this.handleNav(item)}"
       >
         ${item.icon ? html`<span class="icon">${item.icon}</span>` : ""}
         <span class="label">${item.label}</span>
         ${
           hasChildren
-            ? html`<span class="chevron ${isOpen ? "open" : ""}"
-                >${Icons.Chevron}</span
-              >`
+            ? html`<span class="chevron ${isOpen ? "open" : ""}">${Icons.Chevron}</span>`
             : ""
         }
       </div>

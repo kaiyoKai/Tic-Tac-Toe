@@ -1,12 +1,8 @@
-import { Emit, Subscribe } from "@events/Decorators.ts";
-
 import { LitElement, html, css } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { GameSettings } from "@engine/GameSettings.ts";
 import { GameMode, Difficulty } from "@shared/Common.ts";
 import "./BaseDialog.js";
-import { globalEventBus } from "@events/EventBus.ts";
-import { AppEvent, EventActor } from "@events/EventTypes.ts";
 
 @customElement("lobby-dialog")
 export class LobbyDialog extends LitElement {
@@ -18,18 +14,6 @@ export class LobbyDialog extends LitElement {
 
   public show() {
     this.baseDialog.show();
-  }
-
-  @Emit(AppEvent.UI.SettingsChangeRequested, EventActor.WebUI)
-  private applySettings() {
-    const settings = new GameSettings(
-      this.gameMode.value as GameMode,
-      parseInt(this.boardSize.value),
-      parseInt(this.winCondition.value),
-      this.difficulty.value as Difficulty,
-    );
-    this.baseDialog.close();
-    return settings;
   }
 
   static styles = css``;
@@ -65,7 +49,9 @@ export class LobbyDialog extends LitElement {
         </div>
         <div slot="footer">
           <button @click="${() => this.baseDialog.close()}">Abbrechen</button>
-          <button class="btn primary" @click="${this.applySettings}">
+          <button class="btn primary" @click="${() => {
+            throw new Error("TODO");
+          }}">Klick mich</button>
             Speichern
           </button>
         </div>

@@ -1,6 +1,4 @@
-import { Logger } from "@shared/Logger.ts";
 import { MoveStatus, WinType } from "@shared/Common.js";
-import { EventActor } from "@events/EventTypes.ts";
 import { GameResult } from "@engine/GameResult.js";
 
 export const DIRECTIONS = {
@@ -34,9 +32,7 @@ export default class TicTacToe {
   }
 
   createBoard() {
-    this.board = Array.from({ length: this.size }, () =>
-      Array(this.size).fill(null),
-    );
+    this.board = Array.from({ length: this.size }, () => Array(this.size).fill(null));
   }
 
   move(row: number, col: number, symbol: string): MoveResponse {
@@ -51,7 +47,6 @@ export default class TicTacToe {
     this.turn++;
 
     const matchResult = this.isFinished(row, col);
-    this.displayBoardStringBetter();
 
     if (matchResult !== null) {
       this.gameOver = true;
@@ -109,29 +104,16 @@ export default class TicTacToe {
     }
 
     if (line.length >= this.winCon) {
-      Logger.log(EventActor.Game, line);
-      return GameResult.createWin(symbol, type as WinType, line);
+      return null;
     }
-
-    return null;
   }
-
   public isInsideBounds(row: number, col: number, boardLength: number) {
     return row >= 0 && row < boardLength && col >= 0 && col < boardLength;
   }
 
-  public checkWinOnBoard(
-    board: (string | null)[][],
-    row: number,
-    col: number,
-  ): GameResult | null {
+  public checkWinOnBoard(board: (string | null)[][], row: number, col: number): GameResult | null {
     for (const type in DIRECTIONS) {
-      const result = this.checkDirection(
-        row,
-        col,
-        type as DirectionType,
-        board,
-      );
+      const result = this.checkDirection(row, col, type as DirectionType, board);
       if (result) return result;
     }
     return null;
@@ -157,15 +139,6 @@ export default class TicTacToe {
         boardString += "  [" + this.board[row][col] + "]  ";
       }
     }
-    Logger.log(EventActor.Game, "Board Test:");
-    Logger.log(EventActor.Game, "Current turn:" + this.turn);
-    Logger.log(EventActor.Game, boardString);
-  }
-
-  public displayBoardStringBetter() {
-    Logger.log(EventActor.Game, "Board Test:");
-    Logger.log(EventActor.Game, "Current turn:" + this.turn);
-    Logger.table(EventActor.Game, this.board);
   }
 
   public getTotalCells(): number {

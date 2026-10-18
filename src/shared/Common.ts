@@ -15,9 +15,7 @@ export function assertPlayerSymbol(symbol: string): PlayerSymbol {
   const length = [...segmenter.segment(symbol)].length;
   if (length !== 1) {
     //changing the error later
-    throw new Error(
-      `Invalides symbol:${symbol} es darf nur eine anzeige length von 1 haben`,
-    );
+    throw new Error(`Invalides symbol:${symbol} es darf nur eine anzeige length von 1 haben`);
   }
   return symbol as PlayerSymbol;
 }

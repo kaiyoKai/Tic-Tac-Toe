@@ -69,14 +69,7 @@ export const Icons = {
     fill="currentColor"
   >
     <circle cx="96" cy="96" r="74" stroke="#000000" stroke-width="12" />
-    <ellipse
-      cx="96"
-      cy="96"
-      stroke="#000000"
-      stroke-width="12"
-      rx="30"
-      ry="74"
-    />
+    <ellipse cx="96" cy="96" stroke="#000000" stroke-width="12" rx="30" ry="74" />
     <path
       stroke="#000000"
       stroke-linecap="round"
@@ -94,11 +87,7 @@ export const Icons = {
     stroke="#000000"
     stroke-width="0.00024000000000000003"
   >
-    <g
-      id="SVGRepo_bgCarrier"
-      stroke-width="0"
-      transform="translate(0,0), scale(1)"
-    >
+    <g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(0,0), scale(1)">
       <rect
         x="-2.4"
         y="-2.4"

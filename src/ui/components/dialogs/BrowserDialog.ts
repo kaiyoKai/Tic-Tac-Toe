@@ -14,10 +14,6 @@ interface Lobby {
 export class BrowserDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
 
-  static busEvents = {
-    "join-lobby": "ui:join-lobby-requested",
-  };
-
   @state() private lobbys: Lobby[] = [
     {
       id: "1",
@@ -132,8 +128,8 @@ export class BrowserDialog extends LitElement {
                 <div class="lobby-info">
                   <span class="lobby-name">${l.name}</span>
                   <span class="lobby-stats">
-                    Spieler: ${l.currentPlayers}/${l.maxPlayers} | Ping:
-                    ${l.ping}ms ${l.isPrivate ? "🔒" : "🔓"}
+                    Spieler: ${l.currentPlayers}/${l.maxPlayers} | Ping: ${l.ping}ms
+                    ${l.isPrivate ? "🔒" : "🔓"}
                   </span>
                 </div>
                 <button class="btn-primary">Beitreten</button>

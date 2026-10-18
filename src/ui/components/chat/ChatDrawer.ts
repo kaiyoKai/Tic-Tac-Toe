@@ -1,7 +1,4 @@
 import { repeat } from "lit/directives/repeat.js";
-import { globalEventBus } from "@events/EventBus.ts";
-import { AppEvent, EventActor } from "@events/EventTypes.ts";
-import { Subscribe } from "@events/Decorators.ts";
 import { LitElement, html, css, type PropertyValues } from "lit";
 import { customElement, state, query, property } from "lit/decorators.js";
 import type { ChatMessage } from "@shared/Common.ts";
@@ -209,20 +206,15 @@ export class ChatDrawer extends LitElement {
   }
 
   private sendMessage() {
-    const messageContent = this.input.value.trim();
-    if (!messageContent) return;
-
-    globalEventBus.emit(AppEvent.Chat.MessageSent, EventActor.WebUI, {
-      content: messageContent,
-      sender: "Du",
-      timestamp: Date.now(),
-    });
+    const message = {
+      content: "TODO",
+      sender: "TODO",
+      timestamp: 0,
+    } satisfies ChatMessage;
 
     this.input.value = "";
     this.input.style.height = "auto";
   }
-
-  @Subscribe(AppEvent.Chat.MessageSent, EventActor.WebUI)
   public onChatMessage(message: ChatMessage) {
     this.messages = [
       ...this.messages,
@@ -230,7 +222,7 @@ export class ChatDrawer extends LitElement {
         content: message.content,
         sender: message.sender,
         timestamp: message.timestamp,
-      },
+      } satisfies ChatMessage,
     ];
   }
 

@@ -2,8 +2,6 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { ThemeMap, type ThemeKey } from "@ui/Theme.ts";
-import { AppEvent, EventActor } from "@events/EventTypes.ts";
-import { Emit, Subscribe } from "@events/Decorators.ts";
 
 import "@components/layout/Sidebar.js";
 import "@components/game/GameBoard.js";
@@ -14,7 +12,6 @@ import "@components/dialogs/LobbyDialog.js";
 import "@components/dialogs/BrowserDialog.js";
 import "@components/toast/ToastManager.js";
 import { GameSettings } from "@game/engine/GameSettings.ts";
-import { globalEventBus } from "@events/EventBus.ts";
 
 @customElement("xoxo-web-app")
 export class XoxoWebApp extends LitElement {
@@ -29,7 +26,6 @@ export class XoxoWebApp extends LitElement {
   }
 
   static styles = css`
-    /* Deine Styles bleiben unverändert... */
     :host {
       display: flex;
       width: 100vw;
@@ -95,23 +91,17 @@ export class XoxoWebApp extends LitElement {
       color: var(--bg-color);
     }
   `;
-
-  @Subscribe(AppEvent.UI.DialogOpenRequested, EventActor.WebUI)
   public handleDialogOpen(dialogTag: string) {
     const dialogElement = this.shadowRoot?.querySelector(dialogTag) as any;
     if (dialogElement && typeof dialogElement.show === "function") {
       dialogElement.show();
     }
   }
-
-  @Subscribe(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
   public saveButtonShape(cellRadiusPercent: string) {
     // State aktualisieren, damit das Board beim Rendern den neuen Wert bekommt
     this.savedRadius = cellRadiusPercent;
     localStorage.setItem("btn-shape-radius", cellRadiusPercent);
   }
-
-  @Subscribe(AppEvent.UI.ThemeChanged, EventActor.WebUI)
   public changeTheme(themeName: ThemeKey, skipTransition = false): void {
     const theme = ThemeMap[themeName];
     if (!theme) return;
@@ -133,20 +123,16 @@ export class XoxoWebApp extends LitElement {
       performUpdate();
     }
   }
-
-  @Subscribe(AppEvent.UI.AppEndRequested, EventActor.WebUI)
   endApp() {
     this.isPlaying = false;
   }
 
   private initializeUIState(): void {
-    const savedTheme =
-      (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
+    const savedTheme = (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
     this.changeTheme(savedTheme, true);
 
     this.savedRadius = localStorage.getItem("btn-shape-radius") || "5%";
   }
-  @Subscribe(AppEvent.Game.Start, EventActor.Controller)
   public OnStartGame(data?: any) {
     if (data?.settings) {
       this.activeSettings = Object.assign(new GameSettings(), data.settings);
@@ -154,38 +140,31 @@ export class XoxoWebApp extends LitElement {
       this.requestUpdate();
     }
   }
-  @Subscribe(AppEvent.UI.SettingsChangeRequested, EventActor.WebUI)
+
   public syncSettingsFromDialog(newSettings: GameSettings) {
     this.activeSettings = Object.assign(new GameSettings(), newSettings);
   }
 
   public requestGameStart() {
-    globalEventBus.emit(
-      AppEvent.UI.GameStartRequested,
-      EventActor.WebUI,
-      this.activeSettings,
-    );
-  }
-  render() {
     return html`
       <side-bar></side-bar>
       <main class="${classMap({ "is-playing": this.isPlaying })}">
         <game-logo></game-logo>
 
-        ${this.isPlaying
-          ? html`
-              <div class="board-wrapper">
-                <game-board
-                  .settings="${this.activeSettings}"
-                  .cellRadius="${this.savedRadius}"
-                ></game-board>
-              </div>
-            `
-          : html`
-              <button class="start-btn" @click="${this.requestGameStart}">
-                SPIEL STARTEN
-              </button>
-            `}
+        ${
+          this.isPlaying
+            ? html`
+                <div class="board-wrapper">
+                  <game-board
+                    .settings="${this.activeSettings}"
+                    .cellRadius="${this.savedRadius}"
+                  ></game-board>
+                </div>
+              `
+            : html`
+                <button class="start-btn" @click="${this.requestGameStart}">SPIEL STARTEN</button>
+              `
+        }
       </main>
       <chat-drawer></chat-drawer>
       <profile-dialog></profile-dialog>
@@ -193,14 +172,5 @@ export class XoxoWebApp extends LitElement {
       <lobby-dialog></lobby-dialog>
       <browser-dialog></browser-dialog>
     `;
-  }
-
-  @Emit(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
-  private initializeButtonState() {
-    return this.savedRadius;
-  }
-
-  protected firstUpdated() {
-    this.initializeButtonState();
   }
 }

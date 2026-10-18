@@ -4,17 +4,13 @@ import { ThemeMap, type ThemeKey } from "@ui/Theme.ts";
 import { assertPlayerSymbol } from "@shared/Common.ts";
 import "emoji-picker-element";
 import "./BaseDialog.js";
-import { globalEventBus } from "@events/EventBus.ts";
-import { AppEvent, EventActor } from "@events/EventTypes.ts";
-import { Emit } from "@events/Decorators.ts";
 
 @customElement("profile-dialog")
 export class ProfileDialog extends LitElement {
   @query("base-dialog") private baseDialog!: any;
   @state() public selectedThemeName: ThemeKey =
     (localStorage.getItem("user-theme") as ThemeKey) || "Catppuccin";
-  @state() private buttonShape: string =
-    localStorage.getItem("btn-shape") || "square";
+  @state() private buttonShape: string = localStorage.getItem("btn-shape") || "square";
 
   @state() private username: string = "Kai";
   @state() private symbol: string = "X";
@@ -55,20 +51,8 @@ export class ProfileDialog extends LitElement {
 
   private handleThemeChange(e: Event) {
     const select = e.target as HTMLSelectElement;
-    const theme = select.value as ThemeKey;
-    this.selectedThemeName = theme;
-
-    globalEventBus.emit(AppEvent.UI.ThemeChanged, EventActor.WebUI, theme);
   }
 
-  @Emit(AppEvent.UI.ButtonShapeChanged, EventActor.WebUI)
-  private handleShapeChange(shape: "rounded" | "square") {
-    this.buttonShape = shape;
-    const radius = shape === "rounded" ? "50%" : "5%";
-    return radius;
-  }
-
-  @Emit(AppEvent.UI.ProfileChangeRequested, EventActor.WebUI)
   private saveAndClose() {
     const user = {
       username: this.username,
@@ -96,12 +80,7 @@ export class ProfileDialog extends LitElement {
           <select @change="${this.handleThemeChange}">
             ${(Object.keys(ThemeMap) as ThemeKey[]).map(
               (key) => html`
-                <option
-                  value="${key}"
-                  ?selected="${key === this.selectedThemeName}"
-                >
-                  ${key}
-                </option>
+                <option value="${key}" ?selected="${key === this.selectedThemeName}">${key}</option>
               `,
             )}
           </select>
@@ -113,7 +92,9 @@ export class ProfileDialog extends LitElement {
                 type="radio"
                 name="shape"
                 ?checked="${this.buttonShape === "rounded"}"
-                @change="${() => this.handleShapeChange("rounded")}"
+                @change="${() => {
+                  throw new Error("TODO");
+                }}"
               />
               Rund
             </label>
@@ -122,7 +103,9 @@ export class ProfileDialog extends LitElement {
                 type="radio"
                 name="shape"
                 ?checked="${this.buttonShape === "square"}"
-                @change="${() => this.handleShapeChange("square")}"
+                @change="${() => {
+                  throw new Error("TODO");
+                }}"
               />
               Eckig
             </label>

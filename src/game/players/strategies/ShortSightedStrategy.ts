@@ -4,10 +4,7 @@ import { XOXOGame } from "@engine/XOXOGame.js";
 
 //Kleine Erklärung falls man selbst eine Strategy machen will:
 export const ShortSightedStrategy: MoveStrategy = {
-  async determineMove(
-    game: XOXOGame,
-    myUserId: number,
-  ): Promise<Position | undefined> {
+  async determineMove(game: XOXOGame, myUserId: number): Promise<Position | undefined> {
     const validMoves = game.getValidMoves();
     if (validMoves.length === 0) return undefined;
 
