@@ -1,5 +1,10 @@
 # TicTacToe 👣 (weil Toe checkt ihr?)
 
+> [!NOTE]
+> ⚠️ **Status: Legacy / Feature-Frozen**  
+> **[EN]** This repository was an exploratory prototype for bot strategies (Strategy Pattern) and TypeScript architecture. The project is currently being rewritten from scratch with a fine-grained reactive architecture (TC39 Signals & Web Components) in the successor repository **[Project XOXO](https://github.com/kaiyoKai/projectXOXO)**.  
+> **[DE]** Ursprüngliche Spielwiese für Bot-Strategien und MVC-Struktur. Die moderne Neuauflage mit feingranularer Reaktivität entsteht drüben im Nachfolgeprojekt **[Project XOXO](https://github.com/kaiyoKai/projectXOXO)**.
+
 Ein nicht mehr ganz so simples TicTacToe-Spiel, das mittlerweile mehr Over-Engineering enthält als notwendig. Ursprünglich als kleines JS-Skript gestartet, ist es jetzt ein TypeScript-Projekt mit Architektur-Patterns, weil... warum nicht?
 
 ## Features
