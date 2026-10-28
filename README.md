@@ -1,4 +1,4 @@
-# TicTacToe 👣 (weil Toe checkt ihr?)
+# TicTacToe  
 
 > [!NOTE]
 > ⚠️ **Status: Legacy / Feature-Frozen**  
